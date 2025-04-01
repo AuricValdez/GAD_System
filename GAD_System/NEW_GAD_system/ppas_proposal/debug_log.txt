@@ -1,0 +1,65 @@
+Script started at 2025-03-28 06:09:02
+Database connection included
+Processing request
+Received form data: Array
+(
+    [year] => 2028
+    [quarter] => Q1
+    [titleSelector] => 2
+    [activityTitle] => Test Activity1
+    [project] => Test Project
+    [program] => Test Program1
+    [startDate] => 2025-03-27
+    [endDate] => 2025-03-28
+    [venue] => Test Location
+    [deliveryMode] => online
+    [projectLeaders] => Fryan Auric L. Valdez
+    [projectLeadersHidden] => 124
+    [leaderResponsibilities] => w
+    [assistantProjectLeaders] => Elbert D. Nebres
+    [assistantProjectLeadersHidden] => 117
+    [assistantResponsibilities] => w
+    [projectStaff] => Test
+    [projectStaffHidden] => 132
+    [staffResponsibilities] => w
+ww
+w
+    [partnerOffices] => w
+    [maleBeneficiaries] => 1
+    [femaleBeneficiaries] => 1
+    [totalBeneficiaries] => 2
+    [rationale] => ww
+    [specificObjectives] => w
+    [strategies] => w
+    [activity_title_1] => w
+    [activity_details_1] => w
+    [activity_title_2] => w
+    [activity_details_2] => w
+    [budgetSource] => GAA
+    [totalBudget] => 2
+    [budgetBreakdown] => w
+    [sustainabilityPlan] => w
+    [currentProposalId] => 
+)
+
+Database transaction started
+SQL Query: INSERT INTO gad_proposals (
+                year, quarter, activity_title, start_date, end_date, venue, delivery_mode, 
+                ppas_id, project_leaders, leader_responsibilities, assistant_project_leaders, 
+                assistant_responsibilities, project_staff, staff_responsibilities, 
+                partner_offices, male_beneficiaries, female_beneficiaries, total_beneficiaries, 
+                rationale, specific_objectives, strategies, budget_source, total_budget, 
+                budget_breakdown, sustainability_plan, created_at
+            ) VALUES (
+                :year, :quarter, :activityTitle, :startDate, :endDate, :venue, :deliveryMode, 
+                :ppasId, :projectLeaders, :leaderResponsibilities, :assistantProjectLeaders, 
+                :assistantResponsibilities, :projectStaff, :staffResponsibilities, 
+                :partnerOffices, :maleBeneficiaries, :femaleBeneficiaries, :totalBeneficiaries, 
+                :rationale, :specificObjectives, :strategies, :budgetSource, :totalBudget, 
+                :budgetBreakdown, :sustainabilityPlan, CURRENT_TIMESTAMP
+            )
+About to execute main insert query
+Main insert query executed successfully
+Transaction committed successfully
+Script started at 2025-03-28 06:32:05
+Script started at 2025-03-28 06:35:04
