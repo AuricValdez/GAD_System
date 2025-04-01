@@ -1535,6 +1535,8 @@ session_start();
                                     <th>Campus</th>
                                     <th>Quarter</th>
                                     <th>Approved Budget</th>
+                                    <th>PS Attribution</th>
+                                    <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody id="budget-activities-table-body">
@@ -1542,15 +1544,15 @@ session_start();
                             </tbody>
                             <tfoot>
                                 <tr class="summary-row">
-                                    <td colspan="3"><strong>Total Budget Utilized</strong></td>
+                                    <td colspan="5"><strong>Total Budget Utilized</strong></td>
                                     <td id="total-budget-utilized">₱0.00</td>
                                 </tr>
                                 <tr class="summary-row">
-                                    <td colspan="3"><strong>Total GAD Fund</strong></td>
+                                    <td colspan="5"><strong>Total GAD Fund</strong></td>
                                     <td id="total-gad-fund">₱0.00</td>
                                 </tr>
                                 <tr class="summary-row highlight-row">
-                                    <td colspan="3"><strong>Remaining Budget</strong></td>
+                                    <td colspan="5"><strong>Remaining Budget</strong></td>
                                     <td id="remaining-budget">₱0.00</td>
                                 </tr>
                             </tfoot>
@@ -1771,14 +1773,16 @@ session_start();
         // Get actual budget usage from ppas_forms for quarters up to current quarter
         if ($isCentral) {
             // For Central users, get data from all campuses
-            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
+            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget, SUM(ps_attribution) as total_ps_attribution FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
         } else {
-            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$userCampus' AND year = '$currentYear'";
+            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget, SUM(ps_attribution) as total_ps_attribution FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$userCampus' AND year = '$currentYear'";
         }
         $actualBudgetResult = mysqli_query($conn, $actualBudgetQuery);
         if ($actualBudgetResult && mysqli_num_rows($actualBudgetResult) > 0) {
             $actualBudgetRow = mysqli_fetch_assoc($actualBudgetResult);
             $actualBudget = floatval($actualBudgetRow['total_actual_budget']);
+            $psAttribution = floatval($actualBudgetRow['total_ps_attribution']);
+            $actualBudget += $psAttribution; // Include PS Attribution in the actual budget
         }
         
         // Get proposed activities from gpb_entries
@@ -2105,6 +2109,8 @@ session_start();
                                         <th>Campus</th>
                                         <th>Quarter</th>
                                         <th>Approved Budget</th>
+                                        <th>PS Attribution</th>
+                                        <th>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody id="budget-activities-table-body">
@@ -2112,15 +2118,15 @@ session_start();
                                 </tbody>
                                 <tfoot>
                                     <tr class="summary-row">
-                                        <td colspan="3"><strong>Total Budget Utilized</strong></td>
+                                        <td colspan="5"><strong>Total Budget Utilized</strong></td>
                                         <td id="total-budget-utilized">₱0.00</td>
                                     </tr>
                                     <tr class="summary-row">
-                                        <td colspan="3"><strong>Total GAD Fund</strong></td>
+                                        <td colspan="5"><strong>Total GAD Fund</strong></td>
                                         <td id="total-gad-fund">₱0.00</td>
                                     </tr>
                                     <tr class="summary-row highlight-row">
-                                        <td colspan="3"><strong>Remaining Budget</strong></td>
+                                        <td colspan="5"><strong>Remaining Budget</strong></td>
                                         <td id="remaining-budget">₱0.00</td>
                                     </tr>
                                 </tfoot>
@@ -3618,10 +3624,25 @@ document.addEventListener('click', function(e) {
             
             // Add additional metrics based on chart type
             if (chartType === 'budgetChart') {
+                const approvedBudget = data.approved_budget || 0;
+                const psAttribution = data.ps_attribution || 0;
                 const remaining = data.proposed - data.actual;
                 const remainingPercentage = data.proposed > 0 ? Math.round((remaining / data.proposed) * 100) : 0;
                 
+                // Add PS Attribution breakdown row
                 breakdownTable.innerHTML += `
+                    <tr>
+                        <td class="metric-name">Approved Budget</td>
+                        <td>-</td>
+                        <td>${formatValue(approvedBudget, chartType)}</td>
+                        <td class="percentage-cell">${approvedBudget > 0 ? Math.round((approvedBudget / data.actual) * 100) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">PS Attribution</td>
+                        <td>-</td>
+                        <td>${formatValue(psAttribution, chartType)}</td>
+                        <td class="percentage-cell">${psAttribution > 0 ? Math.round((psAttribution / data.actual) * 100) : 0}%</td>
+                    </tr>
                     <tr>
                         <td class="metric-name">Remaining Budget</td>
                         <td>-</td>
@@ -3669,14 +3690,17 @@ document.addEventListener('click', function(e) {
             let summaryText = '';
             
             if (chartType === 'budgetChart') {
+                const approvedBudget = data.approved_budget || 0;
+                const psAttribution = data.ps_attribution || 0;
+                
                 if (percentage >= 100) {
-                    summaryText = `The budget utilization has exceeded the allocated GAD Fund by ${Math.abs(data.relativePercentage)}%. This indicates high financial activity compared to the planned budget.`;
+                    summaryText = `The budget utilization has exceeded the allocated GAD Fund by ${Math.abs(data.relativePercentage)}%. This includes ₱${new Intl.NumberFormat().format(approvedBudget.toFixed(2))} from approved budgets and ₱${new Intl.NumberFormat().format(psAttribution.toFixed(2))} from PS Attribution.`;
                 } else if (percentage >= 75) {
-                    summaryText = `Budget utilization is at ${percentage}% of the allocated GAD Fund, which shows good progress towards financial targets.`;
+                    summaryText = `Budget utilization is at ${percentage}% of the allocated GAD Fund, which shows good progress towards financial targets. This comprises ₱${new Intl.NumberFormat().format(approvedBudget.toFixed(2))} from approved budgets and ₱${new Intl.NumberFormat().format(psAttribution.toFixed(2))} from PS Attribution.`;
                 } else if (percentage >= 50) {
-                    summaryText = `Budget utilization is at ${percentage}% of the allocated GAD Fund. Consider reviewing the implementation timeline to ensure complete utilization.`;
+                    summaryText = `Budget utilization is at ${percentage}% of the allocated GAD Fund. This includes ₱${new Intl.NumberFormat().format(approvedBudget.toFixed(2))} from approved budgets and ₱${new Intl.NumberFormat().format(psAttribution.toFixed(2))} from PS Attribution. Consider reviewing the implementation timeline to ensure complete utilization.`;
                 } else {
-                    summaryText = `Budget utilization is currently at ${percentage}% of the allocated GAD Fund. This may indicate delayed implementation or potential underspending.`;
+                    summaryText = `Budget utilization is currently at ${percentage}% of the allocated GAD Fund. This comprises ₱${new Intl.NumberFormat().format(approvedBudget.toFixed(2))} from approved budgets and ₱${new Intl.NumberFormat().format(psAttribution.toFixed(2))} from PS Attribution. This may indicate delayed implementation or potential underspending.`;
                 }
             } else if (chartType === 'activitiesChart') {
                 if (percentage >= 100) {
@@ -3768,6 +3792,19 @@ document.addEventListener('click', function(e) {
                 return '₱' + new Intl.NumberFormat().format(value.toFixed(2));
             };
             
+            // Update column headers
+            const headerRow = document.querySelector('#budget-utilization-analysis thead tr');
+            if (headerRow) {
+                headerRow.innerHTML = `
+                    <th>Activity</th>
+                    <th>Campus</th>
+                    <th>Quarter</th>
+                    <th>Approved Budget</th>
+                    <th>PS Attribution</th>
+                    <th>Total</th>
+                `;
+            }
+            
             // Populate table with activities
             data.detailed_data.forEach(item => {
                 const row = document.createElement('tr');
@@ -3776,6 +3813,8 @@ document.addEventListener('click', function(e) {
                     <td>${item.campus}</td>
                     <td>${item.quarter}</td>
                     <td>${formatCurrency(item.approved_budget)}</td>
+                    <td>${formatCurrency(item.ps_attribution)}</td>
+                    <td>${formatCurrency(item.total_budget)}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -3792,6 +3831,14 @@ document.addEventListener('click', function(e) {
                 remainingBudget.classList.add('text-danger');
             } else {
                 remainingBudget.classList.remove('text-danger');
+            }
+            
+            // Update breakdown summary with PS Attribution information
+            const breakdownSummary = document.getElementById('breakdown-summary');
+            if (breakdownSummary) {
+                breakdownSummary.innerHTML = `
+                    <p>The total budget utilization of ${formatCurrency(data.actual)} includes ${formatCurrency(data.approved_budget)} from approved budgets and ${formatCurrency(data.ps_attribution)} from PS Attribution.</p>
+                `;
             }
         }
 
