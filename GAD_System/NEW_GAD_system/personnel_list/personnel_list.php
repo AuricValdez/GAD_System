@@ -1760,8 +1760,8 @@ html {
                             </a>
                             <ul class="dropdown-menu dropdown-submenu" aria-labelledby="ppasDropdown">
                                 <li><a class="dropdown-item" href="../ppas_form/ppas.php">Main PPAs Form</a></li>
-                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal Form</a></li>
-                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Form</a></li>
+                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">PPAS Proposal</a></li>
+                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Report</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -1774,8 +1774,7 @@ html {
                         <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual GPB Reports</a></li>
                         <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly PPAs Reports</a></li>
                         <li><a class="dropdown-item" href="../ps_atrib/ps.php">PSA Reports</a></li>
-                        <li><a class="dropdown-item" href="../ppas_proposal/print_proposal.php">GAD Proposal Reports</a></li>
-                        <li><a class="dropdown-item" href="../narrative/print_narrative.php">Narrative Reports</a></li>
+                        <li><a class="dropdown-item" href="#">Quarterly Reports</a></li>
                     </ul>
                 </div>
             </nav>
@@ -4235,9 +4234,9 @@ function updateOtherGenderVisibility() {
                     
                     // Filter data based on user's campus if not admin
                     let filteredData = data.data;
-                    if ('<?php echo $_SESSION["role"]; ?>' !== 'admin') {
+                    if ('<?php echo isset($_SESSION["role"]) ? $_SESSION["role"] : ""; ?>' !== 'admin') {
                         filteredData = filteredData.filter(person => 
-                            person.campus === '<?php echo $_SESSION["username"]; ?>');
+                            person.campus === '<?php echo isset($_SESSION["username"]) ? $_SESSION["username"] : ""; ?>');
                     }
                     
                     // Check if each record has an ID
@@ -4385,7 +4384,7 @@ function updateOtherGenderVisibility() {
                 const campus = person.campus || '';
                 
                 // Add campus column for Central user
-                const campusColumn = '<?php echo $_SESSION["username"]; ?>' === 'Central' 
+                const campusColumn = '<?php echo isset($_SESSION["username"]) ? $_SESSION["username"] : ""; ?>' === 'Central' 
                     ? `<td>${campus}</td>` 
                     : '';
                 
