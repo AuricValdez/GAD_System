@@ -70,30 +70,33 @@ try {
         // Get actual budget usage from ppas_forms
         if ($isCentral && empty($campus)) {
             // For Central users with no campus filter, get data from all campuses
-            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
+            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget, SUM(ps_attribution) as total_ps_attribution FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$filterCampus' AND year = '$currentYear'";
+            $actualBudgetQuery = "SELECT SUM(approved_budget) as total_actual_budget, SUM(ps_attribution) as total_ps_attribution FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$filterCampus' AND year = '$currentYear'";
         }
         
         $actualBudgetResult = mysqli_query($conn, $actualBudgetQuery);
         if ($actualBudgetResult && mysqli_num_rows($actualBudgetResult) > 0) {
             $actualBudgetRow = mysqli_fetch_assoc($actualBudgetResult);
             $actualBudget = floatval($actualBudgetRow['total_actual_budget']);
-            $data['actual'] = $actualBudget;
+            $psAttribution = floatval($actualBudgetRow['total_ps_attribution']);
+            $data['actual'] = $actualBudget + $psAttribution;
+            $data['approved_budget'] = $actualBudget;
+            $data['ps_attribution'] = $psAttribution;
         }
         
         // Get detailed budget activities from ppas_forms
         $detailedBudgetData = [];
         if ($isCentral && empty($campus)) {
-            $detailedBudgetQuery = "SELECT activity, campus, quarter, approved_budget 
+            $detailedBudgetQuery = "SELECT activity, campus, quarter, approved_budget, ps_attribution 
                                    FROM ppas_forms 
                                    WHERE quarter IN ($quarterFilter) 
                                    AND year = '$currentYear' 
                                    ORDER BY campus, quarter, approved_budget DESC";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $detailedBudgetQuery = "SELECT activity, campus, quarter, approved_budget 
+            $detailedBudgetQuery = "SELECT activity, campus, quarter, approved_budget, ps_attribution 
                                    FROM ppas_forms 
                                    WHERE quarter IN ($quarterFilter) 
                                    AND campus = '$filterCampus' 
@@ -108,7 +111,9 @@ try {
                     'activity' => $row['activity'],
                     'campus' => $row['campus'],
                     'quarter' => $row['quarter'],
-                    'approved_budget' => floatval($row['approved_budget'])
+                    'approved_budget' => floatval($row['approved_budget']),
+                    'ps_attribution' => floatval($row['ps_attribution']),
+                    'total_budget' => floatval($row['approved_budget']) + floatval($row['ps_attribution'])
                 ];
             }
         }
