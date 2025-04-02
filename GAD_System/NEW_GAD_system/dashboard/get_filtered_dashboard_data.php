@@ -217,33 +217,53 @@ try {
         // Get proposed beneficiaries from gpb_entries
         if ($isCentral && empty($campus)) {
             // For Central users with no campus filter, get data from all campuses
-            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries FROM gpb_entries WHERE year = '$currentYear'";
+            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries, 
+                                 SUM(male_participants) as total_proposed_male,
+                                 SUM(female_participants) as total_proposed_female 
+                                 FROM gpb_entries WHERE year = '$currentYear'";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries FROM gpb_entries WHERE campus = '$filterCampus' AND year = '$currentYear'";
+            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries,
+                                 SUM(male_participants) as total_proposed_male,
+                                 SUM(female_participants) as total_proposed_female 
+                                 FROM gpb_entries WHERE campus = '$filterCampus' AND year = '$currentYear'";
         }
         
         $beneficiariesResult = mysqli_query($conn, $beneficiariesQuery);
         if ($beneficiariesResult && mysqli_num_rows($beneficiariesResult) > 0) {
             $beneficiariesRow = mysqli_fetch_assoc($beneficiariesResult);
             $proposedBeneficiaries = intval($beneficiariesRow['total_proposed_beneficiaries']);
+            $proposedMale = intval($beneficiariesRow['total_proposed_male']);
+            $proposedFemale = intval($beneficiariesRow['total_proposed_female']);
             $data['proposed'] = $proposedBeneficiaries;
+            $data['proposed_male'] = $proposedMale;
+            $data['proposed_female'] = $proposedFemale;
         }
         
         // Get actual beneficiaries from ppas_forms
         if ($isCentral && empty($campus)) {
             // For Central users with no campus filter, get data from all campuses
-            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
+            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries,
+                                       SUM(total_male) as total_actual_male,
+                                       SUM(total_female) as total_actual_female 
+                                       FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$filterCampus' AND year = '$currentYear'";
+            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries,
+                                       SUM(total_male) as total_actual_male,
+                                       SUM(total_female) as total_actual_female 
+                                       FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$filterCampus' AND year = '$currentYear'";
         }
         
         $actualBeneficiariesResult = mysqli_query($conn, $actualBeneficiariesQuery);
         if ($actualBeneficiariesResult && mysqli_num_rows($actualBeneficiariesResult) > 0) {
             $actualBeneficiariesRow = mysqli_fetch_assoc($actualBeneficiariesResult);
             $actualBeneficiaries = intval($actualBeneficiariesRow['total_actual_beneficiaries']);
+            $actualMale = intval($actualBeneficiariesRow['total_actual_male']);
+            $actualFemale = intval($actualBeneficiariesRow['total_actual_female']);
             $data['actual'] = $actualBeneficiaries;
+            $data['actual_male'] = $actualMale;
+            $data['actual_female'] = $actualFemale;
         }
         
         // Get detailed beneficiaries by gender issue
@@ -251,13 +271,13 @@ try {
         
         // First get all gender issues from gpb_entries
         if ($isCentral && empty($campus)) {
-            $genderIssuesQuery = "SELECT id, gender_issue, campus, total_participants 
+            $genderIssuesQuery = "SELECT id, gender_issue, campus, total_participants, male_participants, female_participants 
                                  FROM gpb_entries 
                                  WHERE year = '$currentYear' 
                                  ORDER BY campus, gender_issue";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $genderIssuesQuery = "SELECT id, gender_issue, campus, total_participants 
+            $genderIssuesQuery = "SELECT id, gender_issue, campus, total_participants, male_participants, female_participants 
                                  FROM gpb_entries 
                                  WHERE campus = '$filterCampus' 
                                  AND year = '$currentYear' 
@@ -271,9 +291,13 @@ try {
                 $genderIssue = $row['gender_issue'];
                 $campus = $row['campus'];
                 $proposedBeneficiaries = intval($row['total_participants']);
+                $proposedMale = intval($row['male_participants']);
+                $proposedFemale = intval($row['female_participants']);
                 
                 // Sum actual beneficiaries for this gender issue
-                $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as actual_count 
+                $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as actual_count,
+                                           SUM(total_male) as actual_male,
+                                           SUM(total_female) as actual_female 
                                            FROM ppas_forms 
                                            WHERE gender_issue_id = '$genderIssueId' 
                                            AND quarter IN ($quarterFilter) 
@@ -281,10 +305,14 @@ try {
                 
                 $actualBeneficiariesResult = mysqli_query($conn, $actualBeneficiariesQuery);
                 $actualBeneficiaries = 0;
+                $actualMale = 0;
+                $actualFemale = 0;
                 
                 if ($actualBeneficiariesResult && mysqli_num_rows($actualBeneficiariesResult) > 0) {
                     $actualRow = mysqli_fetch_assoc($actualBeneficiariesResult);
                     $actualBeneficiaries = intval($actualRow['actual_count'] ?? 0);
+                    $actualMale = intval($actualRow['actual_male'] ?? 0);
+                    $actualFemale = intval($actualRow['actual_female'] ?? 0);
                 }
                 
                 // Calculate remaining and completion percentage
@@ -295,7 +323,11 @@ try {
                     'gender_issue' => $genderIssue,
                     'campus' => $campus,
                     'proposed_beneficiaries' => $proposedBeneficiaries,
+                    'proposed_male' => $proposedMale,
+                    'proposed_female' => $proposedFemale,
                     'actual_beneficiaries' => $actualBeneficiaries,
+                    'actual_male' => $actualMale,
+                    'actual_female' => $actualFemale,
                     'remaining' => $remaining,
                     'completion' => $completion
                 ];
