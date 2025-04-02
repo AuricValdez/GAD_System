@@ -1507,6 +1507,30 @@ session_start();
             color: var(--text-secondary);
             font-style: italic;
         }
+
+        .detailed-analysis-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .gender-breakdown {
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .gender-breakdown .male {
+            color: #3b82f6;
+            margin-right: 12px;
+        }
+
+        .gender-breakdown .female {
+            color: #ec4899;
+        }
+
+        .detailed-analysis-table tfoot tr {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1600,8 +1624,8 @@ session_start();
                                 <tr>
                                     <th>Gender Issue</th>
                                     <th>Campus</th>
-                                    <th>Proposed Beneficiaries</th>
-                                    <th>Actual Beneficiaries</th>
+                                    <th>Proposed</th>
+                                    <th>Actual</th>
                                     <th>Remaining</th>
                                     <th>Completion</th>
                                 </tr>
@@ -2174,8 +2198,8 @@ session_start();
                                     <tr>
                                         <th>Gender Issue</th>
                                         <th>Campus</th>
-                                        <th>Proposed Beneficiaries</th>
-                                        <th>Actual Beneficiaries</th>
+                                        <th>Proposed</th>
+                                        <th>Actual</th>
                                         <th>Remaining</th>
                                         <th>Completion</th>
                                     </tr>
@@ -3650,6 +3674,25 @@ document.addEventListener('click', function(e) {
                         <td class="percentage-cell">${remainingPercentage}%</td>
                     </tr>
                 `;
+            } else if (chartType === 'beneficiariesChart') {
+                // Add gender breakdown rows
+                const malePercentage = data.proposed_male > 0 ? Math.round((data.actual_male / data.proposed_male) * 100) : 0;
+                const femalePercentage = data.proposed_female > 0 ? Math.round((data.actual_female / data.proposed_female) * 100) : 0;
+                
+                breakdownTable.innerHTML += `
+                    <tr>
+                        <td class="metric-name">Male Beneficiaries</td>
+                        <td>${new Intl.NumberFormat().format(data.proposed_male)}</td>
+                        <td>${new Intl.NumberFormat().format(data.actual_male)}</td>
+                        <td class="percentage-cell ${malePercentage >= 100 ? 'percentage-positive' : 'percentage-negative'}">${malePercentage}%</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Female Beneficiaries</td>
+                        <td>${new Intl.NumberFormat().format(data.proposed_female)}</td>
+                        <td>${new Intl.NumberFormat().format(data.actual_female)}</td>
+                        <td class="percentage-cell ${femalePercentage >= 100 ? 'percentage-positive' : 'percentage-negative'}">${femalePercentage}%</td>
+                    </tr>
+                `;
             }
             
             // Add per quarter estimated values
@@ -3713,14 +3756,29 @@ document.addEventListener('click', function(e) {
                     summaryText = `Only ${percentage}% of planned activities have been completed. This may indicate implementation delays.`;
                 }
             } else if (chartType === 'beneficiariesChart') {
+                const malePercentage = data.proposed_male > 0 ? Math.round((data.actual_male / data.proposed_male) * 100) : 0;
+                const femalePercentage = data.proposed_female > 0 ? Math.round((data.actual_female / data.proposed_female) * 100) : 0;
+                
                 if (percentage >= 100) {
                     summaryText = `The program has reached ${Math.abs(data.relativePercentage)}% more beneficiaries than initially targeted, indicating excellent outreach.`;
+                    if (malePercentage >= 100 && femalePercentage >= 100) {
+                        summaryText += ` Both male and female beneficiaries have exceeded their targets.`;
+                    } else if (malePercentage >= 100) {
+                        summaryText += ` Male beneficiaries have exceeded their target, while female beneficiaries are at ${femalePercentage}% of their target.`;
+                    } else if (femalePercentage >= 100) {
+                        summaryText += ` Female beneficiaries have exceeded their target, while male beneficiaries are at ${malePercentage}% of their target.`;
+                    } else {
+                        summaryText += ` Male beneficiaries are at ${malePercentage}% and female beneficiaries at ${femalePercentage}% of their respective targets.`;
+                    }
                 } else if (percentage >= 75) {
                     summaryText = `${percentage}% of targeted beneficiaries have been reached, showing good progress in program outreach.`;
+                    summaryText += ` Male beneficiaries are at ${malePercentage}% and female beneficiaries at ${femalePercentage}% of their respective targets.`;
                 } else if (percentage >= 50) {
                     summaryText = `${percentage}% of targeted beneficiaries have been reached. Consider reviewing outreach strategies.`;
+                    summaryText += ` Male beneficiaries are at ${malePercentage}% and female beneficiaries at ${femalePercentage}% of their respective targets.`;
                 } else {
                     summaryText = `Only ${percentage}% of targeted beneficiaries have been reached. Evaluate outreach strategies to improve engagement.`;
+                    summaryText += ` Male beneficiaries are at ${malePercentage}% and female beneficiaries at ${femalePercentage}% of their respective targets.`;
                 }
             }
             
@@ -3937,8 +3995,20 @@ document.addEventListener('click', function(e) {
                 row.innerHTML = `
                     <td>${item.gender_issue}</td>
                     <td>${item.campus}</td>
-                    <td>${item.proposed_beneficiaries}</td>
-                    <td>${item.actual_beneficiaries}</td>
+                    <td>
+                        <div>Total: ${item.proposed_beneficiaries}</div>
+                        <div class="gender-breakdown">
+                            <span class="male">Male: ${item.proposed_male}</span>
+                            <span class="female">Female: ${item.proposed_female}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div>Total: ${item.actual_beneficiaries}</div>
+                        <div class="gender-breakdown">
+                            <span class="male">Male: ${item.actual_male}</span>
+                            <span class="female">Female: ${item.actual_female}</span>
+                        </div>
+                    </td>
                     <td>${item.remaining}</td>
                     <td>${getCompletionBadge(item.completion)}</td>
                 `;
@@ -3954,8 +4024,20 @@ document.addEventListener('click', function(e) {
             const totalCompletion = totalProposed > 0 ? Math.round((totalActual / totalProposed) * 100) : 0;
             
             // Update summary values
-            totalProposedBeneficiaries.textContent = totalProposed;
-            totalActualBeneficiaries.textContent = totalActual;
+            totalProposedBeneficiaries.innerHTML = `
+                <div>Total: ${totalProposed}</div>
+                <div class="gender-breakdown">
+                    <span class="male">Male: ${data.proposed_male}</span>
+                    <span class="female">Female: ${data.proposed_female}</span>
+                </div>
+            `;
+            totalActualBeneficiaries.innerHTML = `
+                <div>Total: ${totalActual}</div>
+                <div class="gender-breakdown">
+                    <span class="male">Male: ${data.actual_male}</span>
+                    <span class="female">Female: ${data.actual_female}</span>
+                </div>
+            `;
             totalRemainingBeneficiaries.textContent = totalRemaining;
             totalBeneficiariesCompletion.innerHTML = getCompletionBadge(totalCompletion);
         }
