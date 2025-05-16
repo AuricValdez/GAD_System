@@ -1,28 +1,17 @@
 <?php
 require_once '../config.php';
-session_start();
 
 $response = ['success' => false, 'message' => ''];
 
 try {
-    // Get the logged-in user from session
-    $userCampus = isset($_SESSION['username']) ? $_SESSION['username'] : '';
-    $isCentralUser = ($userCampus === 'Central');
-    
-    error_log("Delete - Session username: " . $userCampus);
-    error_log("Delete - Is Central user: " . ($isCentralUser ? "Yes" : "No"));
-    
     // Get JSON data from request body
     $jsonData = file_get_contents('php://input');
     $data = json_decode($jsonData, true);
-    
-    error_log("Delete request received: " . print_r($data, true));
 
     if (empty($data['campus']) || empty($data['year'])) {
         $response['message'] = 'Campus and year are required';
     } else {
         $campus = $data['campus'];
-        
         $year = intval($data['year']);
 
         error_log("Attempting to delete target - Campus: $campus, Year: $year");

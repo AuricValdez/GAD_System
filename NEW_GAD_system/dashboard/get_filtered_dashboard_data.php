@@ -89,14 +89,14 @@ try {
         // Get detailed budget activities from ppas_forms
         $detailedBudgetData = [];
         if ($isCentral && empty($campus)) {
-            $detailedBudgetQuery = "SELECT activity as activity, campus, quarter, approved_budget, ps_attribution 
+            $detailedBudgetQuery = "SELECT activity, campus, quarter, approved_budget, ps_attribution 
                                    FROM ppas_forms 
                                    WHERE quarter IN ($quarterFilter) 
                                    AND year = '$currentYear' 
                                    ORDER BY campus, quarter, approved_budget DESC";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $detailedBudgetQuery = "SELECT activity as activity, campus, quarter, approved_budget, ps_attribution 
+            $detailedBudgetQuery = "SELECT activity, campus, quarter, approved_budget, ps_attribution 
                                    FROM ppas_forms 
                                    WHERE quarter IN ($quarterFilter) 
                                    AND campus = '$filterCampus' 
@@ -125,10 +125,10 @@ try {
         // Get proposed activities from gpb_entries
         if ($isCentral && empty($campus)) {
             // For Central users with no campus filter, get data from all campuses
-            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE status = 'Approved' AND year = '$currentYear'";
+            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE year = '$currentYear'";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE status = 'Approved' AND campus = '$filterCampus' AND year = '$currentYear'";
+            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE campus = '$filterCampus' AND year = '$currentYear'";
         }
         
         $activitiesResult = mysqli_query($conn, $activitiesQuery);
@@ -161,13 +161,13 @@ try {
         if ($isCentral && empty($campus)) {
             $genderIssuesQuery = "SELECT id, gender_issue, campus, total_activities 
                                  FROM gpb_entries 
-                                 WHERE status = 'Approved' AND year = '$currentYear' 
+                                 WHERE year = '$currentYear' 
                                  ORDER BY campus, gender_issue";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
             $genderIssuesQuery = "SELECT id, gender_issue, campus, total_activities 
                                  FROM gpb_entries 
-                                 WHERE status = 'Approved' AND campus = '$filterCampus' 
+                                 WHERE campus = '$filterCampus' 
                                  AND year = '$currentYear' 
                                  ORDER BY gender_issue";
         }
@@ -220,13 +220,13 @@ try {
             $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries, 
                                  SUM(male_participants) as total_proposed_male,
                                  SUM(female_participants) as total_proposed_female 
-                                 FROM gpb_entries WHERE status = 'Approved' AND year = '$currentYear'";
+                                 FROM gpb_entries WHERE year = '$currentYear'";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
             $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries,
                                  SUM(male_participants) as total_proposed_male,
                                  SUM(female_participants) as total_proposed_female 
-                                 FROM gpb_entries WHERE status = 'Approved' AND campus = '$filterCampus' AND year = '$currentYear'";
+                                 FROM gpb_entries WHERE campus = '$filterCampus' AND year = '$currentYear'";
         }
         
         $beneficiariesResult = mysqli_query($conn, $beneficiariesQuery);
@@ -243,15 +243,15 @@ try {
         // Get actual beneficiaries from ppas_forms
         if ($isCentral && empty($campus)) {
             // For Central users with no campus filter, get data from all campuses
-            $actualBeneficiariesQuery = "SELECT SUM(grand_total) as total_actual_beneficiaries,
-                                       SUM(grand_total_male) as total_actual_male,
-                                       SUM(grand_total_female) as total_actual_female 
+            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries,
+                                       SUM(total_male) as total_actual_male,
+                                       SUM(total_female) as total_actual_female 
                                        FROM ppas_forms WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
-            $actualBeneficiariesQuery = "SELECT SUM(grand_total) as total_actual_beneficiaries,
-                                       SUM(grand_total_male) as total_actual_male,
-                                       SUM(grand_total_female) as total_actual_female 
+            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries,
+                                       SUM(total_male) as total_actual_male,
+                                       SUM(total_female) as total_actual_female 
                                        FROM ppas_forms WHERE quarter IN ($quarterFilter) AND campus = '$filterCampus' AND year = '$currentYear'";
         }
         
@@ -273,13 +273,13 @@ try {
         if ($isCentral && empty($campus)) {
             $genderIssuesQuery = "SELECT id, gender_issue, campus, total_participants, male_participants, female_participants 
                                  FROM gpb_entries 
-                                 WHERE status = 'Approved' AND year = '$currentYear' 
+                                 WHERE year = '$currentYear' 
                                  ORDER BY campus, gender_issue";
         } else {
             $filterCampus = !empty($campus) ? $campus : $userCampus;
             $genderIssuesQuery = "SELECT id, gender_issue, campus, total_participants, male_participants, female_participants 
                                  FROM gpb_entries 
-                                 WHERE status = 'Approved' AND campus = '$filterCampus' 
+                                 WHERE campus = '$filterCampus' 
                                  AND year = '$currentYear' 
                                  ORDER BY gender_issue";
         }
@@ -295,9 +295,9 @@ try {
                 $proposedFemale = intval($row['female_participants']);
                 
                 // Sum actual beneficiaries for this gender issue
-                $actualBeneficiariesQuery = "SELECT SUM(grand_total) as actual_count,
-                                           SUM(grand_total_male) as actual_male,
-                                           SUM(grand_total_female) as actual_female 
+                $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as actual_count,
+                                           SUM(total_male) as actual_male,
+                                           SUM(total_female) as actual_female 
                                            FROM ppas_forms 
                                            WHERE gender_issue_id = '$genderIssueId' 
                                            AND quarter IN ($quarterFilter) 

@@ -1,38 +1,25 @@
 <?php
 require_once '../config.php';
-session_start();
 
 $response = ['success' => false, 'message' => ''];
 
 try {
-    // Get the logged-in user from session
-    $userCampus = isset($_SESSION['username']) ? $_SESSION['username'] : '';
-    $isCentralUser = ($userCampus === 'Central');
-    
-    error_log("Update - Session username: " . $userCampus);
-    error_log("Update - Is Central user: " . ($isCentralUser ? "Yes" : "No"));
-    
     // Get JSON data from request body
     $jsonData = file_get_contents('php://input');
     $data = json_decode($jsonData, true);
 
     error_log("Update request received: " . print_r($data, true));
-    error_log("Raw JSON data for update: " . $jsonData);
 
     // Validate required fields
     if (empty($data['campus'])) {
         $response['message'] = 'Campus is required';
-        error_log("Update Error: Campus is empty or null");
     } elseif (empty($data['year'])) {
         $response['message'] = 'Year is required';
-        error_log("Update Error: Year is empty or null");
     } elseif (!isset($data['total_gaa']) || $data['total_gaa'] === '') {
         $response['message'] = 'Total GAA is required';
-        error_log("Update Error: Total GAA is empty or null");
     } else {
         // Convert values to appropriate types
         $campus = trim($data['campus']);
-        
         $year = intval($data['year']);
         
         // Remove leading zeros and commas from total_gaa

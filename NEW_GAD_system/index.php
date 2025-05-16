@@ -39,17 +39,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-bs-theme="dark">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - GAD System</title>
-    <!-- Force dark theme in localStorage before anything else runs -->
-    <script>
-        if (!localStorage.getItem('theme')) {
-            localStorage.setItem('theme', 'dark');
-        }
-    </script>
     <style>
         /* Prevent theme flash */
         html[data-theme="dark"] {
@@ -59,10 +53,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script>
         // Immediate theme loading
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            // Also set the Bootstrap 5 theme attribute for consistency with dashboard.php
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
             const themeIcon = document.getElementById('theme-icon');
             if (themeIcon) {
                 themeIcon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
@@ -515,8 +507,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             
             html.setAttribute('data-theme', newTheme);
-            // Also set the Bootstrap 5 theme attribute for consistency with dashboard.php
-            html.setAttribute('data-bs-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             
             // Update icon

@@ -1,83 +1,63 @@
 <?php
-session_start();
+// Disable error reporting to the browser
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+// Set response header to JSON
 header('Content-Type: application/json');
 
-// Check if user is logged in
-if (!isset($_SESSION['username'])) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'User not logged in'
-    ]);
-    exit();
-}
-
-// Check if year is provided
-if (!isset($_GET['year']) || empty($_GET['year'])) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Year parameter is required'
-    ]);
-    exit();
-}
-
-// Check if quarter is provided
-if (!isset($_GET['quarter']) || empty($_GET['quarter'])) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Quarter parameter is required'
-    ]);
-    exit();
-}
-
-// Get parameters
-$year = $_GET['year'];
-$quarter = $_GET['quarter']; // We'll capture quarter even if not used in the query
-$userCampus = $_SESSION['username'];
-$isCentral = ($userCampus === 'Central');
-
-// Include database configuration
-require_once '../config.php';
-
 try {
-    // SQL query to fetch gender issues with their status
-    if ($isCentral) {
-        // If Central user, fetch gender issues for Central campus only
-        $query = "SELECT id, gender_issue, status FROM gpb_entries WHERE campus = 'Central' AND year = ? GROUP BY gender_issue, status ORDER BY gender_issue";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $year);
-    } else {
-        // For campus users, fetch gender issues for their campus and selected year
-        $query = "SELECT id, gender_issue, status FROM gpb_entries WHERE campus = ? AND year = ? GROUP BY gender_issue, status ORDER BY gender_issue";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ss", $userCampus, $year);
+    // Include database connection from config.php
+    if (!file_exists('../config.php')) {
+        throw new Exception("Database configuration file not found");
     }
-
-    $stmt->execute();
-    $result = $stmt->get_result();
+    require_once '../config.php';
     
+    // Check if connection is mysqli
+    if (!isset($conn) || !($conn instanceof mysqli)) {
+        throw new Exception("Database connection not found or not mysqli");
+    }
+    
+    // Get parameters
+    $campus = isset($_GET['campus']) ? $_GET['campus'] : '';
+    $year = isset($_GET['year']) ? $_GET['year'] : '';
+
+    // Validate parameters
+    if (empty($campus) || empty($year)) {
+        echo json_encode([]);
+        exit;
+    }
+    
+    // Escape the inputs to prevent SQL injection
+    $campus_safe = $conn->real_escape_string($campus);
+    $year_safe = $conn->real_escape_string($year);
+    
+    // Prepare and execute the query to get gender issues
+    $query = "SELECT id, gender_issue, status FROM gpb_entries WHERE campus = '$campus_safe' AND year = '$year_safe'";
+    $result = $conn->query($query);
+    
+    if (!$result) {
+        throw new Exception("Query failed: " . $conn->error);
+    }
+    
+    // Fetch all results as an array
     $issues = [];
     while ($row = $result->fetch_assoc()) {
-        $issues[] = [
-            'id' => $row['id'],
-            'gender_issue' => $row['gender_issue'],
-            'status' => $row['status']
-        ];
+        $issues[] = $row;
     }
     
-    echo json_encode([
-        'success' => true,
-        'issues' => $issues
-    ]);
-    
+    // Return gender issues directly as an array
+    echo json_encode($issues);
+
 } catch (Exception $e) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Database error: ' . $e->getMessage()
-    ]);
-} finally {
-    if (isset($stmt)) {
-        $stmt->close();
-    }
-    // The connection closure is handled in config.php
+    // For errors, return an empty array
+    echo json_encode([]);
+    // Log the error for server-side debugging
+    error_log('Error in get_gender_issues.php: ' . $e->getMessage());
+}
+
+// Close the connection if it exists
+if (isset($conn) && $conn instanceof mysqli) {
+    $conn->close();
 }
 ?> 

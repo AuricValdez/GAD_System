@@ -1,6 +1,5 @@
 <?php
 require_once '../config.php';
-session_start();
 
 $response = ['success' => false, 'message' => ''];
 
@@ -10,31 +9,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode($jsonData, true);
 
     try {
-        // Get the logged-in user from session
-        $userCampus = isset($_SESSION['username']) ? $_SESSION['username'] : '';
-        $isCentralUser = ($userCampus === 'Central');
-        
-        error_log("Session username: " . $userCampus);
-        error_log("Is Central user: " . ($isCentralUser ? "Yes" : "No"));
-        
         // Log incoming data
         error_log("Received data: " . print_r($data, true));
-        error_log("Raw JSON data: " . $jsonData);
 
         // Validate required fields
         if (empty($data['campus'])) {
             $response['message'] = 'Campus is required';
-            error_log("Error: Campus is empty or null");
         } elseif (empty($data['year'])) {
             $response['message'] = 'Year is required';
-            error_log("Error: Year is empty or null");
         } elseif (empty($data['total_gaa'])) {
             $response['message'] = 'Total GAA is required';
-            error_log("Error: Total GAA is empty or null");
         } else {
             // Convert values to appropriate types
             $campus = trim($data['campus']);
-            
             $year = intval($data['year']);
             $total_gaa = str_replace(',', '', $data['total_gaa']);
             $total_gad_fund = str_replace(',', '', $data['total_gad_fund']);
@@ -44,8 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $total_gad_fund = floatval($total_gad_fund);
 
             // Log processed values
-            error_log("Processing values - Campus: '$campus', Year: $year, GAA: $total_gaa, GAD: $total_gad_fund");
-            error_log("Campus value type: " . gettype($campus) . ", Length: " . strlen($campus));
+            error_log("Processing values - Campus: $campus, Year: $year, GAA: $total_gaa, GAD: $total_gad_fund");
 
             // First check if a target already exists
             $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM target WHERE campus = ? AND year = ?");

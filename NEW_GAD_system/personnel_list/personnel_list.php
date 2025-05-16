@@ -14,7 +14,7 @@ if (!isset($_SESSION['username'])) {
 $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -37,6 +37,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Global Styles -->
+    <link href="../js/global-styles.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1874,24 +1876,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             background-color: white;
             color: var(--accent-color);
         }
-
-        .nav-link {
-            padding: 10px 15px;
-            margin-bottom: 3px;
-        }
-
-        .nav-item .dropdown-menu .dropdown-item {
-            padding: 6px 48px;
-        }
-
-        .approval-link {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .bottom-controls {
-            margin-top: 15px;
-        }
     </style>
 </head>
 
@@ -1928,30 +1912,27 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="../academic_rank/academic.php">Academic Rank</a></li>
-                        <li><a class="dropdown-item" href="../personnel_list/personnel_list.php">Personnel List</a></li>
+                        <li><a class="dropdown-item" href="#">Personnel List</a></li>
                         <li><a class="dropdown-item" href="../signatory/sign.php">Signatory</a></li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-alt me-2"></i> GPB
+                    <a class="nav-link dropdown-toggle" href="#" id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-alt me-2"></i> Forms
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../target_forms/target.php">Target</a></li>
-                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Generate Form</a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-invoice me-2"></i> PPAs
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_form/ppas.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gad_proposal/gad_proposal.php">GAD Proposal</a></li>
-                        <li><a class="dropdown-item" href="../gad_narrative/gad_narrative.php">GAD Narrative</a></li>
-                        <li><a class="dropdown-item" href="../extension_proposal/extension_proposal.php">Extension Proposal</a></li>
-                        <li><a class="dropdown-item" href="../extension_narrative/extension_narrative.php">Extension Narrative</a></li>
+                        <li><a class="dropdown-item" href="../target_forms/target.php">Target Form</a></li>
+                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">GBP Form</a></li>
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#" id="ppasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                PPAs Form
+                            </a>
+                            <ul class="dropdown-menu dropdown-submenu" aria-labelledby="ppasDropdown">
+                                <li><a class="dropdown-item" href="../ppas_form/ppas.php">Main PPAs Form</a></li>
+                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal Form</a></li>
+                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Form</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
@@ -1959,9 +1940,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         <i class="fas fa-chart-bar me-2"></i> Reports
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly Report</a></li>
-                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PS Attribution</a></li>
-                        <li><a class="dropdown-item" href="../annual_reports/annual_report.php">Annual Report</a></li>
+                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual GPB Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_reports/ppas_report.php">Quarterly PPAs Reports</a></li>
+                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PSA Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal_reports/print_proposal.php">GAD Proposal Reports</a></li>
+                        <li><a class="dropdown-item" href="../narrative_reports/print_narrative.php">Narrative Reports</a></li>
                     </ul>
                 </div>
                 <?php
@@ -1996,7 +1979,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title">Add Personnel Forms</h5>
+                <h5 class="card-title">Personnel Forms</h5>
             </div>
             <div class="card-body">
                 <form id="personnelForm">
@@ -2373,7 +2356,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 <div class="col-md-3 mb-2">
                                     <select class="form-select" id="campusFilter">
                                         <option value="">All Campuses</option>
-                                        <option value="Central">Central</option>
                                         <option value="Lipa">Lipa</option>
                                         <option value="Pablo Borbon">Pablo Borbon</option>
                                         <option value="Alangilan">Alangilan</option>
@@ -2443,19 +2425,19 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                     <option value="">All Academic Ranks</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                                 <select class="form-select" id="editCategoryFilter">
                                     <option value="">All Categories</option>
                                     <option value="Teaching">Teaching</option>
                                     <option value="Non-teaching">Non-teaching</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                                 <select class="form-select" id="editStatusFilter" disabled>
                                     <option value="">All Status</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                                 <select class="form-select" id="editGenderFilter">
                                     <option value="">All Genders</option>
                                     <option value="male">Male</option>
@@ -2463,7 +2445,21 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 </select>
                             </div>
                             <?php if ($_SESSION['username'] === 'Central'): ?>
-                                <!-- Campus filter removed from edit modal for Central users -->
+                                <div class="col-md-3 mb-2">
+                                    <select class="form-select" id="editCampusFilter">
+                                        <option value="">All Campuses</option>
+                                        <option value="Lipa">Lipa</option>
+                                        <option value="Pablo Borbon">Pablo Borbon</option>
+                                        <option value="Alangilan">Alangilan</option>
+                                        <option value="Nasugbu">Nasugbu</option>
+                                        <option value="Malvar">Malvar</option>
+                                        <option value="Rosario">Rosario</option>
+                                        <option value="Balayan">Balayan</option>
+                                        <option value="Lemery">Lemery</option>
+                                        <option value="San Juan">San Juan</option>
+                                        <option value="Lobo">Lobo</option>
+                                    </select>
+                                </div>
                             <?php endif; ?>
                         </div>
 
@@ -2521,19 +2517,19 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                     <option value="">All Academic Ranks</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                                 <select class="form-select" id="deleteCategoryFilter">
                                     <option value="">All Categories</option>
                                     <option value="Teaching">Teaching</option>
                                     <option value="Non-teaching">Non-teaching</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                                 <select class="form-select" id="deleteStatusFilter" disabled>
                                     <option value="">All Status</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                                 <select class="form-select" id="deleteGenderFilter">
                                     <option value="">All Genders</option>
                                     <option value="male">Male</option>
@@ -2541,7 +2537,21 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 </select>
                             </div>
                             <?php if ($_SESSION['username'] === 'Central'): ?>
-                                <!-- Campus filter removed from delete modal for Central users -->
+                                <div class="col-md-3 mb-2">
+                                    <select class="form-select" id="deleteCampusFilter">
+                                        <option value="">All Campuses</option>
+                                        <option value="Lipa">Lipa</option>
+                                        <option value="Pablo Borbon">Pablo Borbon</option>
+                                        <option value="Alangilan">Alangilan</option>
+                                        <option value="Nasugbu">Nasugbu</option>
+                                        <option value="Malvar">Malvar</option>
+                                        <option value="Rosario">Rosario</option>
+                                        <option value="Balayan">Balayan</option>
+                                        <option value="Lemery">Lemery</option>
+                                        <option value="San Juan">San Juan</option>
+                                        <option value="Lobo">Lobo</option>
+                                    </select>
+                                </div>
                             <?php endif; ?>
                         </div>
 
@@ -2873,9 +2883,29 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             if (currentUser === 'Central') {
                 console.log('Central user detected');
 
-                // REMOVE THE CODE THAT DISABLES FORMS FOR CENTRAL
-                // Central users should be able to add/edit/delete their own personnel
-                
+                // First, handle the form and buttons
+                // Disable all form inputs - make sure to target the correct form ID
+                const formInputs = document.querySelectorAll('#personnelForm input, #personnelForm select');
+                console.log('Found form inputs:', formInputs.length); // Debug log
+                formInputs.forEach(input => {
+                    input.disabled = true;
+                    input.style.backgroundColor = '#e9ecef';
+                    input.style.cursor = 'not-allowed';
+                    console.log('Disabled input:', input.id || input.name);
+                });
+
+                // Disable buttons - make sure these IDs match your actual button IDs
+                ['addBtn', 'editBtn', 'deleteBtn'].forEach(btnId => {
+                    const btn = document.getElementById(btnId);
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('btn-disabled'); // Add the new class
+                        // Remove any existing color classes
+                        btn.classList.remove('btn-success', 'btn-primary', 'btn-danger');
+                        btn.style.pointerEvents = 'none';
+                    }
+                });
+
                 // Add campus filter when the view modal is shown
                 document.getElementById('viewPersonnelModal').addEventListener('show.bs.modal', function() {
                     console.log('Modal is being shown');
@@ -2888,7 +2918,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         <div class="col-md-<?php echo ($_SESSION['username'] === 'Central' ? '3' : '4'); ?> mb-2">
                             <select id="campusFilter" class="form-select" onchange="filterPersonnel()">
                                 <option value="">All Campuses</option>
-                                <option value="Central">Central</option>
                                 <option value="Lipa">Lipa</option>
                                 <option value="Pablo Borbon">Pablo Borbon</option>
                                 <option value="Alangilan">Alangilan</option>
@@ -3218,9 +3247,10 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         console.log('Current user:', currentUser);
                         console.log('Response data:', response.data);
 
-                        // Filter data based on user's campus - even for Central users
-                        // Central users should only see Central personnel
-                        window.fullPersonnelData = response.data.filter(person => person.campus === currentUser);
+                        // Filter data based on user's campus if not Central
+                        window.fullPersonnelData = currentUser === 'Central' ?
+                            response.data :
+                            response.data.filter(person => person.campus === currentUser);
 
                         console.log('Filtered personnel data:', window.fullPersonnelData);
 
@@ -3551,7 +3581,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 status: document.getElementById('status').value,
                 gender: document.querySelector('input[name="gender"]:checked').value,
                 academicRank: academicRankName,
-                campus: '<?php echo $_SESSION["username"]; ?>' // This will set "Central" as campus when Central is logged in
+                campus: '<?php echo $_SESSION["username"]; ?>'
             };
 
             // Send data to server
@@ -3671,8 +3701,12 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 .then(data => {
                     console.log('Parsed response for edit modal:', data);
                     if (data.status === 'success') {
-                        // For ALL users, filter by campus - Central users should only see Central personnel
-                        window.editPersonnelData = data.data.filter(person => person.campus === currentUser);
+                        // For Central user, show all data. For campus users, filter by campus
+                        if (currentUser === 'Central') {
+                            window.editPersonnelData = data.data; // Show all data
+                        } else {
+                            window.editPersonnelData = data.data.filter(person => person.campus === currentUser);
+                        }
 
                         // Check if each record has an ID
                         window.editPersonnelData.forEach((person, index) => {
@@ -3728,10 +3762,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             const categoryFilter = document.getElementById('editCategoryFilter').value;
             const statusFilter = document.getElementById('editStatusFilter').value;
             const genderFilter = document.getElementById('editGenderFilter').value;
-            
-            // For Central users, we'll only show Central data without filtering by campus
-            // since the campus filter has been removed from the edit modal
-            const campusFilter = '<?php echo $_SESSION["username"]; ?>';
+            const campusFilter = document.getElementById('editCampusFilter')?.value || '';
 
             // Debug log all current filter values
             console.log('Applied filters for edit:', {
@@ -3752,8 +3783,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     (genderFilter === 'other' ?
                         (person.gender !== 'male' && person.gender !== 'female') :
                         person.gender.toLowerCase() === genderFilter.toLowerCase());
-                // For Central, only show Central personnel
-                const matchesCampus = person.campus === campusFilter;
+                const matchesCampus = !campusFilter || person.campus === campusFilter;
 
                 return matchesName && matchesRank && matchesCategory &&
                     matchesStatus && matchesGender && matchesCampus;
@@ -3939,12 +3969,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         // Function to enter edit mode
         function enterEditMode() {
-            // Change card title to Edit Personnel Forms
-            const cardTitle = document.querySelector('.card-header .card-title');
-            if (cardTitle) {
-                cardTitle.textContent = 'Edit Personnel Forms';
-            }
-            
             // Change Add button to Update button
             const addBtn = document.getElementById('addBtn');
             addBtn.innerHTML = '<i class="fas fa-save"></i>';
@@ -3989,12 +4013,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         // Function to exit edit mode
         function exitEditMode() {
-            // Change card title back to Add Personnel Forms
-            const cardTitle = document.querySelector('.card-header .card-title');
-            if (cardTitle) {
-                cardTitle.textContent = 'Add Personnel Forms';
-            }
-            
             // Restore original form data if available
             if (window.originalFormData) {
                 document.getElementById('name').value = window.originalFormData.name;
@@ -4136,6 +4154,19 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 });
                 return;
             }
+
+            // Show loading indicator
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the personnel record',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                backdrop: `rgba(0,0,0,0.7)`,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             // Send data to server
             fetch('update_personnel.php', {
@@ -4336,7 +4367,9 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         document.getElementById('editCategoryFilter').addEventListener('change', updateEditStatusFilter);
         document.getElementById('editStatusFilter').addEventListener('change', filterEditPersonnel);
         document.getElementById('editGenderFilter').addEventListener('change', filterEditPersonnel);
-        // Campus filter removed for edit modal
+        if (document.getElementById('editCampusFilter')) {
+            document.getElementById('editCampusFilter').addEventListener('change', filterEditPersonnel);
+        }
 
         // Function to update status filter in edit modal based on category
         function updateEditStatusFilter() {
@@ -4426,9 +4459,12 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         throw new Error(data.message || 'Failed to load personnel data');
                     }
 
-                    // Filter data to only show personnel from current user's campus
-                    const currentUser = '<?php echo $_SESSION["username"]; ?>';
-                    let filteredData = data.data.filter(person => person.campus === currentUser);
+                    // Filter data based on user's campus if not admin
+                    let filteredData = data.data;
+                    if ('<?php echo isset($_SESSION["role"]) ? $_SESSION["role"] : ""; ?>' !== 'admin') {
+                        filteredData = filteredData.filter(person =>
+                            person.campus === '<?php echo isset($_SESSION["username"]) ? $_SESSION["username"] : ""; ?>');
+                    }
 
                     // Check if each record has an ID
                     filteredData.forEach(person => {
@@ -4512,11 +4548,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             document.getElementById('deleteGenderFilter').addEventListener('change', filterDeletePersonnel);
             document.getElementById('deleteStatusFilter').addEventListener('change', filterDeletePersonnel);
 
-            // Campus filter removed for delete modal
-            // const deleteCampusFilter = document.getElementById('deleteCampusFilter');
-            // if (deleteCampusFilter) {
-            //     deleteCampusFilter.addEventListener('change', filterDeletePersonnel);
-            // }
+            // Add campus filter event listener if it exists
+            const deleteCampusFilter = document.getElementById('deleteCampusFilter');
+            if (deleteCampusFilter) {
+                deleteCampusFilter.addEventListener('change', filterDeletePersonnel);
+            }
         }
 
         // Variables for delete pagination
@@ -4663,9 +4699,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             const statusFilter = document.getElementById('deleteStatusFilter').value;
             const genderFilter = document.getElementById('deleteGenderFilter').value;
 
-            // For Central users, we'll only show Central data without filtering by campus
-            // since the campus filter has been removed from the delete modal
-            const campusFilter = '<?php echo $_SESSION["username"]; ?>';
+            // Get campus filter if it exists
+            const campusFilter = document.getElementById('deleteCampusFilter')?.value || '';
 
             console.log('Applied delete filters:', {
                 name: nameFilter,
@@ -4713,9 +4748,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 });
             }
 
-            // Filter by campus - only show Central's data for Central user
-            filteredData = filteredData.filter(person =>
-                (person.campus || '') === campusFilter);
+            // Apply campus filter
+            if (campusFilter) {
+                filteredData = filteredData.filter(person =>
+                    (person.campus || '') === campusFilter);
+            }
 
             // Reset to first page when filtering
             deleteCurrentPage = 1;
@@ -4871,59 +4908,53 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             let nonTeachingPartTimer = 0;
             let nonTeachingCasual = 0;
 
-            // Current user
-            const currentUser = '<?php echo $_SESSION["username"]; ?>';
-
-            // Count all categories for current user only
+            // Count all categories
             if (!response.data) {
                 console.error('No data property in response:', response);
                 return;
             }
 
             response.data.forEach(person => {
-                // Only count personnel from current user's campus
-                if (person.campus === currentUser) {
-                    totalCount++;
+                totalCount++;
 
-                    // Count by gender
-                    if (person.gender.toLowerCase() === 'male') {
-                        maleCount++;
-                    } else if (person.gender.toLowerCase() === 'female') {
-                        femaleCount++;
-                    } else {
-                        otherCount++;
+                // Count by gender
+                if (person.gender.toLowerCase() === 'male') {
+                    maleCount++;
+                } else if (person.gender.toLowerCase() === 'female') {
+                    femaleCount++;
+                } else {
+                    otherCount++;
+                }
+
+                // Count by category and status
+                if (person.category === 'Teaching') {
+                    teachingCount++;
+                    switch (person.status) {
+                        case 'Permanent':
+                            teachingPermanent++;
+                            break;
+                        case 'Temporary':
+                            teachingTemporary++;
+                            break;
+                        case 'Guest Lecturer':
+                            teachingGuest++;
+                            break;
                     }
-
-                    // Count by category and status
-                    if (person.category === 'Teaching') {
-                        teachingCount++;
-                        switch (person.status) {
-                            case 'Permanent':
-                                teachingPermanent++;
-                                break;
-                            case 'Temporary':
-                                teachingTemporary++;
-                                break;
-                            case 'Guest Lecturer':
-                                teachingGuest++;
-                                break;
-                        }
-                    } else if (person.category === 'Non-teaching') {
-                        nonTeachingCount++;
-                        switch (person.status) {
-                            case 'Permanent':
-                                nonTeachingPermanent++;
-                                break;
-                            case 'Job Order':
-                                nonTeachingJobOrder++;
-                                break;
-                            case 'Part-timer':
-                                nonTeachingPartTimer++;
-                                break;
-                            case 'Casual':
-                                nonTeachingCasual++;
-                                break;
-                        }
+                } else if (person.category === 'Non-teaching') {
+                    nonTeachingCount++;
+                    switch (person.status) {
+                        case 'Permanent':
+                            nonTeachingPermanent++;
+                            break;
+                        case 'Job Order':
+                            nonTeachingJobOrder++;
+                            break;
+                        case 'Part-timer':
+                            nonTeachingPartTimer++;
+                            break;
+                        case 'Casual':
+                            nonTeachingCasual++;
+                            break;
                     }
                 }
             });

@@ -17,9 +17,9 @@ try {
     $params = [];
     $types = '';
     
-    // Campus filter - Fixed to include filter for Central campus
+    // Campus filter
     $campus = isset($_GET['campus']) && !empty($_GET['campus']) ? $_GET['campus'] : $_SESSION['campus'];
-    if ($campus) {
+    if ($campus && $campus !== 'Central') {
         $whereClause[] = "campus = ?";
         $params[] = $campus;
         $types .= 's';

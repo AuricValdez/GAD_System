@@ -4,7 +4,7 @@ session_start();
 $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -38,7 +38,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
     <script>
         // Immediate theme loading to prevent flash
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', savedTheme);
             document.documentElement.style.colorScheme = savedTheme;
         })();
@@ -176,9 +176,9 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         .nav-link {
             color: var(--text-primary);
-            padding: 12px 15px;
+            padding: 10px 15px;
             border-radius: 12px;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             position: relative;
             display: flex;
             align-items: center;
@@ -253,7 +253,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         }
 
         .nav-item .dropdown-menu .dropdown-item {
-            padding: 8px 48px;
+            padding: 6px 48px;
             color: var(--text-primary);
             position: relative;
             opacity: 0.85;
@@ -1024,8 +1024,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             width: calc(var(--sidebar-width) - 40px);
             display: flex;
             gap: 5px;
-            /* Reduced from 10px */
             align-items: center;
+            margin-top: 15px;
         }
 
         /* Theme switch button - matched height */
@@ -1619,7 +1619,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             background-color: var(--accent-color);
             color: white !important;
             border-radius: 12px;
-            margin-top: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
             font-weight: 600;
             position: relative;
             overflow: hidden;
@@ -1754,409 +1755,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         .nav-link.active .notification-badge {
             background-color: white;
             color: var(--accent-color);
-        }
-
-        .nav-link {
-            padding: 10px 15px;
-            margin-bottom: 3px;
-        }
-
-        .nav-item .dropdown-menu .dropdown-item {
-            padding: 6px 48px;
-        }
-
-        .approval-link {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .bottom-controls {
-            margin-top: 15px;
-        }
-
-        /* Campus Filter Styles */
-        .campus-filter-container {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            z-index: 100;
-        }
-
-        .campus-filter-button {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.25);
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .campus-indicator {
-            position: absolute;
-            bottom: -5px;
-            right: -5px;
-            background: var(--accent-color);
-            color: white;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
-
-        .campus-filter-button:hover, 
-        .campus-filter-button.active {
-            background: white;
-            color: var(--accent-color);
-            transform: translateY(-2px);
-        }
-
-        .campus-filter-dropdown {
-            position: fixed;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            width: 180px;
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            opacity: 0;
-            z-index: 9999;
-        }
-
-        .campus-filter-dropdown.show {
-            max-height: 400px;
-            opacity: 1;
-            padding: 8px 0;
-            overflow-y: auto;
-        }
-
-        .campus-filter-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-primary);
-        }
-
-        .campus-filter-item:hover {
-            background: rgba(106, 27, 154, 0.1);
-            color: var(--accent-color);
-        }
-
-        .campus-filter-item.active {
-            background: var(--accent-color);
-            color: white;
-            font-weight: 500;
-        }
-
-        /* Dark theme support */
-        [data-bs-theme="dark"] .campus-filter-dropdown {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-        }
-
-        [data-bs-theme="dark"] .campus-filter-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Make sure the text color is visible in dark theme */
-        [data-bs-theme="dark"] .campus-filter-button {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Add white background for button hover in dark mode */
-        [data-bs-theme="dark"] .campus-filter-button:hover,
-        [data-bs-theme="dark"] .campus-filter-button.active {
-            background: white;
-            color: var(--accent-color);
-        }
-        
-        /* Notification System Styles */
-        .notification-bell-container {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            z-index: 5;
-        }
-        
-        /* For Central users - notification bell to the left of campus filter */
-        .isCentral .notification-bell-container {
-            right: 80px; /* Give some space between bell and campus filter */
-            z-index: 10000; /* Higher than campus dropdown to ensure it's on top */
-        }
-        
-        .notification-bell-button {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .notification-bell-button:hover {
-            background: white;
-            color: var(--accent-color);
-            transform: translateY(-2px);
-        }
-        
-        .notification-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff0053;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        
-        .notification-count.empty {
-            display: none;
-        }
-        
-        .notification-panel {
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            width: 350px;
-            max-height: 80vh; /* Changed from fixed 400px to 80% of viewport height */
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            z-index: 1100;
-            display: none;
-            animation: slideDown 0.3s ease forwards;
-        }
-        
-        /* Ensure Central notification panel is above everything */
-        #centralNotificationPanel {
-            z-index: 10001; /* Higher than both the bell and campus dropdown */
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .notification-panel.show {
-            display: block;
-        }
-        
-        .notification-header {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .notification-header h5 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .notification-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .mark-all-read-btn, .clear-all-read-btn {
-            background: none;
-            border: none;
-            font-size: 12px;
-            color: var(--accent-color);
-            cursor: pointer;
-            padding: 2px 5px;
-            border-radius: 4px;
-        }
-        
-        .mark-all-read-btn:hover, .clear-all-read-btn:hover {
-            background: rgba(106, 27, 154, 0.1);
-        }
-        
-        .clear-all-read-btn {
-            color: #dc3545;
-        }
-        
-        .clear-all-read-btn:hover {
-            background: rgba(220, 53, 69, 0.1);
-        }
-        
-        .notification-footer {
-            padding: 10px 15px;
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-        }
-        
-        .notification-footer .clear-all-read-btn {
-            width: 100%;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 13px;
-            background: rgba(220, 53, 69, 0.1);
-            transition: all 0.2s ease;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .notification-footer .clear-all-read-btn:hover {
-            background: rgba(220, 53, 69, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        .notification-list {
-            max-height: calc(80vh - 50px); /* Adjusted to match the panel height minus header */
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        
-        .notification-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--card-bg);
-            transition: background 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow-wrap: break-word;
-            word-break: break-word;
-            display: block;
-            width: 100%;
-        }
-        
-        .notification-item:hover {
-            background: var(--bg-secondary);
-        }
-        
-        .notification-item.unread {
-            background: rgba(106, 27, 154, 0.05);
-        }
-        
-        .notification-item.unread:hover {
-            background: rgba(106, 27, 154, 0.1);
-        }
-        
-        .notification-status {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: inline-block;
-        }
-        
-        .notification-status.approved {
-            background: rgba(25, 135, 84, 0.15);
-            color: #198754;
-        }
-        
-        .notification-status.rejected {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-        }
-        
-        .notification-content {
-            font-size: 13px;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            line-height: 1.4;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            white-space: normal;
-            max-width: 100%;
-        }
-        
-        .notification-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-        
-        .notification-empty {
-            padding: 30px 15px;
-            text-align: center;
-            color: var(--text-secondary);
-        }
-        
-        .notification-empty i {
-            font-size: 28px;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-        
-        .notification-empty p {
-            margin: 0;
-            font-size: 13px;
-        }
-        
-        /* Dark theme adjustments */
-        [data-bs-theme="dark"] .notification-item.unread {
-            background: rgba(156, 39, 176, 0.15);
-        }
-        
-        [data-bs-theme="dark"] .notification-item.unread:hover {
-            background: rgba(156, 39, 176, 0.25);
-        }
-        
-        /* Mobile responsive styles */
-        @media (max-width: 576px) {
-            .notification-panel {
-                width: 300px;
-                right: 10px;
-                max-width: calc(100vw - 40px);
-                top: 65px;
-            }
-            
-            .notification-bell-container {
-                right: 15px;
-                top: 15px;
-            }
-            
-            .notification-content {
-                max-width: 100%;
-                overflow-wrap: break-word;
-                word-break: break-word;
-            }
         }
     </style>
 
@@ -2316,7 +1914,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
     </script>
 </head>
 
-<body class="<?php echo $isCentral ? 'isCentral' : ''; ?>">
+<body>
     <!-- Mobile Navigation Toggle -->
     <button class="mobile-nav-toggle d-lg-none">
         <i class="fas fa-bars"></i>
@@ -2339,7 +1937,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         </div>
         <div class="nav-content">
             <nav class="nav flex-column">
-                <a href="" class="nav-link active">
+                <a href="../dashboard/dashboard.php" class="nav-link active">
                     <i class="fas fa-chart-line me-2"></i> Dashboard
                 </a>
                 <div class="nav-item dropdown">
@@ -2367,21 +1965,21 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         <i class="fas fa-file-invoice me-2"></i> PPAs
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_form/ppas.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gad_proposal/gad_proposal.php">GAD Proposal</a></li>
-                        <li><a class="dropdown-item" href="../gad_narrative/gad_narrative.php">GAD Narrative</a></li>
-                        <li><a class="dropdown-item" href="../extension_proposal/extension_proposal.php">Extension Proposal</a></li>
-                        <li><a class="dropdown-item" href="../extension_narrative/extension_narrative.php">Extension Narrative</a></li>
-                        </ul>
-                    </div>
+                        <li><a class="dropdown-item" href="../narrative_data_entry/data_entry.php">Data Entry</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal</a></li>
+                        <li><a class="dropdown-item" href="../narrative/narrative.php">GAD Narrative</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal/extension_proposal.php">Extension Proposal</a></li>
+                        <li><a class="dropdown-item" href="../narrative/extension_narrative.php">Extension Narrative</a></li>
+                    </ul>
+                </div>
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-chart-bar me-2"></i> Reports
                     </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly Report</a></li>
+                    <ul class="dropdown-menu">                       
+                        <li><a class="dropdown-item" href="../ppas_reports/ppas_report.php">Quarterly Report</a></li>
                         <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PS Attribution</a></li>
-                        <li><a class="dropdown-item" href="../annual_reports/annual_report.php">Annual Report</a></li>
+                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual Report</a></li>
                     </ul>
                 </div>
                 <?php
@@ -2402,7 +2000,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             </a>
             <button class="theme-switch-button" onclick="toggleTheme()">
                 <i class="fas fa-sun" id="theme-icon"></i>
-            </button>
+            </buton>
         </div>
     </div>
 
@@ -2415,91 +2013,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 <h1>Welcome, <span class="username"><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'User'; ?></span>.</h1>
                 <div class="welcome-subtitle">Gender and Development Information System</div>
             </div>
-            <?php if ($isCentral): ?>
-            <!-- Notification Bell for Central Users -->
-            <div class="notification-bell-container">
-                <button id="centralNotificationBell" class="notification-bell-button" title="Campus Reply Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span id="centralNotificationCount" class="notification-count">0</span>
-                </button>
-                <!-- Central Notification Panel -->
-                <div id="centralNotificationPanel" class="notification-panel">
-                    <div class="notification-header">
-                        <h5>Campus Feedback Notifications</h5>
-                        <div class="notification-actions">
-                            <button id="centralMarkAllRead" class="mark-all-read-btn">
-                                <i class="fas fa-check-double"></i> Mark All as Read
-                            </button>
-                        </div>
-                    </div>
-                    <div id="centralNotificationList" class="notification-list">
-                        <!-- Notifications will be loaded here -->
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>No notifications</p>
-                        </div>
-                    </div>
-                    <div class="notification-footer">
-                        <button id="centralClearAllRead" class="clear-all-read-btn">
-                            <i class="fas fa-trash-alt"></i> Clear All Read
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="campus-filter-container">
-                <button class="campus-filter-button" id="campusFilterButton">
-                    <i class="fas fa-university"></i>
-                </button>
-                <div class="campus-filter-dropdown" id="campusFilterDropdown">
-                    <div class="campus-filter-item" data-campus="">All Campuses</div>
-                    <div class="campus-filter-item" data-campus="Lipa">Lipa</div>
-                    <div class="campus-filter-item" data-campus="Pablo Borbon">Pablo Borbon</div>
-                    <div class="campus-filter-item" data-campus="Alangilan">Alangilan</div>
-                    <div class="campus-filter-item" data-campus="Nasugbu">Nasugbu</div>
-                    <div class="campus-filter-item" data-campus="Malvar">Malvar</div>
-                    <div class="campus-filter-item" data-campus="Rosario">Rosario</div>
-                    <div class="campus-filter-item" data-campus="Balayan">Balayan</div>
-                    <div class="campus-filter-item" data-campus="Lemery">Lemery</div>
-                    <div class="campus-filter-item" data-campus="San Juan">San Juan</div>
-                    <div class="campus-filter-item" data-campus="Lobo">Lobo</div>
-                    <div class="campus-filter-item" data-campus="Central">Central</div>
-                </div>
-            </div>
-            <?php endif; ?>
-            
-            <?php if (!$isCentral): ?>
-            <!-- Notification Bell for Campus Users -->
-            <div class="notification-bell-container">
-                <button id="notificationBell" class="notification-bell-button" title="GBP Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span id="notificationCount" class="notification-count">0</span>
-                </button>
-                <!-- Notification Panel -->
-                <div id="notificationPanel" class="notification-panel">
-                            <div class="notification-header">
-            <h5>GPB Notifications</h5>
-            <div class="notification-actions">
-                <button id="markAllRead" class="mark-all-read-btn">
-                    <i class="fas fa-check-double"></i> Mark All Approved as Read
-                </button>
-            </div>
-        </div>
-                    <div id="notificationList" class="notification-list">
-                        <!-- Notifications will be loaded here -->
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>No notifications</p>
-                        </div>
-                    </div>
-                    <div class="notification-footer">
-                        <button id="clearAllRead" class="clear-all-read-btn">
-                            <i class="fas fa-trash-alt"></i> Clear All Read
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
         </div>
 
         <?php
@@ -2546,9 +2059,9 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         } else {
             // Fallback to old method if no target found for current year
             if ($isCentral) {
-                $budgetQuery = "SELECT SUM(gad_budget) as total_proposed_budget FROM gpb_entries WHERE status = 'Approved'";
+                $budgetQuery = "SELECT SUM(gad_budget) as total_proposed_budget FROM gpb_entries";
             } else {
-                $budgetQuery = "SELECT SUM(gad_budget) as total_proposed_budget FROM gpb_entries WHERE status = 'Approved' AND campus = '$userCampus'";
+                $budgetQuery = "SELECT SUM(gad_budget) as total_proposed_budget FROM gpb_entries WHERE campus = '$userCampus'";
             }
             $budgetResult = mysqli_query($conn, $budgetQuery);
             if ($budgetResult && mysqli_num_rows($budgetResult) > 0) {
@@ -2575,9 +2088,9 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         // Get proposed activities from gpb_entries
         if ($isCentral) {
             // For Central users, get activities from all campuses
-            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE status = 'Approved' AND year = '$currentYear'";
+            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE year = '$currentYear'";
         } else {
-            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE status = 'Approved' AND campus = '$userCampus' AND year = '$currentYear'";
+            $activitiesQuery = "SELECT SUM(total_activities) as total_proposed_activities FROM gpb_entries WHERE campus = '$userCampus' AND year = '$currentYear'";
         }
         $activitiesResult = mysqli_query($conn, $activitiesQuery);
         if ($activitiesResult && mysqli_num_rows($activitiesResult) > 0) {
@@ -2601,9 +2114,9 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         // Get proposed beneficiaries from gpb_entries
         if ($isCentral) {
             // For Central users, sum beneficiaries from all campuses
-            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries FROM gpb_entries WHERE status = 'Approved' AND year = '$currentYear'";
+            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries FROM gpb_entries WHERE year = '$currentYear'";
         } else {
-            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries FROM gpb_entries WHERE status = 'Approved' AND campus = '$userCampus' AND year = '$currentYear'";
+            $beneficiariesQuery = "SELECT SUM(total_participants) as total_proposed_beneficiaries FROM gpb_entries WHERE campus = '$userCampus' AND year = '$currentYear'";
         }
         $beneficiariesResult = mysqli_query($conn, $beneficiariesQuery);
         if ($beneficiariesResult && mysqli_num_rows($beneficiariesResult) > 0) {
@@ -2614,11 +2127,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         // Get actual beneficiaries from ppas_forms for quarters up to current quarter
         if ($isCentral) {
             // For Central users, sum beneficiaries from all campuses
-            $actualBeneficiariesQuery = "SELECT SUM(grand_total) as total_actual_beneficiaries 
+            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries 
                 FROM ppas_forms 
                 WHERE quarter IN ($quarterFilter) AND year = '$currentYear'";
         } else {
-            $actualBeneficiariesQuery = "SELECT SUM(grand_total) as total_actual_beneficiaries 
+            $actualBeneficiariesQuery = "SELECT SUM(total_beneficiaries) as total_actual_beneficiaries 
                 FROM ppas_forms 
                 WHERE quarter IN ($quarterFilter) AND campus = '$userCampus' AND year = '$currentYear'";
         }
@@ -2775,7 +2288,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                         <?php
                                         // Query to get male and female proposed beneficiaries
                                         $proposedGenderQuery = "SELECT SUM(male_participants) as male, SUM(female_participants) as female 
-                                                            FROM gpb_entries WHERE status = 'Approved' AND " . ($isCentral ? "" : "campus = '$userCampus' AND ") . "year = '$currentYear'";
+                                                            FROM gpb_entries WHERE " . ($isCentral ? "" : "campus = '$userCampus' AND ") . "year = '$currentYear'";
                                         $proposedGenderResult = mysqli_query($conn, $proposedGenderQuery);
                                         $proposedMale = 0;
                                         $proposedFemale = 0;
@@ -2796,7 +2309,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                     <div class="chart-value-number actual-value">
                                         <?php
                                         // Query to get male and female actual beneficiaries
-                                        $actualGenderQuery = "SELECT SUM(grand_total_male) as male, SUM(grand_total_female) as female 
+                                        $actualGenderQuery = "SELECT SUM(total_male) as male, SUM(total_female) as female 
                                                           FROM ppas_forms WHERE quarter IN ($quarterFilter) AND " .
                                             ($isCentral ? "" : "campus = '$userCampus' AND ") . "year = '$currentYear'";
                                         $actualGenderResult = mysqli_query($conn, $actualGenderQuery);
@@ -3465,7 +2978,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 }
             });
 
-            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', savedTheme);
             document.documentElement.style.colorScheme = savedTheme;
             updateThemeIcon(savedTheme);
@@ -3561,18 +3074,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
     <script>
         // Function to create pie charts
         function createPieChart(chartId, proposed, actual, label) {
-            const canvas = document.getElementById(chartId);
-            if (!canvas) {
-                console.error(`Canvas element with id ${chartId} not found`);
-                return null;
-            }
-            
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                console.error(`Could not get 2d context for ${chartId}`);
-                return null;
-            }
-            
+            const ctx = document.getElementById(chartId).getContext('2d');
             // Set high-DPI rendering
             ctx.canvas.style.width = '100%';
             ctx.canvas.style.height = '100%';
@@ -4023,8 +3525,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             const modalStatus = document.getElementById('modal-status');
             const modalChange = document.getElementById('modal-change');
             const modalPeriod = document.getElementById('modal-period');
-            
-            console.log('Opening modal for chart:', chartId);
+            const campusFilter = document.getElementById('modal-campus-filter');
 
             // Get the parent card element that was clicked
             const cardElement = document.getElementById(chartId).closest('.analytics-card');
@@ -4079,6 +3580,15 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             // Use quarter label instead of dateElement
             modalPeriod.textContent = quarterLabel ? quarterLabel.textContent : '';
 
+            // Setup campus filter based on stored value or selected campus
+            if (campusFilter) {
+                // Get saved filter preference from sessionStorage if available
+                const savedCampusFilter = sessionStorage.getItem(`dashboard_campus_${chartId}`);
+                if (savedCampusFilter && campusFilter.querySelector(`option[value="${savedCampusFilter}"]`)) {
+                    campusFilter.value = savedCampusFilter;
+                }
+            }
+
             // Show modal and backdrop
             cardModal.classList.add('active');
             cardModalBackdrop.style.display = 'flex';
@@ -4088,19 +3598,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             if (chartId === 'budgetChart' || chartId === 'activitiesChart' || chartId === 'beneficiariesChart') {
                 modalChart = createModalComparisonChart(`modal-${chartId}`, title, data);
 
-                // Get the current campus filter value from the global variable
-                const currentCampus = currentCampusFilter;
-                
-                console.log('Loading modal data with campus filter:', currentCampus);
-
-                // Initialize detailed analysis HTML first for budget chart
-                if (chartId === 'budgetChart') {
-                    initializeDetailedAnalysisHTML();
-                    document.getElementById('budget-utilization-analysis').style.display = 'block';
-                }
+                // Get the current campus filter value (now from hidden input)
+                const currentCampusFilter = document.getElementById('modal-campus-filter').value;
 
                 // Load data using the selected campus filter
-                fetchAndPopulateBreakdown(chartId, currentCampus);
+                fetchAndPopulateBreakdown(chartId, currentCampusFilter);
             } else {
                 // Use the existing modal chart creation for other charts
                 modalChart = createModalChart(`modal-${chartId}`, title, chartId);
@@ -4110,9 +3612,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 document.querySelector('.card-modal-detailed-analysis').style.display = 'none';
             }
 
-            // Update modal footer text with quarter and campus info
-            const campusInfo = currentCampusFilter ? ` for ${currentCampusFilter} campus` : ' for all campuses';
-            cardModalFooterText.textContent = `Data shown is cumulative from Q1 to Q${systemCurrentQuarter}, ${systemCurrentYear}${campusInfo}`;
+            // Update modal footer text with quarter info
+            cardModalFooterText.textContent = `Data shown is cumulative from Q1 to Q${systemCurrentQuarter}, ${systemCurrentYear}`;
 
             // Add click event to backdrop
             cardModalBackdrop.onclick = closeCardModal;
@@ -4120,41 +3621,24 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         // Helper function to fetch and populate breakdown data
         function fetchAndPopulateBreakdown(chartType, campusFilter) {
-            console.log('Fetching data for:', chartType, 'with filter:', campusFilter);
-            
-            // Always initialize the detailed analysis HTML structure
+            // Initialize the detailed analysis HTML structure
             initializeDetailedAnalysisHTML();
-            
-            // For budget chart, make sure the section is visible immediately
-            if (chartType === 'budgetChart') {
-                document.getElementById('budget-utilization-analysis').style.display = 'block';
-            }
 
             // Fetch data with the selected campus filter
             fetch(`get_filtered_dashboard_data.php?chart_type=${encodeURIComponent(chartType)}&campus=${encodeURIComponent(campusFilter)}`)
                 .then(response => response.json())
                 .then(response => {
-                    console.log('Received response for', chartType, ':', response);
-                    
                     if (response.success) {
                         // Populate the breakdown and detailed analysis with the data
                         populateBreakdown(chartType, response.data);
-                        
+
                         // Store the campus selection in sessionStorage
                         sessionStorage.setItem(`dashboard_campus_${chartType}`, campusFilter);
-                        
-                        // Remove this conditional call since populateBreakdown already calls populateDetailedAnalysis
-                        // if (response.data.detailed_data) {
-                        //     populateDetailedAnalysis(chartType, response.data);
-                        // }
-                        
-                        // Special handling for budget chart - directly call populateDetailedAnalysis
-                        if (chartType === 'budgetChart') {
-                            console.log('Directly calling populateDetailedAnalysis for budgetChart');
+
+                        // Also populate detailed analysis if data is available
+                        if (response.data.detailed_data) {
                             populateDetailedAnalysis(chartType, response.data);
                         }
-                    } else {
-                        console.error('Error in API response:', response);
                     }
                 })
                 .catch(error => {
@@ -4163,15 +3647,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         <h3 class="breakdown-title">Analytics Breakdown</h3>
                         <div class="alert alert-danger">Failed to load breakdown data. Please try again.</div>
                     `;
-                    
-                    // For budget chart, still show the section with error message
-                    if (chartType === 'budgetChart') {
-                        document.getElementById('budget-utilization-analysis').style.display = 'block';
-                        document.getElementById('budget-utilization-analysis').innerHTML = `
-                            <h4 class="section-title">Budget Utilization by Activity</h4>
-                            <div class="alert alert-danger">Failed to load budget analysis data. Please try again.</div>
-                        `;
-                    }
                 });
         }
 
@@ -4291,166 +3766,129 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         // Function to update all preview charts on the dashboard
         function updateAllPreviewCharts(campusFilter) {
-            try {
-                const chartTypes = ['budgetChart', 'activitiesChart', 'beneficiariesChart'];
-                const dataNames = {
-                    'budgetChart': 'budgetData',
-                    'activitiesChart': 'activitiesData',
-                    'beneficiariesChart': 'beneficiariesData'
-                };
+            const chartTypes = ['budgetChart', 'activitiesChart', 'beneficiariesChart'];
+            const dataNames = {
+                'budgetChart': 'budgetData',
+                'activitiesChart': 'activitiesData',
+                'beneficiariesChart': 'beneficiariesData'
+            };
 
-                // Show loading indicators for all charts
-                chartTypes.forEach(chartType => {
-                    const chartContainer = document.querySelector(`.analytics-card[data-chart="${chartType}"] .chart-container`);
-                    if (chartContainer) {
-                        chartContainer.innerHTML = `<div class="text-center my-3"><i class="fas fa-spinner fa-spin fa-2x"></i></div>`;
-                    }
-                });
+            // Show loading indicators for all charts
+            chartTypes.forEach(chartType => {
+                const chartContainer = document.querySelector(`.analytics-card[data-chart="${chartType}"] .chart-container`);
+                if (chartContainer) {
+                    chartContainer.innerHTML = `<div class="text-center my-3"><i class="fas fa-spinner fa-spin fa-2x"></i></div>`;
+                }
+            });
 
-                // Create an array to store fetch promises
-                const fetchPromises = chartTypes.map(chartType => {
-                    // Use empty campus filter for All Campuses, which will use the server-side logic to get all data
-                    return fetch(`get_filtered_dashboard_data.php?chart_type=${encodeURIComponent(chartType)}&campus=${encodeURIComponent(campusFilter)}`)
-                        .then(response => response.json())
-                        .then(response => {
-                            if (response.success) {
-                                return {
-                                    chartType,
-                                    data: response.data
-                                };
-                            }
-                            console.error('Error in chart data:', response.message || 'Unknown error');
-                            return null;
-                        })
-                        .catch(error => {
-                            console.error('Error fetching chart data:', error);
-                            return null;
-                        });
-                });
+            // Create an array to store fetch promises
+            const fetchPromises = chartTypes.map(chartType => {
+                // Use empty campus filter for All Campuses, which will use the server-side logic to get all data
+                const finalCampusFilter = campusFilter === 'All Campuses' ? '' : campusFilter;
 
-                // Wait for all fetches to complete
-                Promise.all(fetchPromises)
-                    .then(results => {
-                        // Filter out any null results
-                        const validResults = results.filter(result => result !== null);
-
-                        // Process each result
-                        validResults.forEach(result => {
-                            const { chartType, data } = result;
-
-                            // Update the global data variable
-                            window[dataNames[chartType]] = data;
-
-                            // Update chart display
-                            const chartContainer = document.querySelector(`.analytics-card[data-chart="${chartType}"] .chart-container`);
-                            if (chartContainer) {
-                                chartContainer.innerHTML = `<canvas id="${chartType}"></canvas>
-                                <div class="chart-values">
-                                    <div class="chart-value-item">
-                                        <div class="chart-value-label">${chartType === 'budgetChart' ? 'GAD Fund' : (chartType === 'activitiesChart' ? 'Proposed Activities' : 'Proposed Beneficiaries')}:</div>
-                                        <div class="chart-value-number proposed-value">${
-                                            chartType === 'budgetChart' 
-                                                ? '₱' + new Intl.NumberFormat().format(data.proposed.toFixed(2)) 
-                                                : chartType === 'beneficiariesChart'
-                                                    ? `${new Intl.NumberFormat().format(data.proposed)}<br>
-                                                      <strong class='male'>${new Intl.NumberFormat().format(data.proposed_male)} <i class='fas fa-male'></i></strong> | <strong class='female'>${new Intl.NumberFormat().format(data.proposed_female)} <i class='fas fa-female'></i></strong>`
-                                                    : new Intl.NumberFormat().format(data.proposed)
-                                        }</div>
-                                    </div>
-                                    <div class="chart-value-item">
-                                        <div class="chart-value-label">${chartType === 'budgetChart' ? 'Budget Utilized' : (chartType === 'activitiesChart' ? 'Actual Activities' : 'Actual Beneficiaries')}:</div>
-                                        <div class="chart-value-number actual-value">${
-                                            chartType === 'budgetChart' 
-                                                ? '₱' + new Intl.NumberFormat().format(data.actual.toFixed(2)) 
-                                                : chartType === 'beneficiariesChart'
-                                                    ? `${new Intl.NumberFormat().format(data.actual)}<br>
-                                                      <strong class='male'>${new Intl.NumberFormat().format(data.actual_male)} <i class='fas fa-male'></i></strong> | <strong class='female'>${new Intl.NumberFormat().format(data.actual_female)} <i class='fas fa-female'></i></strong>`
-                                                    : new Intl.NumberFormat().format(data.actual)
-                                        }</div>
-                                    </div>
-                                </div>`;
-
-                                // Update percentage indicator
-                                const card = chartContainer.closest('.analytics-card');
-                                if (card) {
-                                    const percentageElement = card.querySelector('.percentage');
-                                    const trendElement = card.querySelector('.trend-label');
-
-                                    if (percentageElement) {
-                                        percentageElement.textContent = (data.relativePercentage > 0 ? '+' : '') + data.relativePercentage + '%';
-                                        percentageElement.className = 'percentage ' + (data.relativePercentage >= 0 ? 'up' : 'down');
-                                    }
-
-                                    if (trendElement) {
-                                        trendElement.textContent = 'Trend: ' + data.trend;
-                                    }
-                                }
-
-                                // Create new chart - add error handling
-                                try {
-                                    // First destroy the old chart if it exists
-                                    if (window.charts && window.charts[chartType]) {
-                                        window.charts[chartType].destroy();
-                                    }
-                                    
-                                    // Create the new chart
-                                    const newChart = createPieChart(
-                                        chartType,
-                                        window[dataNames[chartType]].proposed,
-                                        window[dataNames[chartType]].actual,
-                                        chartType === 'budgetChart' ? 'Budget Usage' :
-                                        (chartType === 'activitiesChart' ? 'Activities' : 'Beneficiaries')
-                                    );
-                                    
-                                    // Only update the charts object if we got a valid chart back
-                                    if (newChart) {
-                                        if (!window.charts) window.charts = {};
-                                        window.charts[chartType] = newChart;
-                                    }
-                                } catch (chartError) {
-                                    console.error(`Error creating chart ${chartType}:`, chartError);
-                                }
-                            }
-                        });
-
-                        // Update campus filter button with active campus
-                        const campusLabel = campusFilter ? campusFilter : 'All Campuses';
-                        const campusFilterButton = document.getElementById('campusFilterButton');
-                        if (campusFilterButton) {
-                            campusFilterButton.setAttribute('title', `Viewing: ${campusLabel}`);
-                            
-                            // Add a small indicator badge to show active campus
-                            let campusIndicator = document.getElementById('campusIndicator');
-                            if (!campusIndicator) {
-                                campusIndicator = document.createElement('span');
-                                campusIndicator.id = 'campusIndicator';
-                                campusIndicator.className = 'campus-indicator';
-                                campusFilterButton.appendChild(campusIndicator);
-                            }
-                            
-                            // If All Campuses, remove the indicator
-                            if (!campusFilter) {
-                                if (campusIndicator) {
-                                    campusIndicator.style.display = 'none';
-                                }
-                            } else {
-                                if (campusIndicator) {
-                                    campusIndicator.style.display = 'block';
-                                    // Use first letter of campus as indicator
-                                    campusIndicator.textContent = campusFilter.charAt(0);
-                                }
-                            }
+                return fetch(`get_filtered_dashboard_data.php?chart_type=${encodeURIComponent(chartType)}&campus=${encodeURIComponent(finalCampusFilter)}`)
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.success) {
+                            return {
+                                chartType,
+                                data: response.data
+                            };
                         }
-
-                        // Adjust font sizes for beneficiary numbers after chart updates
-                        adjustBeneficiaryFontSizes();
+                        console.error('Error in chart data:', response.message || 'Unknown error');
+                        return null;
                     })
                     .catch(error => {
-                        console.error('Error updating preview charts:', error);
+                        console.error('Error fetching chart data:', error);
+                        return null;
                     });
-            } catch (error) {
-                console.error('Critical error in updateAllPreviewCharts:', error);
-            }
+            });
+
+            // Wait for all fetches to complete
+            Promise.all(fetchPromises)
+                .then(results => {
+                    // Filter out any null results
+                    const validResults = results.filter(result => result !== null);
+
+                    // Process each result
+                    validResults.forEach(result => {
+                        const {
+                            chartType,
+                            data
+                        } = result;
+
+                        // Update the global data variable
+                        window[dataNames[chartType]] = data;
+
+                        // Update chart display
+                        const chartContainer = document.querySelector(`.analytics-card[data-chart="${chartType}"] .chart-container`);
+                        if (chartContainer) {
+                            chartContainer.innerHTML = `<canvas id="${chartType}"></canvas>
+                            <div class="chart-values">
+                                <div class="chart-value-item">
+                                    <div class="chart-value-label">${chartType === 'budgetChart' ? 'GAD Fund' : (chartType === 'activitiesChart' ? 'Proposed Activities' : 'Proposed Beneficiaries')}:</div>
+                                    <div class="chart-value-number proposed-value">${
+                                        chartType === 'budgetChart' 
+                                            ? '₱' + new Intl.NumberFormat().format(data.proposed.toFixed(2)) 
+                                            : chartType === 'beneficiariesChart'
+                                                ? `${new Intl.NumberFormat().format(data.proposed)}<br>
+                                                  <strong class='male'>${new Intl.NumberFormat().format(data.proposed_male)} <i class='fas fa-male'></i></strong> | <strong class='female'>${new Intl.NumberFormat().format(data.proposed_female)} <i class='fas fa-female'></i></strong>`
+                                                : new Intl.NumberFormat().format(data.proposed)
+                                    }</div>
+                                </div>
+                                <div class="chart-value-item">
+                                    <div class="chart-value-label">${chartType === 'budgetChart' ? 'Budget Utilized' : (chartType === 'activitiesChart' ? 'Actual Activities' : 'Actual Beneficiaries')}:</div>
+                                    <div class="chart-value-number actual-value">${
+                                        chartType === 'budgetChart' 
+                                            ? '₱' + new Intl.NumberFormat().format(data.actual.toFixed(2)) 
+                                            : chartType === 'beneficiariesChart'
+                                                ? `${new Intl.NumberFormat().format(data.actual)}<br>
+                                                  <strong class='male'>${new Intl.NumberFormat().format(data.actual_male)} <i class='fas fa-male'></i></strong> | <strong class='female'>${new Intl.NumberFormat().format(data.actual_female)} <i class='fas fa-female'></i></strong>`
+                                                : new Intl.NumberFormat().format(data.actual)
+                                    }</div>
+                                </div>
+                            </div>`;
+
+                            // Update percentage indicator
+                            const card = chartContainer.closest('.analytics-card');
+                            if (card) {
+                                const percentageElement = card.querySelector('.percentage');
+                                const trendElement = card.querySelector('.trend-label');
+
+                                if (percentageElement) {
+                                    percentageElement.textContent = (data.relativePercentage > 0 ? '+' : '') + data.relativePercentage + '%';
+                                    percentageElement.className = 'percentage ' + (data.relativePercentage >= 0 ? 'up' : 'down');
+                                }
+
+                                if (trendElement) {
+                                    trendElement.textContent = data.trend;
+                                }
+                            }
+
+                            // Create new chart
+                            window.charts[chartType] = createPieChart(
+                                chartType,
+                                window[dataNames[chartType]].proposed,
+                                window[dataNames[chartType]].actual,
+                                chartType === 'budgetChart' ? 'Budget Usage' :
+                                (chartType === 'activitiesChart' ? 'Activities' : 'Beneficiaries')
+                            );
+                        }
+                    });
+
+                    // Update campus display elements
+                    const campusDisplayElements = document.querySelectorAll('.campus-display');
+                    const campusText = campusFilter ? campusFilter : 'All Campuses';
+                    campusDisplayElements.forEach(el => {
+                        el.textContent = campusText;
+                    });
+
+                    // Adjust font sizes for beneficiary numbers after chart updates
+                    adjustBeneficiaryFontSizes();
+                })
+                .catch(error => {
+                    console.error('Error updating preview charts:', error);
+                });
         }
     </script>
 
@@ -4488,177 +3926,27 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
     <!-- Create all charts when DOM is loaded -->
     <script>
-        // Global variable to store current campus filter
-        let currentCampusFilter = "<?php echo $isCentral ? '' : $userCampus; ?>";
-        
         document.addEventListener('DOMContentLoaded', () => {
-            // Campus filter functionality
-            const campusFilterButton = document.getElementById('campusFilterButton');
-            const campusFilterDropdown = document.getElementById('campusFilterDropdown');
-            const campusFilterItems = document.querySelectorAll('.campus-filter-item');
-            
-            // Position dropdown correctly
-            function positionDropdown() {
-                if (campusFilterButton && campusFilterDropdown) {
-                    const buttonRect = campusFilterButton.getBoundingClientRect();
-                    campusFilterDropdown.style.top = (buttonRect.bottom + 5) + 'px';
-                    campusFilterDropdown.style.right = (window.innerWidth - buttonRect.right) + 'px';
-                }
-            }
-            
-            // Toggle dropdown on button click
-            if (campusFilterButton) {
-                campusFilterButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    campusFilterButton.classList.toggle('active');
-                    
-                    if (campusFilterDropdown && !campusFilterDropdown.classList.contains('show')) {
-                        // Position dropdown before showing it
-                        positionDropdown();
-                        
-                        // Set active class on current campus
-                        if (campusFilterItems && campusFilterItems.length > 0) {
-                        campusFilterItems.forEach(item => {
-                            if (item.dataset.campus === currentCampusFilter) {
-                                item.classList.add('active');
-                            } else {
-                                item.classList.remove('active');
-                            }
-                        });
-                        }
-                        
-                        // Show dropdown
-                        campusFilterDropdown.classList.add('show');
-                    } else if (campusFilterDropdown) {
-                        // Hide dropdown
-                        campusFilterDropdown.classList.remove('show');
-                    }
-                });
-                
-                // Handle window resize to reposition dropdown
-                window.addEventListener('resize', function() {
-                    if (campusFilterDropdown && campusFilterDropdown.classList.contains('show')) {
-                        positionDropdown();
-                    }
-                });
-            }
-            
-            // Handle campus selection
-            campusFilterItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const selectedCampus = this.dataset.campus;
-                    
-                    // Update active class
-                    campusFilterItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update current filter and close dropdown
-                    currentCampusFilter = selectedCampus;
-                    campusFilterDropdown.classList.remove('show');
-                    campusFilterButton.classList.remove('active');
-                    
-                    // Update all charts with new campus filter
-                    updateAllPreviewCharts(currentCampusFilter);
-                    
-                    // Update tooltip to show current campus
-                    const tooltipText = selectedCampus ? selectedCampus : 'All Campuses';
-                    campusFilterButton.setAttribute('title', `Viewing: ${tooltipText}`);
-                    
-                    // Store selection in localStorage
-                    localStorage.setItem('dashboard_campus_filter', currentCampusFilter);
-                });
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function() {
-                if (campusFilterDropdown) {
-                campusFilterDropdown.classList.remove('show');
-                }
-                if (campusFilterButton) {
-                campusFilterButton.classList.remove('active');
-                }
-            });
-            
-            // Initialize charts with error handling
-            try {
+            // Make charts global for access by other functions
+            window.charts = {
+                budgetChart: createPieChart('budgetChart', budgetData.proposed, budgetData.actual, 'Budget Usage'),
+                activitiesChart: createPieChart('activitiesChart', activitiesData.proposed, activitiesData.actual, 'Activities'),
+                beneficiariesChart: createPieChart('beneficiariesChart', beneficiariesData.proposed, beneficiariesData.actual, 'Beneficiaries')
+                // gadQuarterlyChart and gadAnnualChart removed as they're now placeholders
+            };
+
+            // Function to update all charts when theme changes
+            window.updateChartsTheme = function() {
+                // Destroy existing charts
+                Object.values(window.charts).forEach(chart => chart.destroy());
+
+                // Recreate charts with new theme colors
                 window.charts = {
                     budgetChart: createPieChart('budgetChart', budgetData.proposed, budgetData.actual, 'Budget Usage'),
                     activitiesChart: createPieChart('activitiesChart', activitiesData.proposed, activitiesData.actual, 'Activities'),
                     beneficiariesChart: createPieChart('beneficiariesChart', beneficiariesData.proposed, beneficiariesData.actual, 'Beneficiaries')
                     // gadQuarterlyChart and gadAnnualChart removed as they're now placeholders
                 };
-
-                // Clean up null entries
-                Object.keys(window.charts).forEach(key => {
-                    if (window.charts[key] === null) {
-                        delete window.charts[key];
-                    }
-                });
-                
-                // Try to load saved campus filter from localStorage
-                const savedCampusFilter = localStorage.getItem('dashboard_campus_filter');
-                if (savedCampusFilter) {
-                    currentCampusFilter = savedCampusFilter;
-                    
-                    // Update charts with saved filter - with a delay to ensure DOM is ready
-                    setTimeout(() => {
-                        try {
-                            updateAllPreviewCharts(currentCampusFilter);
-                        } catch (e) {
-                            console.error('Error updating charts with saved filter:', e);
-                            
-                            // Clear the saved filter if we encounter an error
-                            localStorage.removeItem('dashboard_campus_filter');
-                            currentCampusFilter = "<?php echo $isCentral ? '' : $userCampus; ?>";
-                        }
-                    }, 100);
-                    
-                    // Update active class
-                    if (campusFilterItems && campusFilterItems.length > 0) {
-                    campusFilterItems.forEach(item => {
-                        if (item.dataset.campus === currentCampusFilter) {
-                            item.classList.add('active');
-                        }
-                    });
-                    }
-                    
-                    // Update tooltip
-                    if (campusFilterButton) {
-                        const tooltipText = currentCampusFilter ? currentCampusFilter : 'All Campuses';
-                        campusFilterButton.setAttribute('title', `Viewing: ${tooltipText}`);
-                    }
-                }
-            } catch (e) {
-                console.error('Error initializing charts:', e);
-            }
-
-            // Function to update all charts when theme changes
-            window.updateChartsTheme = function() {
-                try {
-                    // Destroy existing charts
-                    if (window.charts) {
-                        Object.values(window.charts).forEach(chart => {
-                            if (chart) chart.destroy();
-                        });
-                    }
-
-                    // Recreate charts with new theme colors
-                    window.charts = {
-                        budgetChart: createPieChart('budgetChart', budgetData.proposed, budgetData.actual, 'Budget Usage'),
-                        activitiesChart: createPieChart('activitiesChart', activitiesData.proposed, activitiesData.actual, 'Activities'),
-                        beneficiariesChart: createPieChart('beneficiariesChart', beneficiariesData.proposed, beneficiariesData.actual, 'Beneficiaries')
-                        // gadQuarterlyChart and gadAnnualChart removed as they're now placeholders
-                    };
-                    
-                    // Clean up null entries
-                    Object.keys(window.charts).forEach(key => {
-                        if (window.charts[key] === null) {
-                            delete window.charts[key];
-                        }
-                    });
-                } catch (e) {
-                    console.error('Error updating charts theme:', e);
-                }
             };
 
             // Update charts when theme changes
@@ -4891,8 +4179,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         // Function to populate the detailed analysis section
         function populateDetailedAnalysis(chartType, data) {
-            console.log('populateDetailedAnalysis called for:', chartType, 'with data:', data);
-            
             // First, check if detailed analysis elements exist, initialize if not
             const budgetAnalysisSection = document.getElementById('budget-utilization-analysis');
             const activitiesAnalysisSection = document.getElementById('activities-analysis');
@@ -4911,57 +4197,13 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             // Show detailed analysis container
             document.querySelector('.card-modal-detailed-analysis').style.display = 'block';
 
-            // For budget chart, always ensure the budget section is visible
-            if (chartType === 'budgetChart') {
-                document.getElementById('budget-utilization-analysis').style.display = 'block';
-            }
-
             // Check if we have detailed data
             if (!data.detailed_data || data.detailed_data.length === 0) {
-                console.log('No detailed data available for:', chartType);
                 // Show empty state message in all sections
                 const emptyStateHtml = '<div class="data-empty-state">No detailed data available for the current selection.</div>';
-                
-                // Preserve section titles and add empty state message
-                if (chartType === 'budgetChart') {
-                    const budgetSection = document.getElementById('budget-utilization-analysis');
-                    if (budgetSection) {
-                        // Preserve existing table structure but add an empty state row
-                        const tableBody = document.getElementById('budget-activities-table-body');
-                        if (tableBody) {
-                            tableBody.innerHTML = `<tr><td colspan="6" class="text-center">${emptyStateHtml}</td></tr>`;
-                            
-                            // Still update the summary values
-                            document.getElementById('total-budget-utilized').textContent = '₱' + new Intl.NumberFormat().format(data.actual || 0);
-                            document.getElementById('total-gad-fund').textContent = '₱' + new Intl.NumberFormat().format(data.proposed || 0);
-                            
-                            const remaining = (data.proposed || 0) - (data.actual || 0);
-                            document.getElementById('remaining-budget').textContent = '₱' + new Intl.NumberFormat().format(remaining);
-                            
-                            if (remaining < 0) {
-                                document.getElementById('remaining-budget').classList.add('text-danger');
-                            } else {
-                                document.getElementById('remaining-budget').classList.remove('text-danger');
-                            }
-                        } else {
-                            budgetSection.innerHTML = `<h4 class="section-title">Budget Utilization by Activity</h4>${emptyStateHtml}`;
-                        }
-                    }
-                } else {
-                    // For other sections, just replace content with empty state
-                    document.getElementById('activities-analysis').innerHTML = `<h4 class="section-title">Activities Analysis by Gender Issue</h4>${emptyStateHtml}`;
-                    document.getElementById('beneficiaries-analysis').innerHTML = `<h4 class="section-title">Beneficiaries Analysis by Gender Issue</h4>${emptyStateHtml}`;
-                }
-                
-                // Show the appropriate section based on chart type
-                if (chartType === 'budgetChart') {
-                    document.getElementById('budget-utilization-analysis').style.display = 'block';
-                } else if (chartType === 'activitiesChart') {
-                    document.getElementById('activities-analysis').style.display = 'block';
-                } else if (chartType === 'beneficiariesChart') {
-                    document.getElementById('beneficiaries-analysis').style.display = 'block';
-                }
-                
+                document.getElementById('budget-utilization-analysis').innerHTML = emptyStateHtml;
+                document.getElementById('activities-analysis').innerHTML = emptyStateHtml;
+                document.getElementById('beneficiaries-analysis').innerHTML = emptyStateHtml;
                 return;
             }
 
@@ -4977,8 +4219,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         // Function to populate budget utilization analysis
         function populateBudgetAnalysis(data) {
-            console.log('Populating budget analysis with data:', data);
-            
             const tableBody = document.getElementById('budget-activities-table-body');
             const totalBudgetUtilized = document.getElementById('total-budget-utilized');
             const totalGadFund = document.getElementById('total-gad-fund');
@@ -4992,7 +4232,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
             // Format number as currency
             const formatCurrency = (value) => {
-                return '₱' + new Intl.NumberFormat().format(parseFloat(value).toFixed(2));
+                return '₱' + new Intl.NumberFormat().format(value.toFixed(2));
             };
 
             // Update column headers
@@ -5009,39 +4249,24 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             }
 
             // Populate table with activities
-            if (data.detailed_data && data.detailed_data.length > 0) {
-                data.detailed_data.forEach(item => {
-                    const row = document.createElement('tr');
-                    const approvedBudget = parseFloat(item.approved_budget || 0);
-                    const psAttribution = parseFloat(item.ps_attribution || 0);
-                    const totalBudget = approvedBudget + psAttribution;
-                    
-                    row.innerHTML = `
-                        <td>${item.activity || 'N/A'}</td>
-                        <td>${item.campus || 'N/A'}</td>
-                        <td>${item.quarter || 'N/A'}</td>
-                        <td>${formatCurrency(approvedBudget)}</td>
-                        <td>${formatCurrency(psAttribution)}</td>
-                        <td>${formatCurrency(totalBudget)}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } else {
-                // If no detailed data, add a summary row
-                console.log('No detailed budget data available, adding summary row');
+            data.detailed_data.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="5" class="text-center">Summary (Detailed breakdown not available)</td>
-                    <td>${formatCurrency(data.actual || 0)}</td>
+                    <td>${item.activity}</td>
+                    <td>${item.campus}</td>
+                    <td>${item.quarter}</td>
+                    <td>${formatCurrency(item.approved_budget)}</td>
+                    <td>${formatCurrency(item.ps_attribution)}</td>
+                    <td>${formatCurrency(item.total_budget)}</td>
                 `;
                 tableBody.appendChild(row);
-            }
+            });
 
             // Update summary values
-            totalBudgetUtilized.textContent = formatCurrency(data.actual || 0);
-            totalGadFund.textContent = formatCurrency(data.proposed || 0);
+            totalBudgetUtilized.textContent = formatCurrency(data.actual);
+            totalGadFund.textContent = formatCurrency(data.proposed);
 
-            const remaining = (data.proposed || 0) - (data.actual || 0);
+            const remaining = data.proposed - data.actual;
             remainingBudget.textContent = formatCurrency(remaining);
 
             // Add class based on remaining budget
@@ -5051,14 +4276,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 remainingBudget.classList.remove('text-danger');
             }
 
-            // Update breakdown summary with PS Attribution information if available
+            // Update breakdown summary with PS Attribution information
             const breakdownSummary = document.getElementById('breakdown-summary');
             if (breakdownSummary) {
-                const psAttribution = data.ps_attribution || 0;
-                const approvedBudget = data.approved_budget || 0;
-                
                 breakdownSummary.innerHTML = `
-                    <p>The total budget utilization of ${formatCurrency(data.actual)} includes ${formatCurrency(approvedBudget)} from approved budgets and ${formatCurrency(psAttribution)} from PS Attribution.</p>
+                    <p>The total budget utilization of ${formatCurrency(data.actual)} includes ${formatCurrency(data.approved_budget)} from approved budgets and ${formatCurrency(data.ps_attribution)} from PS Attribution.</p>
                 `;
             }
         }
@@ -5225,456 +4447,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 }
             }
         });
-    </script>
-    
-    <!-- GBP Notifications System -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize GBP notifications system
-            initializeGbpNotifications();
-            
-            // Initialize Central notifications system
-            initializeCentralNotifications();
-        });
-        
-        // GBP Notifications System
-        function initializeGbpNotifications() {
-            const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
-            if (isCentral) return; // Central doesn't receive notifications
-            
-            const notificationBell = document.getElementById('notificationBell');
-            const notificationPanel = document.getElementById('notificationPanel');
-            const notificationCount = document.getElementById('notificationCount');
-            const notificationList = document.getElementById('notificationList');
-            const markAllReadBtn = document.getElementById('markAllRead');
-            
-            if (!notificationBell) return;
-            
-            // Load notifications on page load
-            loadNotifications();
-            
-            // Set up interval to check for new notifications
-            setInterval(loadNotifications, 30000); // Check every 30 seconds
-            
-            // Toggle notification panel when bell is clicked
-            notificationBell.addEventListener('click', function(e) {
-                e.stopPropagation();
-                notificationPanel.classList.toggle('show');
-                
-                // Mark as read when opened
-                if (notificationPanel.classList.contains('show')) {
-                    updateReadStatus();
-                }
-            });
-            
-            // Close panel when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!notificationPanel.contains(e.target) && e.target !== notificationBell) {
-                    notificationPanel.classList.remove('show');
-                }
-            });
-            
-            // Mark all approved notifications as read
-            markAllReadBtn.addEventListener('click', function() {
-                markAllAsRead();
-            });
-            
-            // Clear all read notifications
-            const clearAllReadBtn = document.getElementById('clearAllRead');
-            if (clearAllReadBtn) {
-                clearAllReadBtn.addEventListener('click', function() {
-                    clearAllRead();
-                });
-            }
-            
-            // Function to load notifications
-            function loadNotifications() {
-                const formData = new FormData();
-                formData.append('action', 'get_notifications');
-                
-                fetch('../notifications/notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        updateNotificationUI(data.notifications);
-                    }
-                })
-                .catch(error => console.error('Error loading notifications:', error));
-                
-                // Also update the unread count
-                countUnreadNotifications();
-            }
-            
-            // Function to count unread notifications
-            function countUnreadNotifications() {
-                const formData = new FormData();
-                formData.append('action', 'count_unread');
-                
-                fetch('../notifications/notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        notificationCount.textContent = data.count;
-                        if (data.count > 0) {
-                            notificationCount.classList.remove('empty');
-                        } else {
-                            notificationCount.classList.add('empty');
-                        }
-                    }
-                })
-                .catch(error => console.error('Error counting notifications:', error));
-            }
-            
-            // Function to update notification UI
-            function updateNotificationUI(notifications) {
-                if (notifications.length === 0) {
-                    notificationList.innerHTML = `
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>No notifications</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Clear notification list
-                notificationList.innerHTML = '';
-                
-                // Add notifications
-                notifications.forEach(notification => {
-                    const item = document.createElement('div');
-                    item.className = `notification-item ${notification.is_read == 0 ? 'unread' : ''}`;
-                    item.dataset.id = notification.id;
-                    item.dataset.gbpId = notification.gbp_id;
-                    item.dataset.status = notification.status;
-                    
-                    // Format date
-                    const date = new Date(notification.created_at);
-                    const formattedDate = date.toLocaleString();
-                    
-                    item.innerHTML = `
-                        <div class="notification-status ${notification.status.toLowerCase()}">${notification.status}</div>
-                        <div class="notification-content">${notification.message}</div>
-                        <div class="notification-time">${formattedDate}</div>
-                    `;
-                    
-                    // Add click event to navigate to the GBP entry
-                    item.addEventListener('click', function(event) {
-                        // Only mark as read if approved
-                        if (notification.status === 'Approved' && notification.is_read == 0) {
-                            markAsRead(notification.id);
-                        }
-                        
-                        // Redirect to the GBP form - simple direct navigation
-                        window.location.href = '../gbp_forms/gbp.php';
-                    });
-                    
-                    notificationList.appendChild(item);
-                });
-            }
-            
-            // Function to mark a notification as read
-            function markAsRead(notificationId) {
-                const formData = new FormData();
-                formData.append('action', 'mark_as_read');
-                formData.append('notification_id', notificationId);
-                
-                fetch('../notifications/notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        countUnreadNotifications();
-                    }
-                })
-                .catch(error => console.error('Error marking notification as read:', error));
-            }
-            
-            // Function to mark all approved notifications as read
-            function markAllAsRead() {
-                const formData = new FormData();
-                formData.append('action', 'mark_as_read');
-                formData.append('all', 'true');
-                
-                fetch('../notifications/notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Refresh notifications
-                        loadNotifications();
-                        
-                        // Show success message
-                        Swal.fire({
-                            title: 'Success',
-                            text: 'All approved notifications marked as read',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                })
-                .catch(error => console.error('Error marking all notifications as read:', error));
-            }
-            
-            // Function to clear all read notifications
-            function clearAllRead() {
-                const formData = new FormData();
-                formData.append('action', 'clear_all_read');
-                
-                fetch('../notifications/notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Refresh notifications
-                        loadNotifications();
-                    }
-                })
-                .catch(error => console.error('Error clearing read notifications:', error));
-            }
-            
-            // Function to update read status of visible notifications
-            function updateReadStatus() {
-                const unreadApprovedItems = document.querySelectorAll('.notification-item.unread');
-                unreadApprovedItems.forEach(item => {
-                    if (item.dataset.status === 'Approved') {
-                        markAsRead(item.dataset.id);
-                        item.classList.remove('unread');
-                    }
-                });
-            }
-        }
-        
-        // Central Notifications System
-        function initializeCentralNotifications() {
-            const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
-            if (!isCentral) return; // Only Central receives these notifications
-            
-            const notificationBell = document.getElementById('centralNotificationBell');
-            const notificationPanel = document.getElementById('centralNotificationPanel');
-            const notificationCount = document.getElementById('centralNotificationCount');
-            const notificationList = document.getElementById('centralNotificationList');
-            const markAllReadBtn = document.getElementById('centralMarkAllRead');
-            
-            if (!notificationBell) return;
-            
-            // Load notifications on page load
-            loadCentralNotifications();
-            
-            // Set up interval to check for new notifications
-            setInterval(loadCentralNotifications, 30000); // Check every 30 seconds
-            
-            // Toggle notification panel when bell is clicked
-            notificationBell.addEventListener('click', function(e) {
-                e.stopPropagation();
-                notificationPanel.classList.toggle('show');
-                
-                // Mark as read when opened
-                if (notificationPanel.classList.contains('show')) {
-                    updateCentralReadStatus();
-                }
-            });
-            
-            // Close panel when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!notificationPanel.contains(e.target) && e.target !== notificationBell) {
-                    notificationPanel.classList.remove('show');
-                }
-            });
-            
-            // Mark all notifications as read
-            markAllReadBtn.addEventListener('click', function() {
-                markAllCentralAsRead();
-            });
-            
-            // Clear all read notifications
-            const clearAllReadBtn = document.getElementById('centralClearAllRead');
-            if (clearAllReadBtn) {
-                clearAllReadBtn.addEventListener('click', function() {
-                    clearAllCentralRead();
-                });
-            }
-            
-            // Function to load central notifications
-            function loadCentralNotifications() {
-                const formData = new FormData();
-                formData.append('action', 'get_notifications');
-                
-                fetch('../notifications/central_notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        updateCentralNotificationUI(data.notifications);
-                    }
-                })
-                .catch(error => console.error('Error loading central notifications:', error));
-                
-                // Also update the unread count
-                countCentralUnreadNotifications();
-            }
-            
-            // Function to count unread central notifications
-            function countCentralUnreadNotifications() {
-                const formData = new FormData();
-                formData.append('action', 'count_unread');
-                
-                fetch('../notifications/central_notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        notificationCount.textContent = data.count;
-                        if (data.count > 0) {
-                            notificationCount.classList.remove('empty');
-                        } else {
-                            notificationCount.classList.add('empty');
-                        }
-                    }
-                })
-                .catch(error => console.error('Error counting central notifications:', error));
-            }
-            
-            // Function to update central notification UI
-            function updateCentralNotificationUI(notifications) {
-                if (notifications.length === 0) {
-                    notificationList.innerHTML = `
-                        <div class="notification-empty">
-                            <i class="fas fa-bell-slash"></i>
-                            <p>No notifications</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Clear notification list
-                notificationList.innerHTML = '';
-                
-                // Add notifications
-                notifications.forEach(notification => {
-                    const item = document.createElement('div');
-                    item.className = `notification-item ${notification.is_read == 0 ? 'unread' : ''}`;
-                    item.dataset.id = notification.id;
-                    item.dataset.gbpId = notification.gbp_id;
-                    
-                    // Format date
-                    const date = new Date(notification.created_at);
-                    const formattedDate = date.toLocaleString();
-                    
-                    item.innerHTML = `
-                        <div class="notification-status approved">${notification.campus}</div>
-                        <div class="notification-content">${notification.message}</div>
-                        <div class="notification-time">${formattedDate}</div>
-                    `;
-                    
-                    // Add click event to navigate to the GBP entry
-                    item.addEventListener('click', function(event) {
-                        // Mark as read
-                        if (notification.is_read == 0) {
-                            markCentralAsRead(notification.id);
-                        }
-                        
-                        // Navigate to approvals page with gbp_id parameter
-                        window.location.href = `../approval/approval.php?view_entry=${notification.gbp_id}`;
-                    });
-                    
-                    notificationList.appendChild(item);
-                });
-            }
-            
-            // Function to mark a central notification as read
-            function markCentralAsRead(notificationId) {
-                const formData = new FormData();
-                formData.append('action', 'mark_as_read');
-                formData.append('notification_id', notificationId);
-                
-                fetch('../notifications/central_notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        countCentralUnreadNotifications();
-                    }
-                })
-                .catch(error => console.error('Error marking central notification as read:', error));
-            }
-            
-            // Function to mark all central notifications as read
-            function markAllCentralAsRead() {
-                const formData = new FormData();
-                formData.append('action', 'mark_as_read');
-                formData.append('all', 'true');
-                
-                fetch('../notifications/central_notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Refresh notifications
-                        loadCentralNotifications();
-                        
-                        // Show success message
-                        Swal.fire({
-                            title: 'Success',
-                            text: 'All notifications marked as read',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                })
-                .catch(error => console.error('Error marking all central notifications as read:', error));
-            }
-            
-            // Function to clear all read central notifications
-            function clearAllCentralRead() {
-                const formData = new FormData();
-                formData.append('action', 'clear_all_read');
-                
-                fetch('../notifications/central_notifications_api.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Refresh notifications
-                        loadCentralNotifications();
-                    }
-                })
-                .catch(error => console.error('Error clearing read central notifications:', error));
-            }
-            
-            // Function to update read status of visible central notifications
-            function updateCentralReadStatus() {
-                const unreadItems = document.querySelectorAll('#centralNotificationList .notification-item.unread');
-                unreadItems.forEach(item => {
-                    markCentralAsRead(item.dataset.id);
-                    item.classList.remove('unread');
-                });
-            }
-        }
     </script>
 </body>
 

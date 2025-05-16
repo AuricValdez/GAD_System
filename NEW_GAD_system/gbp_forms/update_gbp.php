@@ -124,7 +124,7 @@ try {
     }
     
     $totalParticipants = intval($_POST['male_participants']) + intval($_POST['female_participants']);
-    $status = ($_SESSION['username'] === 'Central') ? 'Approved' : 'Pending';
+    $status = 'Pending'; // Set status to "Pending" with single quotes
     
     // Debug statement to check variable value before binding
     error_log("Status value before binding: " . $status);
@@ -159,12 +159,12 @@ try {
     
     // Additional direct update for status to ensure it's correctly set
     try {
-        $statusUpdateSql = "UPDATE gpb_entries SET status = ? WHERE id = ?";
+        $statusUpdateSql = "UPDATE gpb_entries SET status = 'Pending' WHERE id = ?";
         $statusStmt = $conn->prepare($statusUpdateSql);
         if (!$statusStmt) {
             error_log("Failed to prepare status update: " . $conn->error);
         } else {
-            $statusStmt->bind_param('si', $status, $entryId);
+            $statusStmt->bind_param('i', $entryId);
             $statusResult = $statusStmt->execute();
             if (!$statusResult) {
                 error_log("Failed to execute status update: " . $statusStmt->error);

@@ -59,8 +59,8 @@ try {
         throw new Exception("Prepare failed: " . $conn->error);
     }
     
-    // Set status based on user type
-    $status = ($_SESSION['username'] === 'Central') ? 'Approved' : 'Pending';
+    // Set status to "Pending"
+    $status = 'Pending';
     
     // Debug statement to check variable value before binding
     error_log("Status value before binding when saving: " . $status);
@@ -102,12 +102,12 @@ try {
     // Additional direct update for status to ensure it's correctly set
     if ($newEntryId) {
         try {
-            $statusUpdateSql = "UPDATE gpb_entries SET status = ? WHERE id = ?";
+            $statusUpdateSql = "UPDATE gpb_entries SET status = 'Pending' WHERE id = ?";
             $statusStmt = $conn->prepare($statusUpdateSql);
             if (!$statusStmt) {
                 error_log("Failed to prepare status update after insert: " . $conn->error);
             } else {
-                $statusStmt->bind_param('si', $status, $newEntryId);
+                $statusStmt->bind_param('i', $newEntryId);
                 $statusResult = $statusStmt->execute();
                 if (!$statusResult) {
                     error_log("Failed to execute status update after insert: " . $statusStmt->error);

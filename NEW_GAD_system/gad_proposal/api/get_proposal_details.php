@@ -226,8 +226,8 @@ try {
                     )
                 ),
                 'partner_offices' => is_array(json_decode(safe_get($proposal, 'office_college_organization', '[]'), true))
-                    ? implode(', ', json_decode(safe_get($proposal, 'office_college_organization', '[]'), true))
-                    : safe_get($proposal, 'office_college_organization', ''),
+                    ? str_replace(['{', '}'], '', implode(', ', json_decode(safe_get($proposal, 'office_college_organization', '[]'), true)))
+                    : str_replace(['{', '}'], '', safe_get($proposal, 'office_college_organization', '')),
                 'participants' => array(
                     'students_male' => intval(safe_get($proposal, 'internal_male', 0)),
                     'students_female' => intval(safe_get($proposal, 'internal_female', 0)),

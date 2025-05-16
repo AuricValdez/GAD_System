@@ -17,9 +17,6 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 // Store campus in session for consistency (used by the modal)
 $_SESSION['campus'] = $userCampus;
 
-// Check if we have a view parameter for a specific GBP entry (from notifications)
-$gbpView = isset($_GET['view']) ? intval($_GET['view']) : 0;
-
 // Include database configuration
 require_once '../config.php';
 
@@ -39,12 +36,12 @@ $stmt->close();
 // The closing of the connection is handled in config.php
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPB Forms - GAD System</title>
+    <title>GBP Forms - GAD System</title>
     <link rel="icon" type="image/x-icon" href="../images/Batangas_State_Logo.ico">
     <script src="../js/common.js"></script>
     <!-- Immediate theme loading to prevent flash -->
@@ -62,6 +59,8 @@ $stmt->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Global Styles -->
+    <link href="../js/global-styles.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1262,65 +1261,6 @@ $stmt->close();
             padding: 10px 12px;
         }
 
-        /* Modern multi-select styling */
-        select[multiple] {
-            padding: 8px;
-            min-height: 120px;
-            background-image: none !important;
-        }
-
-        select[multiple] option {
-            padding: 8px 12px;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        select[multiple] option:checked {
-            background-color: var(--accent-color) !important;
-            color: white !important;
-            font-weight: 500;
-        }
-
-        select[multiple] option:hover:not(:checked) {
-            background-color: rgba(106, 27, 154, 0.1) !important;
-            color: var(--text-primary);
-        }
-
-        select[multiple] option:checked::before {
-            content: "✓";
-            display: inline-block;
-            margin-right: 6px;
-        }
-
-        /* Multi-select helper text styling */
-        .multi-select-hint {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 6px;
-            font-style: italic;
-        }
-
-        [data-bs-theme="dark"] select[multiple] option:hover:not(:checked) {
-            background-color: rgba(156, 39, 176, 0.2) !important;
-        }
-
-        /* Custom styling to make multi-select look more like checkboxes */
-        select[multiple] {
-            border: 1px solid var(--border-color);
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
-        }
-
-        /* Smaller multi-select for fields with few options */
-        select[multiple].small-select {
-            min-height: auto;
-            height: auto;
-            overflow-y: hidden;
-        }
-
         /* Focus styling for form controls */
         .form-control:focus,
         .form-select:focus {
@@ -2085,122 +2025,6 @@ $stmt->close();
             background-color: white;
             color: var(--accent-color);
         }
-
-        .nav-link {
-            padding: 10px 15px;
-            margin-bottom: 3px;
-        }
-
-        .nav-item .dropdown-menu .dropdown-item {
-            padding: 6px 48px;
-        }
-
-        .approval-link {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .bottom-controls {
-            margin-top: 15px;
-        }
-
-        /* Modern feedback modal styling */
-        .feedback-item {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .feedback-item .feedback-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .feedback-content {
-            background-color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border: 1px solid #e9ecef;
-        }
-
-        .reply-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #dee2e6;
-        }
-
-        .reply-content {
-            background-color: #e8f4ff;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border: 1px solid #cce5ff;
-        }
-
-        .reply-input-container {
-            margin-top: 8px;
-        }
-
-        .reply-input {
-            border-radius: 8px;
-            resize: none;
-        }
-
-        .feedback-index {
-            font-weight: 600;
-            color: var(--accent-color);
-            background-color: rgba(106, 27, 154, 0.1);
-            width: 26px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .feedback-item-header {
-            display: flex;
-            align-items: center;
-        }
-
-        .feedback-label {
-            font-weight: 500;
-            color: #495057;
-        }
-
-        .feedback-modal-current-entry-id {
-            display: none;
-        }
-
-        /* Dark theme adjustments */
-        [data-bs-theme="dark"] .feedback-item {
-            background-color: #2d2d2d;
-            border-left: 3px solid var(--accent-color);
-        }
-
-        [data-bs-theme="dark"] .feedback-content {
-            background-color: #212529;
-            border-color: #343a40;
-        }
-
-        [data-bs-theme="dark"] .reply-content {
-            background-color: #27353f;
-            border-color: #1a2733;
-        }
-
-        [data-bs-theme="dark"] .feedback-label {
-            color: #e9ecef;
-        }
-
-        [data-bs-theme="dark"] .reply-section {
-            border-top-color: #343a40;
-        }
     </style>
 </head>
 
@@ -2242,25 +2066,22 @@ $stmt->close();
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-alt me-2"></i> GPB
+                    <a class="nav-link dropdown-toggle active" href="#" id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-alt me-2"></i> Forms
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../target_forms/target.php">Target</a></li>
-                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Generate Form</a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-invoice me-2"></i> PPAs
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_form/ppas.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gad_proposal/gad_proposal.php">GAD Proposal</a></li>
-                        <li><a class="dropdown-item" href="../gad_narrative/gad_narrative.php">GAD Narrative</a></li>
-                        <li><a class="dropdown-item" href="../extension_proposal/extension_proposal.php">Extension Proposal</a></li>
-                        <li><a class="dropdown-item" href="../extension_narrative/extension_narrative.php">Extension Narrative</a></li>
+                        <li><a class="dropdown-item" href="../target_forms/target.php">Target Form</a></li>
+                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">GBP Form</a></li>
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#" id="ppasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                PPAs Form
+                            </a>
+                            <ul class="dropdown-menu dropdown-submenu" aria-labelledby="ppasDropdown">
+                                <li><a class="dropdown-item" href="../ppas_form/ppas.php">Main PPAs Form</a></li>
+                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal Form</a></li>
+                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Form</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
@@ -2268,9 +2089,11 @@ $stmt->close();
                         <i class="fas fa-chart-bar me-2"></i> Reports
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly Report</a></li>
-                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PS Attribution</a></li>
-                        <li><a class="dropdown-item" href="../annual_reports/annual_report.php">Annual Report</a></li>
+                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual GPB Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_reports/ppas_report.php">Quarterly PPAs Reports</a></li>
+                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PSA Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal_reports/print_proposal.php">GAD Proposal Reports</a></li>
+                        <li><a class="dropdown-item" href="../narrative_reports/print_narrative.php">Narrative Reports</a></li>
                     </ul>
                 </div>
                 <?php
@@ -2301,10 +2124,9 @@ $stmt->close();
         <div class="page-title">
             <div class="title-content">
                 <i class="fas fa-clipboard-list"></i>
-                <h2>GPB Management</h2>
+                <h2>GBP Management</h2>
             </div>
             <div class="pending-issues-container">
-                <?php if (!$isCentral): // Hide notification badges for Central users ?>
                 <div class="pending-issues-badge" id="pendingIssuesPill">
                     <i class="fas fa-hourglass-half"></i>
                     <span id="pendingIssuesCount">...</span>
@@ -2313,13 +2135,12 @@ $stmt->close();
                     <i class="fas fa-times-circle"></i>
                     <span id="rejectedIssuesCount">...</span>
                 </div>
-                <?php endif; ?>
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title">Add GPB Form</h5>
+                <h5 class="card-title">Add GBP Form</h5>
             </div>
             <div class="card-body">
                 <form id="ppasForm">
@@ -2358,7 +2179,6 @@ $stmt->close();
                                                 <option value="<?php echo htmlspecialchars($year); ?>"><?php echo htmlspecialchars($year); ?></option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <small class="info-text">Fetched from target</small>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -2373,14 +2193,14 @@ $stmt->close();
                                     <div class="form-group">
                                         <label for="totalGAA" class="form-label">Total GAA</label>
                                         <input type="text" class="form-control" id="totalGAA" name="totalGAA" readonly>
-                                        <small class="info-text">Fetched automatically from target</small>
+                                        <small class="info-text">Fetched automatically from target table</small>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="totalGADFund" class="form-label">Total GAD Fund</label>
                                         <input type="text" class="form-control" id="totalGADFund" name="totalGADFund" readonly>
-                                        <small class="info-text">Fetched automatically from target</small>
+                                        <small class="info-text">Fetched automatically from target table</small>
                                     </div>
                                 </div>
                             </div>
@@ -2395,7 +2215,8 @@ $stmt->close();
                         <!-- Section 2: Gender Issue -->
                         <div class="form-section" id="gender-issue">
                             <h6 class="section-title"><i class="fas fa-venus-mars me-2"></i> Gender Issue Information</h6>
-                            <div class="form-group">                                <label for="genderIssue" class="form-label">Gender Issue/GAD Mandate</label>
+                            <div class="form-group">
+                                <label for="genderIssue" class="form-label">Gender Issue/GAD Mandate</label>
                                 <div class="autocomplete-container">
                                     <input type="text" class="form-control" id="genderIssue" name="genderIssue" required autocomplete="off">
                                     <div class="autocomplete-results" id="genderIssueResults"></div>
@@ -2420,10 +2241,12 @@ $stmt->close();
                             </div>
                             <div class="form-group">
                                 <label for="relevantAgency" class="form-label">Relevant Agency MFO/MPO</label>
-                                <select class="form-select small-select" id="relevantAgency" name="relevantAgency" multiple required>
-                                    <option value="Technical Advisory">Technical Advisory</option>
-                                    <option value="Extension Services">Extension Services</option>
-                                    <option value="General Administration & Support">General Administration & Support</option>
+                                <select class="form-select" id="relevantAgency" name="relevantAgency" required>
+                                    <option value="" selected disabled>Select Relevant Agency</option>
+                                    <option value="Higher Education Services">MFO1 - Higher Education Services</option>
+                                    <option value="Advanced Education Services">MFO2 - Advanced Education Services</option>
+                                    <option value="Research Services">MFO3 - Research Services</option>
+                                    <option value="Technical Advisory Extension Services">MFO4 - Technical Advisory Extension Services</option>
                                 </select>
                             </div>
                             <div class="action-buttons-container">
@@ -2512,9 +2335,8 @@ $stmt->close();
                                 </div>
                             </div>
 
-                            <!-- Budget Information - Each field in its own row -->
-                            <div class="row mb-3">
-                                <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="gadBudget" class="form-label">GAD Budget</label>
                                         <div class="input-with-currency">
@@ -2522,68 +2344,27 @@ $stmt->close();
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-12">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="sourceBudget" class="form-label">Source of Budget/Fund</label>
-                                        <select class="form-select small-select" id="sourceBudget" name="sourceBudget" multiple required>
+                                        <select class="form-select" id="sourceBudget" name="sourceBudget" required>
+                                            <option value="" selected disabled>Select Source</option>
                                             <option value="GAA">GAA</option>
-                                            <option value="MDS">MDS</option>
-                                            <option value="STF">STF</option>
+                                            <option value="ODA">ODA</option>
+                                            <option value="Corporate Budget">Corporate Budget</option>
+                                            <option value="Other">Other</option>
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-12">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="responsibleUnit" class="form-label">Responsible Unit/Office</label>
-                                        <select class="form-select" id="responsibleUnit" name="responsibleUnit" multiple required>
-                                            <option value="AO">AO</option>
-                                            <option value="BO">BO</option>
-                                            <option value="CABE">CABE</option>
-                                            <option value="CAS">CAS</option>
-                                            <option value="CET">CET</option>
-                                            <option value="CICS">CICS</option>
-                                            <option value="CMO">CMO</option>
-                                            <option value="CTE">CTE</option>
-                                            <option value="EA">EA</option>
-                                            <option value="EMU">EMU</option>
-                                            <option value="ESO">ESO</option>
-                                            <option value="GAD">GAD</option>
-                                            <option value="GED">GED</option>
-                                            <option value="GSO">GSO</option>
-                                            <option value="HRMO">HRMO</option>
-                                            <option value="HS">HS</option>
-                                            <option value="IAS">IAS</option>
-                                            <option value="JP">JP</option>
-                                            <option value="LS">LS</option>
-                                            <option value="NSTP">NSTP</option>
-                                            <option value="OC">OC</option>
-                                            <option value="OCA">OCA</option>
-                                            <option value="OGC">OGC</option>
-                                            <option value="OJT">OJT</option>
-                                            <option value="OSD">OSD</option>
-                                            <option value="OSO">OSO</option>
-                                            <option value="OSPD">OSPD</option>
+                                        <select class="form-select" id="responsibleUnit" name="responsibleUnit" required>
+                                            <option value="" selected disabled>Select Unit</option>
+                                            <option value="Extension Services - GAD Office of Student Affairs and Services">Extension Services</option>
                                             <option value="OVCAA">OVCAA</option>
-                                            <option value="OVCAF">OVCAF</option>
-                                            <option value="OVCDEA">OVCDEA</option>
-                                            <option value="OVCRDES">OVCRDES</option>
-                                            <option value="PDO">PDO</option>
-                                            <option value="PFMO">PFMO</option>
-                                            <option value="PO">PO</option>
-                                            <option value="PSO">PSO</option>
-                                            <option value="QAM">QAM</option>
-                                            <option value="RGO">RGO</option>
-                                            <option value="RO">RO</option>
-                                            <option value="RSO">RSO</option>
-                                            <option value="SDO">SDO</option>
-                                            <option value="SFAO">SFAO</option>
-                                            <option value="TAO">TAO</option>
+                                            <option value="OVCPD">OVCPD</option>
+                                            <option value="OSA">OSA</option>
                                         </select>
                                     </div>
                                 </div>
@@ -2884,7 +2665,7 @@ $stmt->close();
                 document.getElementById('ppasForm').reset();
 
                 // Change card title back
-                document.querySelector('.card-header .card-title').textContent = 'Add GPB Form';
+                document.querySelector('.card-header .card-title').textContent = 'Add GBP Form';
 
                 // Reset add button
                 const addBtn = document.getElementById('addBtn');
@@ -3272,16 +3053,7 @@ $stmt->close();
 
                     for (const input of inputs) {
                         if (input.hasAttribute('required') || (input.id && isRequiredField(input.id))) {
-                            // Special handling for multi-select elements
-                            if (input.tagName === 'SELECT' && input.multiple) {
-                                // Check if any option is selected
-                                const hasSelection = Array.from(input.options).some(opt => opt.selected);
-                                if (!hasSelection) {
-                                    console.log("Multi-select validation failed:", input.id);
-                                    return false;
-                                }
-                            } else if (!input.value.trim()) {
-                                // Normal validation for other inputs
+                            if (!input.value.trim()) {
                                 return false;
                             }
                         }
@@ -3864,11 +3636,7 @@ $stmt->close();
                     formData.append('gender_issue', document.getElementById('genderIssue').value);
                     formData.append('cause_of_issue', document.getElementById('causeGenderIssue').value);
                     formData.append('gad_objective', document.getElementById('gadResult').value);
-                    
-                    // Handle multiple selections for Relevant Agency
-                    const relevantAgencySelect = document.getElementById('relevantAgency');
-                    const selectedAgencies = Array.from(relevantAgencySelect.selectedOptions).map(option => option.value);
-                    formData.append('relevant_agency', JSON.stringify(selectedAgencies));
+                    formData.append('relevant_agency', document.getElementById('relevantAgency').value);
 
                     // Activities
                     const programContainers = document.querySelectorAll('.program-container');
@@ -3932,20 +3700,8 @@ $stmt->close();
                     const budget = document.getElementById('gadBudget').value.replace(/,/g, '');
                     formData.append('gad_budget', budget);
 
-                    // Handle multiple selections for Source of Budget
-                    const sourceBudgetSelect = document.getElementById('sourceBudget');
-                    const selectedSources = Array.from(sourceBudgetSelect.selectedOptions).map(option => option.value);
-                    formData.append('source_of_budget', JSON.stringify(selectedSources));
-
-                    // Handle multiple selections for Responsible Unit
-                    const responsibleUnitSelect = document.getElementById('responsibleUnit');
-                    const selectedUnits = Array.from(responsibleUnitSelect.selectedOptions).map(option => option.value);
-                    formData.append('responsible_unit', JSON.stringify(selectedUnits));
-
-                    // For Central users, automatically set status to Approved
-                    <?php if ($isCentral): ?>
-                    formData.append('status', 'Approved');
-                    <?php endif; ?>
+                    formData.append('source_of_budget', document.getElementById('sourceBudget').value);
+                    formData.append('responsible_unit', document.getElementById('responsibleUnit').value);
 
                     // Determine endpoint based on action
                     const endpoint = isUpdate ? 'update_gbp.php' : 'save_gbp.php';
@@ -3960,7 +3716,7 @@ $stmt->close();
                             if (data.success) {
                                 Swal.fire({
                                     title: 'Success!',
-                                    text: isUpdate ? 'GPB entry updated successfully' : 'GPB entry saved successfully',
+                                    text: isUpdate ? 'GBP entry updated successfully' : 'GBP entry saved successfully',
                                     icon: 'success',
                                     confirmButtonColor: '#6a1b9a',
                                     backdrop: `rgba(0,0,0,0.7)`,
@@ -3978,7 +3734,7 @@ $stmt->close();
                                         // Add null checks for DOM elements before trying to access them
                                         const formTitleEl = document.getElementById('formTitle');
                                         if (formTitleEl) {
-                                            formTitleEl.textContent = 'Add New GPB Entry';
+                                            formTitleEl.textContent = 'Add New GBP Entry';
                                         }
 
                                         const submitBtnEl = document.getElementById('submitBtn');
@@ -4007,7 +3763,7 @@ $stmt->close();
                             } else {
                                 Swal.fire({
                                     title: 'Error!',
-                                    text: data.message || 'Failed to ' + (isUpdate ? 'update' : 'save') + ' GPB entry',
+                                    text: data.message || 'Failed to ' + (isUpdate ? 'update' : 'save') + ' GBP entry',
                                     icon: 'error',
                                     confirmButtonColor: '#6a1b9a',
                                     backdrop: `rgba(0,0,0,0.7)`,
@@ -4430,13 +4186,13 @@ $stmt->close();
                     const modalTitle = document.getElementById('gbpEntriesModalLabel');
                     switch (mode) {
                         case 'view':
-                            modalTitle.textContent = 'View GPB Entries';
+                            modalTitle.textContent = 'View GBP Entries';
                             break;
                         case 'edit':
-                            modalTitle.textContent = 'Edit GPB Entry';
+                            modalTitle.textContent = 'Edit GBP Entry';
                             break;
                         case 'delete':
-                            modalTitle.textContent = 'Delete GPB Entry';
+                            modalTitle.textContent = 'Delete GBP Entry';
                             break;
                     }
 
@@ -4446,15 +4202,6 @@ $stmt->close();
 
                         // Load years for filter dropdown when modal is shown
                         document.getElementById('gbpEntriesModal').addEventListener('shown.bs.modal', function() {
-                            // For Central user, set campus filter to "Central" and keep it there
-                            const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
-                            if (isCentral) {
-                                const campusFilter = document.getElementById('filterCampus');
-                                if (campusFilter) {
-                                    campusFilter.value = 'Central';
-                                }
-                            }
-                            
                             loadYears();
                         });
 
@@ -4526,22 +4273,11 @@ $stmt->close();
                     currentPage = 1;
 
                     // Get filter values
-                    let campus = document.getElementById('filterCampus').value;
+                    const campus = document.getElementById('filterCampus').value;
                     const year = document.getElementById('filterYear').value;
                     const category = document.getElementById('filterCategory').value;
                     const genderIssue = document.getElementById('filterGenderIssue').value;
                     const status = document.getElementById('filterStatus').value;
-                    
-                    // For Central users, always force campus to be "Central"
-                    const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
-                    if (isCentral) {
-                        campus = 'Central';
-                        // Ensure the UI is in sync
-                        const campusFilter = document.getElementById('filterCampus');
-                        if (campusFilter) {
-                            campusFilter.value = 'Central';
-                        }
-                    }
 
                     // Show loading state
                     tableBody.innerHTML = '';
@@ -4601,7 +4337,7 @@ $stmt->close();
                         row.setAttribute('data-id', entry.id);
 
                         // Add campus column if user is Central
-                        if (false && document.querySelector('th').textContent === 'Campus') {
+                        if (document.querySelector('th').textContent === 'Campus') {
                             const campusCell = document.createElement('td');
                             campusCell.textContent = entry.campus;
                             row.appendChild(campusCell);
@@ -4636,36 +4372,32 @@ $stmt->close();
                         statusCell.textContent = entry.status || 'Pending';
                         row.appendChild(statusCell);
 
-                        // Only show feedback column for non-Central users
-                        const isCentralUser = <?php echo $_SESSION['campus'] == 'Central' ? 'true' : 'false'; ?>;
-                        if (!isCentralUser) {
-                            const feedbackCell = document.createElement('td');
-                            feedbackCell.className = 'text-center';
+                        const feedbackCell = document.createElement('td');
+                        feedbackCell.className = 'text-center';
 
-                            if (entry.feedback) {
-                                const commentIcon = document.createElement('i');
-                                commentIcon.className = 'fas fa-comment-dots feedback-icon';
-                                commentIcon.style.cursor = 'pointer';
-                                commentIcon.style.color = 'var(--accent-color)';
-                                commentIcon.style.fontSize = '1.2rem';
-                                commentIcon.title = 'View Feedback';
+                        if (entry.feedback) {
+                            const commentIcon = document.createElement('i');
+                            commentIcon.className = 'fas fa-comment-dots feedback-icon';
+                            commentIcon.style.cursor = 'pointer';
+                            commentIcon.style.color = 'var(--accent-color)';
+                            commentIcon.style.fontSize = '1.2rem';
+                            commentIcon.title = 'View Feedback';
 
-                                // Add tooltip using Bootstrap
-                                $(commentIcon).tooltip();
+                            // Add tooltip using Bootstrap
+                            $(commentIcon).tooltip();
 
-                                // Add click event to show feedback modal
-                                commentIcon.addEventListener('click', function(e) {
-                                    e.stopPropagation(); // Prevent row click event
-                                    showFeedbackModal(entry.feedback, entry.gender_issue, entry.id);
-                                });
+                            // Add click event to show feedback modal
+                            commentIcon.addEventListener('click', function(e) {
+                                e.stopPropagation(); // Prevent row click event
+                                showFeedbackModal(entry.feedback, entry.gender_issue);
+                            });
 
-                                feedbackCell.appendChild(commentIcon);
-                            } else {
-                                feedbackCell.innerHTML = '<span class="text-muted small">No feedback</span>';
-                            }
-
-                            row.appendChild(feedbackCell);
+                            feedbackCell.appendChild(commentIcon);
+                        } else {
+                            feedbackCell.innerHTML = '<span class="text-muted small">No feedback</span>';
                         }
+
+                        row.appendChild(feedbackCell);
 
                         // Add click handler based on mode - using the global currentMode variable
                         row.style.cursor = 'pointer';
@@ -4823,7 +4555,7 @@ $stmt->close();
                                 populateFormFields(data.entry);
 
                                 // Change card title
-                                document.querySelector('.card-header .card-title').textContent = 'Edit GPB Form';
+                                document.querySelector('.card-header .card-title').textContent = 'Edit GBP Form';
 
                                 // Change add button to update button
                                 const addBtn = document.getElementById('addBtn');
@@ -4930,7 +4662,11 @@ $stmt->close();
                         <label for="program_${localProgramCounter}" class="form-label">Program Name</label>
                         <input type="text" class="form-control" id="program_${localProgramCounter}" name="program_${localProgramCounter}" required>
                     </div>
-                    <div class="activities-container" data-program-id="${localProgramCounter}"></div>
+                    <div class="activities-container" data-program-id="${localProgramCounter}">
+                        <button type="button" class="btn-add-item mt-3" data-add-type="activity" data-program-id="${localProgramCounter}">
+                            <i class="fas fa-plus"></i> Add Activity
+                        </button>
+                    </div>
                 `;
 
                         programsContainer.appendChild(newProgram);
@@ -5558,13 +5294,6 @@ $stmt->close();
 
                                                 // Reload entries
                                                 loadGbpEntries();
-                                                
-                                                // Update the pending and rejected badge counts
-                                                const isCentralUser = <?php echo $_SESSION['campus'] == 'Central' ? 'true' : 'false'; ?>;
-                                                if (!isCentralUser) {
-                                                    fetchPendingIssuesCount();
-                                                    fetchRejectedIssuesCount();
-                                                }
                                             } else {
                                                 // Show error message
                                                 Swal.fire({
@@ -5627,12 +5356,8 @@ $stmt->close();
 
                     // Don't reset campus for campus-specific users
                     const campusSelect = document.getElementById('filterCampus');
-                    const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
-                    
-                    if (campusSelect.tagName === 'SELECT' && !isCentral) {
+                    if (campusSelect.tagName === 'SELECT') {
                         campusSelect.value = '';
-                    } else if (campusSelect.tagName === 'SELECT' && isCentral) {
-                        campusSelect.value = 'Central';
                     }
 
                     // Reload entries with reset filters
@@ -5661,12 +5386,9 @@ $stmt->close();
                 });
 
                 // Function to show the feedback modal
-                function showFeedbackModal(feedback, genderIssue, entryId) {
+                function showFeedbackModal(feedback, genderIssue) {
                     // Set the gender issue content
                     document.getElementById('feedbackModalIssue').textContent = genderIssue;
-                    
-                    // Store the entry ID for saving replies
-                    document.getElementById('feedbackEntryId').value = entryId;
 
                     // Get the feedback comments section
                     const commentsSection = document.querySelector('#feedbackModal .feedback-comments-section');
@@ -5695,110 +5417,26 @@ $stmt->close();
                             feedbackArray = [String(feedback)];
                         }
 
-                        // Try to get replies if they exist
-                        fetch(`get_replies.php?entry_id=${entryId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                let repliesArray = [];
-                                if (data.success && data.replies) {
-                                    // Parse replies if they exist
-                                    try {
-                                        repliesArray = JSON.parse(data.replies);
-                                    } catch (e) {
-                                        console.error("Error parsing replies:", e);
-                                        repliesArray = Array(feedbackArray.length).fill("");
-                                    }
-                                } else {
-                                    repliesArray = Array(feedbackArray.length).fill("");
-                                }
+                        // Create a feedback display field for each item in the array
+                        feedbackArray.forEach((item, index) => {
+                            const feedbackItem = document.createElement('div');
+                            feedbackItem.id = `feedbackModalContent-${index}`;
+                            feedbackItem.className = 'p-3 bg-light rounded mb-3';
+                            feedbackItem.style.whiteSpace = 'pre-line';
+                            feedbackItem.innerHTML = item;
 
-                                // Make sure replies array is the same length as feedback array
-                                if (repliesArray.length < feedbackArray.length) {
-                                    const diff = feedbackArray.length - repliesArray.length;
-                                    for (let i = 0; i < diff; i++) {
-                                        repliesArray.push("");
-                                    }
-                                }
-
-                                // Create a feedback item with reply section for each item in the array
-                                feedbackArray.forEach((item, index) => {
-                                    const feedbackItem = document.createElement('div');
-                                    feedbackItem.className = 'feedback-item';
-                                    feedbackItem.dataset.index = index;
-
-                                    const reply = repliesArray[index] || "";
-
-                                    feedbackItem.innerHTML = `
-                                        <div class="feedback-item-header">
-                                            <span class="feedback-label">Feedback #${index + 1}</span>
-                                        </div>
-                                        <div class="feedback-content">${item}</div>
-                                        <div class="reply-section">
-                                            <div class="feedback-label mb-2">Your Reply</div>
-                                            ${reply ? `<div class="reply-content">${reply}</div>` : '<div class="text-muted fst-italic">No reply yet</div>'}
-                                            <div class="reply-input-container">
-                                                <textarea class="form-control reply-input" rows="3" placeholder="Type your reply here...">${reply}</textarea>
-                                            </div>
-                                        </div>
-                                    `;
-
-                                    commentsSection.appendChild(feedbackItem);
-                                });
-                            })
-                            .catch(error => {
-                                console.error("Error fetching replies:", error);
-                                // If we couldn't fetch replies, just show feedback without replies
-                                feedbackArray.forEach((item, index) => {
-                                    const feedbackItem = document.createElement('div');
-                                    feedbackItem.className = 'feedback-item';
-                                    feedbackItem.dataset.index = index;
-
-                                    feedbackItem.innerHTML = `
-                                        <div class="feedback-item-header">
-                                            <span class="feedback-label">Feedback #${index + 1}</span>
-                                        </div>
-                                        <div class="feedback-content">${item}</div>
-                                        <div class="reply-section">
-                                            <div class="feedback-label mb-2">Your Reply</div>
-                                            <div class="text-muted fst-italic">No reply yet</div>
-                                            <div class="reply-input-container">
-                                                <textarea class="form-control reply-input" rows="3" placeholder="Type your reply here..."></textarea>
-                                            </div>
-                                        </div>
-                                    `;
-
-                                    commentsSection.appendChild(feedbackItem);
-                                });
-                            });
-
+                            commentsSection.appendChild(feedbackItem);
+                        });
                     } catch (e) {
                         // If there's any error in parsing, just show the feedback as is
                         console.error("Error parsing feedback:", e);
                         const fallbackItem = document.createElement('div');
-                        fallbackItem.className = 'feedback-item';
-                        
-                        fallbackItem.innerHTML = `
-                            <div class="feedback-item-header">
-                                <span class="feedback-label">Feedback #1</span>
-                            </div>
-                            <div class="feedback-content">${feedback}</div>
-                            <div class="reply-section">
-                                <div class="feedback-label mb-2">Your Reply</div>
-                                <div class="text-muted fst-italic">No reply yet</div>
-                                <div class="reply-input-container">
-                                    <textarea class="form-control reply-input" rows="3" placeholder="Type your reply here..."></textarea>
-                                </div>
-                            </div>
-                        `;
-                        
+                        fallbackItem.id = 'feedbackModalContent';
+                        fallbackItem.className = 'p-3 bg-light rounded';
+                        fallbackItem.style.whiteSpace = 'pre-line';
+                        fallbackItem.textContent = feedback;
                         commentsSection.appendChild(fallbackItem);
                     }
-                    
-                    // Set up save button event handler
-                    const saveBtn = document.getElementById('saveRepliesBtn');
-                    saveBtn.onclick = function() {
-                        saveReplies();
-                    };
 
                     // Get the feedback modal element
                     const feedbackModalElement = document.getElementById('feedbackModal');
@@ -5837,93 +5475,6 @@ $stmt->close();
                     }, 10);
                 }
 
-                // Function to save replies
-                function saveReplies() {
-                    // Get the entry ID from the hidden input
-                    const entryId = document.getElementById('feedbackEntryId').value;
-                    
-                    // Get all reply inputs
-                    const replyInputs = document.querySelectorAll('.feedback-item .reply-input');
-                    
-                    // Create an array of replies
-                    const replies = Array.from(replyInputs).map(input => input.value.trim());
-                    
-                    // Prepare the data for submission
-                    const formData = new FormData();
-                    formData.append('entry_id', entryId);
-                    formData.append('replies', JSON.stringify(replies));
-                    
-                    // Show loading state
-                    const saveBtn = document.getElementById('saveRepliesBtn');
-                    const originalBtnText = saveBtn.textContent;
-                    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-                    saveBtn.disabled = true;
-                    
-                    // Send the request
-                    fetch('save_reply.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Restore button state
-                        saveBtn.textContent = originalBtnText;
-                        saveBtn.disabled = false;
-                        
-                        if (data.success) {
-                            // Show success message
-                            Swal.fire({
-                                title: 'Success!',
-                                text: 'Your replies have been saved.',
-                                icon: 'success',
-                                confirmButtonColor: '#6a1b9a',
-                                timer: 2000,
-                                timerProgressBar: true,
-                                showConfirmButton: false
-                            });
-                            
-                            // Update the UI to show the saved replies
-                            replyInputs.forEach((input, index) => {
-                                const replySection = input.closest('.reply-section');
-                                if (!replySection) return;
-                                
-                                let replyContent = replySection.querySelector('.reply-content');
-                                
-                                if (input.value.trim()) {
-                                    if (replyContent) {
-                                        replyContent.textContent = input.value;
-                                    } else {
-                                        replyContent = document.createElement('div');
-                                        replyContent.className = 'reply-content';
-                                        replyContent.textContent = input.value;
-                                        replySection.insertBefore(replyContent, input.closest('.reply-input-container'));
-                                    }
-                                }
-                            });
-                        } else {
-                            // Show error message
-                            Swal.fire({
-                                title: 'Error',
-                                text: data.message || 'Failed to save replies. Please try again.',
-                                icon: 'error',
-                                confirmButtonColor: '#6a1b9a'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error saving replies:', error);
-                        saveBtn.textContent = originalBtnText;
-                        saveBtn.disabled = false;
-                        
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'An unexpected error occurred. Please try again.',
-                            icon: 'error',
-                            confirmButtonColor: '#6a1b9a'
-                        });
-                    });
-                }
-
                 // Additional function to populate form fields
                 function populateFormFields(entry) {
                     // Basic Info
@@ -5939,27 +5490,7 @@ $stmt->close();
                     document.getElementById('genderCategory').value = entry.category;
                     document.getElementById('causeGenderIssue').value = entry.cause_of_issue;
                     document.getElementById('gadResult').value = entry.gad_objective;
-                    
-                    // Handle relevant_agency as JSON array
-                    const relevantAgencySelect = document.getElementById('relevantAgency');
-                    try {
-                        const selectedAgencies = typeof entry.relevant_agency === 'string' && entry.relevant_agency.startsWith('[') ? 
-                                               JSON.parse(entry.relevant_agency) : 
-                                               [entry.relevant_agency];
-                        
-                        // Clear any previous selections
-                        Array.from(relevantAgencySelect.options).forEach(option => option.selected = false);
-                        
-                        // Select the appropriate options
-                        Array.from(relevantAgencySelect.options).forEach(option => {
-                            if (selectedAgencies.includes(option.value)) {
-                                option.selected = true;
-                            }
-                        });
-                    } catch (e) {
-                        // Fallback for legacy data
-                        relevantAgencySelect.value = entry.relevant_agency;
-                    }
+                    document.getElementById('relevantAgency').value = entry.relevant_agency;
 
                     // Performance & Budget
                     document.getElementById('maleParticipants').value = entry.male_participants;
@@ -5973,47 +5504,8 @@ $stmt->close();
                     });
                     document.getElementById('gadBudget').value = formattedBudget;
 
-                    // Handle source_of_budget as JSON array
-                    const sourceBudgetSelect = document.getElementById('sourceBudget');
-                    try {
-                        const selectedSources = typeof entry.source_of_budget === 'string' && entry.source_of_budget.startsWith('[') ? 
-                                              JSON.parse(entry.source_of_budget) : 
-                                              [entry.source_of_budget];
-                        
-                        // Clear any previous selections
-                        Array.from(sourceBudgetSelect.options).forEach(option => option.selected = false);
-                        
-                        // Select the appropriate options
-                        Array.from(sourceBudgetSelect.options).forEach(option => {
-                            if (selectedSources.includes(option.value)) {
-                                option.selected = true;
-                            }
-                        });
-                    } catch (e) {
-                        // Fallback for legacy data
-                        sourceBudgetSelect.value = entry.source_of_budget;
-                    }
-
-                    // Handle responsible_unit as JSON array
-                    const responsibleUnitSelect = document.getElementById('responsibleUnit');
-                    try {
-                        const selectedUnits = typeof entry.responsible_unit === 'string' && entry.responsible_unit.startsWith('[') ? 
-                                            JSON.parse(entry.responsible_unit) : 
-                                            [entry.responsible_unit];
-                        
-                        // Clear any previous selections
-                        Array.from(responsibleUnitSelect.options).forEach(option => option.selected = false);
-                        
-                        // Select the appropriate options
-                        Array.from(responsibleUnitSelect.options).forEach(option => {
-                            if (selectedUnits.includes(option.value)) {
-                                option.selected = true;
-                            }
-                        });
-                    } catch (e) {
-                        // Fallback for legacy data
-                        responsibleUnitSelect.value = entry.responsible_unit;
-                    }
+                    document.getElementById('sourceBudget').value = entry.source_of_budget;
+                    document.getElementById('responsibleUnit').value = entry.responsible_unit;
 
                     // Update activity count
                     const activityCount = document.querySelectorAll('.activity-item').length;
@@ -6080,7 +5572,7 @@ $stmt->close();
             <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="gbpEntriesModalLabel">GPB Entries</h5>
+                        <h5 class="modal-title" id="gbpEntriesModalLabel">GBP Entries</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -6123,8 +5615,18 @@ $stmt->close();
                                 <div class="col" style="width: 20%">
                                     <label for="filterCampus" class="form-label">Campus</label>
                                     <?php if ($_SESSION['campus'] == 'Central'): ?>
-                                        <select class="form-select" id="filterCampus" <?php echo $isCentral ? 'disabled' : ''; ?>>
-                                            <option value="Central" selected>Central</option>
+                                        <select class="form-select" id="filterCampus">
+                                            <option value="">All Campuses</option>
+                                            <option value="Lipa">Lipa</option>
+                                            <option value="Pablo Borbon">Pablo Borbon</option>
+                                            <option value="Alangilan">Alangilan</option>
+                                            <option value="Nasugbu">Nasugbu</option>
+                                            <option value="Malvar">Malvar</option>
+                                            <option value="Rosario">Rosario</option>
+                                            <option value="Balayan">Balayan</option>
+                                            <option value="Lemery">Lemery</option>
+                                            <option value="San Juan">San Juan</option>
+                                            <option value="Lobo">Lobo</option>
                                         </select>
                                     <?php else: ?>
                                         <input type="text" class="form-control" value="<?php echo $_SESSION['campus']; ?>" readonly disabled>
@@ -6139,7 +5641,7 @@ $stmt->close();
                             <table class="table table-hover table-bordered">
                                 <thead class="table-light sticky-top">
                                     <tr>
-                                        <?php if ($_SESSION['campus'] == 'Central' && false): /* Removed campus column for Central users */ ?>
+                                        <?php if ($_SESSION['campus'] == 'Central'): ?>
                                             <th>Campus</th>
                                         <?php endif; ?>
                                         <th>Year</th>
@@ -6149,9 +5651,7 @@ $stmt->close();
                                         <th>GAD Objective</th>
                                         <th>Budget</th>
                                         <th>Status</th>
-                                        <?php if ($_SESSION['campus'] != 'Central'): ?>
                                         <th>Feedback</th>
-                                        <?php endif; ?>
                                     </tr>
                                 </thead>
                                 <tbody id="gbpEntriesTableBody">
@@ -6204,16 +5704,12 @@ $stmt->close();
                             <div class="mb-3">
                                 <h6 class="text-muted">Gender Issue</h6>
                                 <p id="feedbackModalIssue" class="mb-3 p-2 border-bottom"></p>
-                                <input type="hidden" id="feedbackEntryId" value="">
                             </div>
                             <div class="feedback-comments-section">
                                 <h6 class="text-muted">Feedback / Comments</h6>
                                 <!-- Feedback items will be added here dynamically -->
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="saveRepliesBtn" style="background-color: var(--accent-color); border-color: var(--accent-color);"><i class="fas fa-save me-2"></i>Save Replies</button>
                     </div>
                 </div>
             </div>
@@ -6224,8 +5720,6 @@ $stmt->close();
     document.addEventListener('DOMContentLoaded', function() {
         const isCentralUser = <?php echo $isCentral ? 'true' : 'false'; ?>;
 
-        // Only fetch pending/rejected counts for non-Central users
-        if (!isCentralUser) {
         // Load the pending issues count
         fetchPendingIssuesCount();
 
@@ -6234,8 +5728,8 @@ $stmt->close();
 
         // Add click event listener to pending issues badge
         document.getElementById('pendingIssuesPill').addEventListener('click', function() {
-            // Open the GBP entries modal in edit mode
-            showGbpEntriesModal('edit');
+            // Open the GBP entries modal in view mode
+            showGbpEntriesModal('view');
 
             // Set a timeout to allow the modal to open and DOM to update
             setTimeout(function() {
@@ -6251,8 +5745,8 @@ $stmt->close();
 
         // Add click event listener to rejected issues badge
         document.getElementById('rejectedIssuesPill').addEventListener('click', function() {
-            // Open the GBP entries modal in edit mode
-            showGbpEntriesModal('edit');
+            // Open the GBP entries modal in view mode
+            showGbpEntriesModal('view');
 
             // Set a timeout to allow the modal to open and DOM to update
             setTimeout(function() {
@@ -6265,7 +5759,6 @@ $stmt->close();
                 }
             }, 300);
         });
-        }
 
         // Add event listener to reset filters when GBP entries modal is closed
         document.getElementById('gbpEntriesModal').addEventListener('hidden.bs.modal', function() {
@@ -6276,13 +5769,9 @@ $stmt->close();
             document.getElementById('filterStatus').value = '';
 
             // Reset campus filter if it's a dropdown (for Central users)
-            // For Central users, maintain the "Central" value
-            const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
             const campusFilter = document.getElementById('filterCampus');
-            if (campusFilter && campusFilter.tagName === 'SELECT' && !isCentral) {
+            if (campusFilter && campusFilter.tagName === 'SELECT') {
                 campusFilter.value = '';
-            } else if (campusFilter && campusFilter.tagName === 'SELECT' && isCentral) {
-                campusFilter.value = 'Central';
             }
 
             // Since we're just resetting the UI and not loading data, we don't need to call loadGbpEntries()
@@ -6290,8 +5779,70 @@ $stmt->close();
         });
 
         if (isCentralUser) {
-            // Central users now have full access to GBP data
-            // Code disabling form elements for Central users has been removed
+            // Disable all form inputs
+            document.querySelectorAll('#gbpForm input, #gbpForm select, #gbpForm textarea').forEach(input => {
+                input.disabled = true;
+            });
+
+            // Disable navigation items
+            document.querySelectorAll('.form-nav-item').forEach(navItem => {
+                navItem.classList.add('disabled');
+                navItem.style.pointerEvents = 'none';
+                navItem.style.opacity = '0.5';
+            });
+
+            // Disable navigation buttons
+            document.querySelectorAll('.btn-form-nav').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+            });
+
+            // Style section titles to appear disabled
+            document.querySelectorAll('.section-title').forEach(title => {
+                title.style.opacity = '0.5';
+            });
+
+            // Disable add button
+            const addBtn = document.getElementById('addBtn');
+            if (addBtn) {
+                addBtn.disabled = true;
+                addBtn.classList.add('disabled');
+            }
+
+            // Disable edit button
+            const editBtn = document.getElementById('editBtn');
+            if (editBtn) {
+                editBtn.disabled = true;
+                editBtn.classList.add('disabled');
+            }
+
+            // Disable delete button
+            const deleteBtn = document.getElementById('deleteBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.classList.add('disabled');
+            }
+
+            // Disable all add buttons within the form
+            document.querySelectorAll('.btn-add-item').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+            });
+
+            // Disable all delete buttons within form
+            document.querySelectorAll('.btn-delete-item').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+            });
+
+            // Display a notice to Central users
+            const formContainer = document.querySelector('.form-container');
+            if (formContainer) {
+                const notice = document.createElement('div');
+                notice.className = 'alert alert-info mb-3';
+                notice.innerHTML = '<i class="fas fa-info-circle me-2"></i> As a Central user, you can only view GBP entries. Use the View button to see all entries.';
+                formContainer.insertBefore(notice, formContainer.firstChild);
+            }
         }
     });
 
@@ -6385,14 +5936,55 @@ $stmt->close();
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Central users can now add/edit/delete data - removed read-only restrictions
+        // Check if user is Central - apply read-only mode
         const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
-        
-        // Removed the code that applies read-only mode for Central users
+        if (isCentral) {
+            console.log("Central user detected - applying read-only mode");
+            applyCentralReadOnlyMode();
+        }
     });
 
-    // Function to apply read-only mode for Central users - REMOVED
-    // All Central users now have full access to data operations
+    // Function to apply read-only mode for Central users
+    function applyCentralReadOnlyMode() {
+        // Disable all form input elements
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            // Skip the viewBtn (since we need to keep that enabled)
+            if (input.closest('.viewBtn') || input.id === 'viewBtn' || input.id === 'filterStatus') {
+                return;
+            }
+
+            // Disable the input
+            input.disabled = true;
+            input.classList.add('central-disabled');
+        });
+
+        // Specifically disable addBtn, editBtn, deleteBtn
+        const buttonsToDisable = document.querySelectorAll('.addBtn, .editBtn, .deleteBtn, button[id="addBtn"], button[id="editBtn"], button[id="deleteBtn"]');
+        buttonsToDisable.forEach(button => {
+            button.disabled = true;
+            button.classList.add('central-disabled');
+        });
+
+        // Add a notification at the top of the form
+        const formContainer = document.querySelector('.card-body');
+        if (formContainer) {
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-info mb-4';
+            notification.style.backgroundColor = 'rgba(106, 27, 154, 0.1)';
+            notification.style.borderColor = 'rgba(106, 27, 154, 0.2)';
+            notification.style.color = 'var(--accent-color)';
+
+            // Create the message container
+            const messageContainer = document.createElement('div');
+            messageContainer.innerHTML = '<i class="fas fa-info-circle me-2"></i> <strong>Read-Only Mode:</strong> As a Central user, you can view but not modify the data.';
+
+            // Append message to notification
+            notification.appendChild(messageContainer);
+
+            formContainer.insertBefore(notification, formContainer.firstChild);
+        }
+    }
 </script>
 
 <!-- Make sure the modal filters remain interactive for Central users -->
@@ -6400,219 +5992,30 @@ $stmt->close();
     document.addEventListener('DOMContentLoaded', function() {
         const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
 
-        // Central users now have full access to the GBP entries
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add global function to trigger validation that can be called from anywhere
-        window.triggerFormValidation = function() {
-            if (typeof checkCompletionStatus === 'function') {
-                checkCompletionStatus();
-            }
-        };
-        
-        // Add helper text for multiple select elements
-        document.querySelectorAll('select[multiple]').forEach(select => {
-            const hint = document.createElement('span');
-            hint.className = 'multi-select-hint';
-            hint.textContent = 'Click options to select/deselect multiple items';
-            select.parentNode.insertBefore(hint, select.nextSibling);
-            
-            // Size the small select perfectly for its options
-            if (select.classList.contains('small-select')) {
-                // Calculate exact height based on options
-                const optionCount = select.options.length;
-                const exactHeight = (optionCount * 36) + 30;
-                select.style.height = exactHeight + 'px';
-            }
-            
-            // Add specific validation listener for multi-selects
-            select.addEventListener('change', function() {
-                console.log('Multi-select changed:', this.id);
-                // Find the section this field belongs to
-                const section = this.closest('.form-section');
-                if (section) {
-                    const sectionId = section.id;
-                    console.log('Section ID:', sectionId);
-                    
-                    // Check for functions based on examination of code
-                    if (typeof checkCompletionStatus === 'function') {
-                        console.log('Calling checkCompletionStatus');
-                        checkCompletionStatus();
-                    } else if (typeof checkAllSectionsStatus === 'function') {
-                        console.log('Calling checkAllSectionsStatus');
-                        checkAllSectionsStatus();
-                    }
-                }
-            });
-            
-            // Make multi-select work without holding Ctrl key
-            select.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                
-                const option = e.target.closest('option');
-                if (!option) return;
-                
-                // Store current scroll position
-                const scrollTop = this.scrollTop;
-                
-                // Toggle the selected state
-                option.selected = !option.selected;
-                
-                // Trigger change event
-                const event = new Event('change', { bubbles: true });
-                this.dispatchEvent(event);
-                
-                // Restore scroll position after selection
-                setTimeout(() => {
-                    this.scrollTop = scrollTop;
-                }, 0);
-                
-                // Direct call to validation with a small delay to ensure DOM is updated
-                setTimeout(() => {
-                    console.log("Multi-select direct validation for", this.id);
-                    
-                    // Only use the checkCompletionStatus function to validate
-                    // This will check ALL required fields, not just this multi-select
-                    if (typeof checkCompletionStatus === 'function') {
-                        console.log("Using checkCompletionStatus to validate all fields");
-                        checkCompletionStatus();
-                    }
-                }, 50);
-                
-                // Prevent default mouseup behavior
-                this.focus();
-                return false;
-            });
-        });
-    });
-</script>
-
-<!-- Additional script for fixing multi-select validation -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Enhanced validation for multi-select elements
-        document.querySelectorAll('select[multiple]').forEach(select => {
-            select.addEventListener('change', function() {
-                // Log validation attempt
-                console.log('Enhanced validation for:', this.id);
-                
-                // Get the section this field is in
-                const section = this.closest('.form-section');
-                if (!section) return;
-                
-                const sectionId = section.id;
-                console.log('Validating section:', sectionId);
-                
-                // Get all required inputs in this section
-                const requiredInputs = section.querySelectorAll('[required]');
-                let allFilled = true;
-                
-                // Check each required input
-                requiredInputs.forEach(input => {
-                    // For multi-select fields
-                    if (input.tagName === 'SELECT' && input.multiple) {
-                        // Check if any option is selected
-                        const hasSelection = Array.from(input.options).some(opt => opt.selected);
-                        if (!hasSelection) {
-                            allFilled = false;
-                            console.log('Empty multi-select:', input.id);
-                        }
-                    } 
-                    // For regular inputs
-                    else if (!input.value.trim()) {
-                        allFilled = false;
-                        console.log('Empty field:', input.id);
+        if (isCentral) {
+            // Add event listener for when the GBP entries modal is shown
+            document.getElementById('gbpEntriesModal').addEventListener('shown.bs.modal', function() {
+                // Re-enable all filter inputs in the modal for Central users
+                const modalFilters = document.querySelectorAll('#gbpEntriesModal input, #gbpEntriesModal select');
+                modalFilters.forEach(filter => {
+                    if (filter.id === 'filterGenderIssue' || filter.id === 'filterCategory' ||
+                        filter.id === 'filterYear' || filter.id === 'filterCampus') {
+                        filter.disabled = false;
+                        filter.classList.remove('central-disabled');
+                        filter.style.opacity = '1';
+                        filter.style.pointerEvents = 'auto';
                     }
                 });
-                
-                // Update section completeness indicator
-                const navItem = document.querySelector(`.form-nav-item[data-section="${sectionId}"]`);
-                if (navItem) {
-                    if (allFilled) {
-                        console.log('Section complete:', sectionId);
-                        navItem.classList.add('is-complete');
-                    } else {
-                        console.log('Section incomplete:', sectionId);
-                        navItem.classList.remove('is-complete');
-                    }
-                }
-                
-                // Also call the main validation function if it exists
-                if (typeof checkCompletionStatus === 'function') {
-                    checkCompletionStatus();
+
+                // Update reset filters button if it exists
+                const resetButton = document.querySelector('.reset-filters-btn');
+                if (resetButton) {
+                    resetButton.disabled = false;
+                    resetButton.classList.remove('central-disabled');
                 }
             });
-        });
-    });
-</script>
-
-<!-- Handle GBP notifications view parameter -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Check if we have a GBP view parameter from notifications
-        const gbpView = <?php echo $gbpView ?: 'null'; ?>;
-        
-        if (gbpView) {
-            console.log('Opening GBP entry from notification:', gbpView);
-            
-            // Find the entry in the table
-            const entryRow = document.querySelector(`tr[data-id="${gbpView}"]`);
-            
-            if (entryRow) {
-                // Scroll to the entry
-                entryRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                // Highlight the entry
-                entryRow.classList.add('highlight-row');
-                setTimeout(() => {
-                    entryRow.classList.remove('highlight-row');
-                }, 3000);
-                
-                // Click the view button after a short delay to allow scrolling
-                setTimeout(() => {
-                    const viewButton = entryRow.querySelector('.view-gbp-btn');
-                    if (viewButton) {
-                        viewButton.click();
-                    }
-                }, 500);
-            } else {
-                // If entry is not found in the current view, show notification
-                Swal.fire({
-                    title: 'Entry Not Found',
-                    text: 'The GBP entry you are looking for may be filtered out or not available.',
-                    icon: 'info'
-                });
-                
-                // Clear the URL parameter to avoid confusion on refresh
-                const url = new URL(window.location);
-                url.searchParams.delete('view');
-                window.history.replaceState({}, '', url);
-            }
         }
     });
 </script>
 
-<!-- Add highlight style for notification entries -->
-<style>
-    @keyframes highlight-pulse {
-        0% { background-color: rgba(156, 39, 176, 0.05); }
-        50% { background-color: rgba(156, 39, 176, 0.2); }
-        100% { background-color: rgba(156, 39, 176, 0.05); }
-    }
-    
-    tr.highlight-row {
-        animation: highlight-pulse 1s ease-in-out infinite;
-    }
-    
-    [data-bs-theme="light"] tr.highlight-row {
-        animation: highlight-pulse 1s ease-in-out infinite;
-    }
-    
-    [data-bs-theme="dark"] tr.highlight-row {
-        animation: highlight-pulse 1s ease-in-out infinite;
-    }
-</style>
 </html>

@@ -36,6 +36,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Global Styles -->
+    <link href="../js/global-styles.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -146,9 +148,9 @@ html {
 
         .nav-link {
             color: var(--text-primary);
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 12px;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
             position: relative;
             display: flex;
             align-items: center;
@@ -223,7 +225,7 @@ html {
         }
 
         .nav-item .dropdown-menu .dropdown-item {
-            padding: 6px 48px;
+            padding: 8px 48px;
             color: var(--text-primary);
             position: relative;
             opacity: 0.85;
@@ -358,7 +360,6 @@ html {
             display: flex;
             gap: 5px;
             align-items: center;
-            margin-top: 15px;
         }
 
         /* Logout button styles */
@@ -860,8 +861,7 @@ html {
     background-color: var(--accent-color);
     color: white !important;
     border-radius: 12px;
-    margin-top: 5px;
-    margin-bottom: 10px;
+    margin-top: 10px;
     font-weight: 600;
     position: relative;
     overflow: hidden;
@@ -1079,29 +1079,25 @@ html {
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="../academic_rank/academic.php">Academic Rank</a></li>
                         <li><a class="dropdown-item" href="../personnel_list/personnel_list.php">Personnel List</a></li>
-                        <li><a class="dropdown-item" href="../signatory/sign.php">Signatory</a></li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-alt me-2"></i> GPB
+                    <a class="nav-link dropdown-toggle active" href="#" id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-alt me-2"></i> Forms
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../target_forms/target.php">Target</a></li>
-                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Generate Form</a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-invoice me-2"></i> PPAs
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_form/ppas.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gad_proposal/gad_proposal.php">GAD Proposal</a></li>
-                        <li><a class="dropdown-item" href="../gad_narrative/gad_narrative.php">GAD Narrative</a></li>
-                        <li><a class="dropdown-item" href="../extension_proposal/extension_proposal.php">Extension Proposal</a></li>
-                        <li><a class="dropdown-item" href="../extension_narrative/extension_narrative.php">Extension Narrative</a></li>
+                        <li><a class="dropdown-item" href="../target_forms/target.php">Target Form</a></li>
+                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">GBP Form</a></li>
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#" id="ppasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                PPAs Form
+                            </a>
+                            <ul class="dropdown-menu dropdown-submenu" aria-labelledby="ppasDropdown">
+                                <li><a class="dropdown-item" href="../ppas_form/ppas.php">Main PPAs Form</a></li>
+                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal Form</a></li>
+                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Form</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
@@ -1109,9 +1105,11 @@ html {
                         <i class="fas fa-chart-bar me-2"></i> Reports
                     </a>
                     <ul class="dropdown-menu">                       
-                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly Report</a></li>
-                        <li><a class="dropdown-item" href="../ps_atrib/ps.php">PS Attribution</a></li>
-                        <li><a class="dropdown-item" href="../annual_report/annual_report.php">Annual Report</a></li>
+                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual GBP Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly PPAs Reports</a></li>
+                        <li><a class="dropdown-item" href="../ps_atrib/ps.php">PSA Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal/print_proposal.php">GAD Proposal Reports</a></li>
+                        <li><a class="dropdown-item" href="../narrative/print_narrative.php">Narrative Reports</a></li>
                     </ul>
                 </div>
                 <?php 

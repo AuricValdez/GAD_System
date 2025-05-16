@@ -2112,13 +2112,14 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                             throw new Error("Invalid JSON response from server. Check server logs for details.");
                         }
                     }),
-                    fetch(`get_academic_ranks_simple.php?ppaId=${ppaId}`)
+                    // Fetch personnel with their academic ranks based on the selected PPA
+                    fetch(`get_personnel_academic_ranks.php?ppaId=${ppaId}`)
                     .then(response => response.text())
                     .then(text => {
                         try {
                             return JSON.parse(text);
                         } catch (e) {
-                            console.error("JSON parse error in get_academic_ranks_simple.php:", e);
+                            console.error("JSON parse error in get_personnel_academic_ranks.php:", e);
                             console.error("Raw response:", text);
                             throw new Error("Invalid JSON response from server. Check server logs for details.");
                         }
@@ -2129,7 +2130,7 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                     console.log('Received academic ranks:', academicRanksResponse);
 
                     // Check if there was an error in the responses
-                    if (ppaDetails.error || !ppaDetails.success === false) {
+                    if (ppaDetails.error || !ppaDetails.success) {
                         throw new Error(ppaDetails.error || "Unknown error getting PPA details");
                     }
 
@@ -2147,8 +2148,12 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
 
                     // Format date
                     const date = document.getElementById(`ppasDate${quarter}`);
-                    if (date && ppaDetails.date) {
-                        date.value = ppaDetails.date;
+                    if (date) {
+                        if (ppaDetails.date_range) {
+                            date.value = ppaDetails.date_range;
+                        } else if (ppaDetails.date) {
+                            date.value = ppaDetails.date;
+                        }
                     }
 
                     // Set campus field for non-Central users only
@@ -2163,8 +2168,8 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                     // Update table with academic ranks data
                     if (academicRanksResponse.success && academicRanksResponse.academicRanks) {
                         if (academicRanksResponse.academicRanks.length === 0) {
-                            console.log('No academic ranks found');
-                            table.innerHTML = '<tr><td colspan="6" class="text-center">No PS attribution found for this quarter</td></tr>';
+                            console.log('No personnel found for this PPA');
+                            table.innerHTML = '<tr><td colspan="6" class="text-center">No personnel found for this PPA. Unable to calculate PS attribution.</td></tr>';
                             if (printBtn) {
                                 printBtn.disabled = true;
                                 printBtn.style.pointerEvents = 'none';
@@ -2176,7 +2181,15 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                                 exportBtn.style.opacity = '0.65';
                             }
                         } else {
-                            console.log('Updating table with academic ranks');
+                            console.log('Updating table with personnel academic ranks');
+                            
+                            // Check if we have PS attribution from ppas_forms
+                            if (ppaDetails.ps_attribution) {
+                                console.log('Using PS attribution from PPA form:', ppaDetails.ps_attribution);
+                                document.getElementById(`totalPS${quarter}`).value = parseFloat(ppaDetails.ps_attribution) ? 
+                                    `₱${parseFloat(ppaDetails.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '-';
+                            }
+                            
                             updatePSTable(quarter, academicRanksResponse.academicRanks);
 
                             // Enable buttons and remove inline styles
@@ -2199,18 +2212,35 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                 })
                 .catch(error => {
                     console.error('Error updating PS Attribution:', error);
+                    
+                    // Check if it's a "PPA not found" error
+                    const isPpaNotFoundError = error.message && error.message.includes('PPA not found');
+                    
                     if (table) {
-                        table.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error: ${error.message}</td></tr>`;
+                        if (isPpaNotFoundError) {
+                            table.innerHTML = `<tr><td colspan="6" class="text-center text-warning">No data found for this PPA. The PPA ID may not exist in the database.</td></tr>`;
+                        } else {
+                            table.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error: ${error.message}</td></tr>`;
+                        }
                     }
 
-                    // Show error alert
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error Loading Data',
-                        text: `Failed to load PS attribution data: ${error.message}`,
-                        footer: 'Check browser console for more details',
-                        confirmButtonText: 'OK'
-                    });
+                    // Show appropriate error alert
+                    if (isPpaNotFoundError) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'PPA Not Found',
+                            text: 'This PPA does not exist in the database. Please select a different PPA.',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error Loading Data',
+                            text: `Failed to load PS attribution data: ${error.message}`,
+                            footer: 'Check browser console for more details',
+                            confirmButtonText: 'OK'
+                        });
+                    }
 
                     // Keep buttons disabled on error
                     if (printBtn) {
@@ -2266,6 +2296,8 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
         function updatePSTable(quarter, academicRanks) {
             console.log(`Updating PS table for quarter ${quarter}`);
             const table = document.querySelector(`#psTable${quarter}`);
+            const ppaDetails = selectedPPAs[quarter] || {};
+            
             if (table) {
                 table.innerHTML = '';
                 let totalPS = 0;
@@ -2342,18 +2374,22 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                         return;
                     }
 
-                    const ratePerHour = rank.monthly_salary / 176;
-                    const ps = ratePerHour * totalDuration * rank.personnel_count;
+                    // Make sure monthly_salary is a number
+                    const monthlySalary = parseFloat(rank.monthly_salary);
+                    const ratePerHour = monthlySalary / 176;
+                    const personnelCount = parseInt(rank.personnel_count || 1);
+                    const ps = ratePerHour * totalDuration * personnelCount;
+                    
                     totalPS += ps;
-                    totalParticipants += rank.personnel_count;
+                    totalParticipants += personnelCount;
 
                     const row = `
                         <tr>
                             <td>${rank.rank_name}</td>
-                            <td class="text-center">${rank.personnel_count === 0 ? '-' : rank.personnel_count}</td>
-                            <td class="text-end">${rank.monthly_salary === 0 ? '-' : '₱' + rank.monthly_salary.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td class="text-center">${personnelCount === 0 ? '-' : personnelCount}</td>
+                            <td class="text-end">${monthlySalary === 0 ? '-' : '₱' + monthlySalary.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                             <td class="text-end">${ratePerHour === 0 ? '-' : '₱' + ratePerHour.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            <td class="text-center">${rank.personnel_count === 0 ? '-' : totalDuration}</td>
+                            <td class="text-center">${personnelCount === 0 ? '-' : totalDuration}</td>
                             <td class="text-end">${ps === 0 ? '-' : '₱' + ps.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                         </tr>
                     `;
@@ -2370,7 +2406,14 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                 `;
                 table.innerHTML += totalRow;
 
-                document.getElementById(`totalPS${quarter}`).value = totalPS === 0 ? '-' : `₱${totalPS.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                // Make sure totalPS is a number
+                const formattedTotalPS = typeof totalPS === 'number' ? totalPS : 0;
+                // If we haven't already set the PS value from ppaDetails.ps_attribution
+                if (!ppaDetails.ps_attribution || !parseFloat(ppaDetails.ps_attribution)) {
+                    document.getElementById(`totalPS${quarter}`).value = formattedTotalPS === 0 ? '-' : `₱${formattedTotalPS.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                } else {
+                    console.log('PS attribution already set from PPA form, skipping calculated total');
+                }
 
                 // Enable export button
                 document.getElementById(`exportBtn${quarter}`).disabled = false;

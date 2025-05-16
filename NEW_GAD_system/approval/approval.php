@@ -14,7 +14,7 @@ if (!isset($_SESSION['username'])) {
 $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -1185,31 +1185,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             /* Add space for the delete button */
         }
 
-        /* Reply section styling */
-        .feedback-reply {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--border-color);
-        }
-
-        .reply-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--accent-color);
-            margin-bottom: 4px;
-        }
-
-        .reply-content {
-            font-style: italic;
-            color: var(--text-secondary);
-        }
-
-        .no-reply {
-            font-style: italic;
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
-
         /* New feedback items */
         .feedback-item-new {
             display: flex;
@@ -1601,24 +1576,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             background-color: #ff5c6c;
             color: white;
         }
-
-        .nav-link {
-    padding: 10px 15px;
-    margin-bottom: 3px;
-}
-
-.nav-item .dropdown-menu .dropdown-item {
-    padding: 6px 48px; 
-}
-
-.approval-link {
-    margin-top: 5px; 
-    margin-bottom: 10px; 
-}
-
-.bottom-controls {
-    margin-top: 15px; 
-}
     </style>
 </head>
 
@@ -1660,35 +1617,34 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-alt me-2"></i> GPB
+                    <a class="nav-link dropdown-toggle active" href="#" id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-alt me-2"></i> Forms
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../target_forms/target.php">Target</a></li>
-                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Generate Form</a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-invoice me-2"></i> PPAs
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_form/ppas.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gad_proposal/gad_proposal.php">GAD Proposal</a></li>
-                        <li><a class="dropdown-item" href="../gad_narrative/gad_narrative.php">GAD Narrative</a></li>
-                        <li><a class="dropdown-item" href="../extension_proposal/extension_proposal.php">Extension Proposal</a></li>
-                        <li><a class="dropdown-item" href="../extension_narrative/extension_narrative.php">Extension Narrative</a></li>
+                        <li><a class="dropdown-item" href="../target_forms/target.php">Target Form</a></li>
+                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">GBP Form</a></li>
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#" id="ppasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                PPAs Form
+                            </a>
+                            <ul class="dropdown-menu dropdown-submenu" aria-labelledby="ppasDropdown">
+                                <li><a class="dropdown-item" href="../ppas_form/ppas.php">Main PPAs Form</a></li>
+                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal Form</a></li>
+                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Form</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-chart-bar me-2"></i> Reports
                     </a>
-                    <ul class="dropdown-menu">                       
-                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly Report</a></li>
-                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PS Attribution</a></li>
-                        <li><a class="dropdown-item" href="../annual_reports/annual_report.php">Annual Report</a></li>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual GBP Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_reports/ppas_report.php">Quarterly PPAs Reports</a></li>
+                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PSA Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal_reports/print_proposal.php">GAD Proposal Reports</a></li>
+                        <li><a class="dropdown-item" href="../narrative_reports/print_narrative.php">Narrative Reports</a></li>
                     </ul>
                 </div>
                 <?php
@@ -1750,7 +1706,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 <option value="Lemery">Lemery</option>
                                 <option value="San Juan">San Juan</option>
                                 <option value="Lobo">Lobo</option>
-                                <option value="Central">Central</option>
                             </select>
                         </div>
                     </div>
@@ -1931,16 +1886,16 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                         </div>
                                     </div>
 
-                                    <!-- Feedback Section - Will be hidden for Central campus -->
-                                    <div id="feedbackHistorySection" class="section mb-4">
+                                    <!-- Feedback Section -->
+                                    <div class="section mb-4">
                                         <h5 class="section-title"><i class="fas fa-comments me-2"></i>Feedback History</h5>
                                         <div id="feedbackHistory" class="feedback-history">
                                             <!-- Feedback history will be displayed here -->
                                         </div>
                                     </div>
 
-                                    <!-- Add New Feedback - Will be hidden for Central campus -->
-                                    <div id="addFeedbackSection" class="section mb-4">
+                                    <!-- Add New Feedback -->
+                                    <div class="section mb-4">
                                         <h5 class="section-title"><i class="fas fa-comment-medical me-2"></i>Add Feedback</h5>
                                         <div class="feedback-form">
                                             <div class="mb-3">
@@ -2011,28 +1966,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 updateNotificationBadge('../approval/gbp_api.php', 'count_pending', 'approvalBadge');
                             }, 30000); // Update every 30 seconds
                         }
-                        
-                        // Check if we need to open a specific entry (from notifications)
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const viewEntry = urlParams.get('view_entry');
-                        if (viewEntry) {
-                            // Make sure the entries are loaded first, then open the modal
-                            loadGbpEntriesFromServer()
-                                .then(() => {
-                                    // Open the entry details modal
-                                    viewEntryDetails(viewEntry);
-                                })
-                                .catch(error => {
-                                    console.error('Error loading entry details from notification:', error);
-                                    // Show a friendly error message
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'Could not load the requested GBP entry. It may have been deleted or you may not have permission to view it.',
-                                        icon: 'error',
-                                        confirmButtonColor: '#6a1b9a'
-                                    });
-                                });
-                        }
                     });
 
                     // Function to load GBP entries from the server
@@ -2048,8 +1981,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         formData.append('campus', campusFilter);
                         formData.append('status', statusFilter);
 
-                        // Return the promise for chaining
-                        return fetch('gbp_api.php', {
+                        // Make AJAX request
+                        fetch('gbp_api.php', {
                                 method: 'POST',
                                 body: formData
                             })
@@ -2063,17 +1996,14 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 if (data.success) {
                                     filteredEntries = data.entries;
                                     loadEntriesWithPagination();
-                                    return data; // Return the data for chaining
                                 } else {
                                     // Handle error
                                     document.getElementById('gbpEntriesBody').innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="text-danger"><i class="fas fa-exclamation-circle fa-3x mb-3"></i><p>${data.message || 'Failed to load data'}</p></div></td></tr>`;
-                                    throw new Error(data.message || 'Failed to load data');
                                 }
                             })
                             .catch(error => {
                                 console.error('Error fetching data:', error);
                                 document.getElementById('gbpEntriesBody').innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="text-danger"><i class="fas fa-exclamation-circle fa-3x mb-3"></i><p>Error: ${error.message}</p></div></td></tr>`;
-                                throw error; // Re-throw the error for error handling in the chain
                             });
                     }
 
@@ -2233,33 +2163,10 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                     document.getElementById('detailGenderIssue').textContent = entry.gender_issue;
                                     document.getElementById('detailCauseOfIssue').textContent = entry.cause_of_issue;
                                     document.getElementById('detailGadObjective').textContent = entry.gad_objective;
-                                    
-                                    // Handle relevant_agency (could be array, JSON string of array, or string)
-                                    const relevantAgency = typeof entry.relevant_agency === 'string' && entry.relevant_agency.startsWith('[') 
-                                        ? JSON.parse(entry.relevant_agency) 
-                                        : entry.relevant_agency;
-                                    document.getElementById('detailRelevantAgency').textContent = Array.isArray(relevantAgency) 
-                                        ? relevantAgency.join(', ') 
-                                        : relevantAgency;
-                                    
+                                    document.getElementById('detailRelevantAgency').textContent = entry.relevant_agency;
                                     document.getElementById('detailGadBudget').textContent = `₱${parseFloat(entry.gad_budget).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                                    
-                                    // Handle source_of_budget (could be array, JSON string of array, or string)
-                                    const sourceOfBudget = typeof entry.source_of_budget === 'string' && entry.source_of_budget.startsWith('[') 
-                                        ? JSON.parse(entry.source_of_budget) 
-                                        : entry.source_of_budget;
-                                    document.getElementById('detailSourceOfBudget').textContent = Array.isArray(sourceOfBudget) 
-                                        ? sourceOfBudget.join(', ') 
-                                        : sourceOfBudget;
-                                    
-                                    // Handle responsible_unit (could be array, JSON string of array, or string)
-                                    const responsibleUnit = typeof entry.responsible_unit === 'string' && entry.responsible_unit.startsWith('[') 
-                                        ? JSON.parse(entry.responsible_unit) 
-                                        : entry.responsible_unit;
-                                    document.getElementById('detailResponsibleUnit').textContent = Array.isArray(responsibleUnit) 
-                                        ? responsibleUnit.join(', ') 
-                                        : responsibleUnit;
-                                    
+                                    document.getElementById('detailSourceOfBudget').textContent = entry.source_of_budget;
+                                    document.getElementById('detailResponsibleUnit').textContent = entry.responsible_unit;
                                     document.getElementById('detailMaleParticipants').textContent = entry.male_participants;
                                     document.getElementById('detailFemaleParticipants').textContent = entry.female_participants;
                                     document.getElementById('detailTotalParticipants').textContent = entry.total_participants;
@@ -2299,95 +2206,43 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                         programsContainer.innerHTML = '<p class="text-muted">No programs available.</p>';
                                     }
 
-                                    // Load programs to the programsContainer div
-                                    
-                                    // Hide or show feedback sections based on campus
-                                    const feedbackHistorySection = document.getElementById('feedbackHistorySection');
-                                    const addFeedbackSection = document.getElementById('addFeedbackSection');
-                                    
-                                    if (entry.campus === 'Central') {
-                                        // Hide feedback sections if campus is Central
-                                        feedbackHistorySection.style.display = 'none';
-                                        addFeedbackSection.style.display = 'none';
-                                    } else {
-                                        // Show feedback sections for other campuses
-                                        feedbackHistorySection.style.display = 'block';
-                                        addFeedbackSection.style.display = 'block';
-                                        
-                                        // Load feedback history with replies
-                                        const feedbackHistory = document.getElementById('feedbackHistory');
-                                        feedbackHistory.innerHTML = '';
+                                    // Load feedback history
+                                    const feedbackHistory = document.getElementById('feedbackHistory');
+                                    feedbackHistory.innerHTML = '';
 
-                                        // Parse replies if they exist
-                                        let replies = [];
-                                        if (entry.reply) {
-                                            try {
-                                                replies = typeof entry.reply === 'string' ? JSON.parse(entry.reply) : entry.reply;
-                                            } catch (e) {
-                                                console.error('Error parsing replies:', e);
-                                                replies = [];
-                                            }
-                                        }
+                                    if (entry.feedback && entry.feedback.length > 0) {
+                                        entry.feedback.forEach((feedback, index) => {
+                                            const feedbackItem = document.createElement('div');
+                                            feedbackItem.className = 'feedback-item';
+                                            feedbackItem.dataset.index = index;
+                                            feedbackItem.innerHTML = `
+                                    <div class="feedback-index">${index + 1}</div>
+                                    <div class="feedback-content">${feedback}</div>
+                                            <button class="feedback-delete-btn" title="Delete feedback" data-index="${index}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                `;
+                                            feedbackHistory.appendChild(feedbackItem);
 
-                                        if (entry.feedback && entry.feedback.length > 0) {
-                                            entry.feedback.forEach((feedback, index) => {
-                                                const feedbackItem = document.createElement('div');
-                                                feedbackItem.className = 'feedback-item';
-                                                feedbackItem.dataset.index = index;
-                                                
-                                                // Get the corresponding reply if it exists
-                                                const reply = replies[index] || '';
-                                                
-                                                // Create reply section HTML
-                                                const replyHTML = `
-                                                    <div class="feedback-reply">
-                                                        <div class="reply-label"><i class="fas fa-reply me-1"></i> Campus Reply:</div>
-                                                        <div class="reply-content">${reply ? reply : '<span class="no-reply">No reply yet</span>'}</div>
-                                                    </div>
-                                                `;
-                                                
-                                                feedbackItem.innerHTML = `
-                                                    <div class="feedback-index">${index + 1}</div>
-                                                    <div class="feedback-content">
-                                                        ${feedback}
-                                                        ${replyHTML}
-                                                    </div>
-                                                    <button class="feedback-delete-btn" title="Delete feedback" data-index="${index}">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                `;
-                                                feedbackHistory.appendChild(feedbackItem);
-
-                                                // Add click event for delete button
-                                                feedbackItem.querySelector('.feedback-delete-btn').addEventListener('click', function() {
-                                                    deleteFeedbackItem(entryId, index);
-                                                });
+                                            // Add click event for delete button
+                                            feedbackItem.querySelector('.feedback-delete-btn').addEventListener('click', function() {
+                                                deleteFeedbackItem(entryId, index);
                                             });
-                                        } else {
-                                            feedbackHistory.innerHTML = '<p class="text-muted">No feedback provided yet.</p>';
-                                        }
-
-                                        // Clear new feedback items
-                                        document.getElementById('feedbackItems').innerHTML = '';
-                                        document.getElementById('newFeedback').value = '';
+                                        });
+                                    } else {
+                                        feedbackHistory.innerHTML = '<p class="text-muted">No feedback provided yet.</p>';
                                     }
+
+                                    // Clear new feedback items
+                                    document.getElementById('feedbackItems').innerHTML = '';
+                                    document.getElementById('newFeedback').value = '';
 
                                     // Set current entry ID for approve/reject actions
                                     document.getElementById('approveBtn').setAttribute('data-id', entry.id);
                                     document.getElementById('rejectBtn').setAttribute('data-id', entry.id);
 
-                                    // Disable approve/reject buttons based on current status or if campus is Central
-                                    if (entry.campus === 'Central') {
-                                        // If campus is Central, disable both buttons
-                                        document.getElementById('approveBtn').disabled = true;
-                                        document.getElementById('approveBtn').classList.add('btn-disabled');
-                                        document.getElementById('rejectBtn').disabled = true;
-                                        document.getElementById('rejectBtn').classList.add('btn-disabled');
-                                        
-                                        // Add tooltip explanation
-                                        document.getElementById('approveBtn').setAttribute('title', 'Cannot approve Central campus entries');
-                                        document.getElementById('rejectBtn').setAttribute('title', 'Cannot reject Central campus entries');
-                                    } else if (entry.status === 'Approved') {
+                                    // Disable approve/reject buttons based on current status
+                                    if (entry.status === 'Approved') {
                                         document.getElementById('approveBtn').disabled = true;
                                         document.getElementById('approveBtn').classList.add('btn-disabled');
                                         document.getElementById('rejectBtn').disabled = false;
@@ -2451,7 +2306,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     function deleteFeedbackItem(entryId, index) {
                         Swal.fire({
                             title: 'Delete Feedback',
-                            text: 'Are you sure you want to delete this feedback item and its reply?',
+                            text: 'Are you sure you want to delete this feedback item?',
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonColor: '#dc3545',
@@ -2488,7 +2343,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                             // Show success message with timer instead of OK button
                                             Swal.fire({
                                                 title: 'Deleted!',
-                                                text: 'The feedback item and its reply have been deleted.',
+                                                text: 'The feedback item has been deleted.',
                                                 icon: 'success',
                                                 showConfirmButton: false,
                                                 timer: 1500,
@@ -2558,44 +2413,18 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                     const feedbackHistory = document.getElementById('feedbackHistory');
                                     feedbackHistory.innerHTML = '';
 
-                                    // Parse replies if they exist
-                                    let replies = [];
-                                    if (entry.reply) {
-                                        try {
-                                            replies = typeof entry.reply === 'string' ? JSON.parse(entry.reply) : entry.reply;
-                                        } catch (e) {
-                                            console.error('Error parsing replies:', e);
-                                            replies = [];
-                                        }
-                                    }
-
                                     if (entry.feedback && entry.feedback.length > 0) {
                                         entry.feedback.forEach((feedback, index) => {
                                             const feedbackItem = document.createElement('div');
                                             feedbackItem.className = 'feedback-item';
                                             feedbackItem.dataset.index = index;
-                                            
-                                            // Get the corresponding reply if it exists
-                                            const reply = replies[index] || '';
-                                            
-                                            // Create reply section HTML
-                                            const replyHTML = `
-                                                <div class="feedback-reply">
-                                                    <div class="reply-label"><i class="fas fa-reply me-1"></i> Campus Reply:</div>
-                                                    <div class="reply-content">${reply ? reply : '<span class="no-reply">No reply yet</span>'}</div>
-                                                </div>
-                                            `;
-                                            
                                             feedbackItem.innerHTML = `
-                                                <div class="feedback-index">${index + 1}</div>
-                                                <div class="feedback-content">
-                                                    ${feedback}
-                                                    ${replyHTML}
-                                                </div>
-                                                <button class="feedback-delete-btn" title="Delete feedback" data-index="${index}">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            `;
+                                            <div class="feedback-index">${index + 1}</div>
+                                            <div class="feedback-content">${feedback}</div>
+                                            <button class="feedback-delete-btn" title="Delete feedback" data-index="${index}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        `;
                                             feedbackHistory.appendChild(feedbackItem);
 
                                             // Add click event for delete button

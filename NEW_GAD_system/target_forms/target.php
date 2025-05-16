@@ -10,7 +10,7 @@ $isCampusUser = in_array($userCampus, ['Lipa', 'Pablo Borbon', 'Alangilan', 'Nas
 $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -163,46 +163,22 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         [data-bs-theme="dark"] .central-user #total_gad_fund {
             background-color: var(--bg-secondary) !important;
             opacity: 0.8 !important;
+            cursor: not-allowed !important;
             border-color: var(--border-color) !important;
             color: var(--text-muted) !important;
         }
 
         /* Gray out specific fields for Central user in dark mode */
         [data-bs-theme="dark"] #targetForm.central-user select#campus,
+        [data-bs-theme="dark"] #targetForm.central-user select#year,
+        [data-bs-theme="dark"] #targetForm.central-user input#total_gaa,
         [data-bs-theme="dark"] #targetForm.central-user input#total_gad_fund {
-            background-color: rgba(73, 80, 87, 0.65) !important;
-            opacity: 0.8 !important;
-            border-color: #495057 !important;
-            color: #adb5bd !important;
-        }
-        
-        /* Gray out only disabled fields for Central user */
-        [data-bs-theme="dark"] #targetForm.central-user select#year:disabled,
-        [data-bs-theme="dark"] #targetForm.central-user input#total_gaa:disabled {
             background-color: rgba(73, 80, 87, 0.65) !important;
             opacity: 0.8 !important;
             cursor: not-allowed !important;
             border-color: #495057 !important;
             color: #adb5bd !important;
             pointer-events: none !important;
-        }
-        
-        /* Override disabled states for Central user's interactive controls */
-        #targetForm.central-user select#year:not([disabled]),
-        #targetForm.central-user input#total_gaa:not([disabled]) {
-            cursor: auto !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            background-color: var(--input-bg, #ffffff) !important;
-        }
-        
-        [data-bs-theme="dark"] #targetForm.central-user select#year:not([disabled]),
-        [data-bs-theme="dark"] #targetForm.central-user input#total_gaa:not([disabled]) {
-            background-color: var(--input-bg, #404040) !important;
-            cursor: auto !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            color: var(--text-primary) !important;
         }
 
         /* Ensure dropdown arrows are also styled appropriately */
@@ -455,6 +431,8 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Global Styles -->
+    <link href="../js/global-styles.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1433,21 +1411,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             text-overflow: ellipsis;
         }
 
-        /* Styles for consolidated data display */
-        .consolidated-count {
-            font-size: 0.8rem;
-            margin-left: 0.3rem;
-            color: var(--text-secondary);
-        }
-
-        /* Ensure table cells have enough height for consolidated data */
-        #yearOverviewTable tbody tr.fund-row td {
-            min-height: 110px;
-            vertical-align: top;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
-        }
-
         /* Current year styling */
         .current-year {
             background-color: var(--accent-color) !important;
@@ -2060,24 +2023,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             box-shadow: 0 0 0 0.25rem rgba(106, 27, 154, 0.25) !important;
             outline: none !important;
         }
-
-        .nav-link {
-            padding: 10px 15px;
-            margin-bottom: 3px;
-        }
-
-        .nav-item .dropdown-menu .dropdown-item {
-            padding: 6px 48px;
-        }
-
-        .approval-link {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .bottom-controls {
-            margin-top: 15px;
-        }
     </style>
 </head>
 
@@ -2118,25 +2063,22 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-alt me-2"></i> GPB
+                    <a class="nav-link dropdown-toggle active" href="#" id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-alt me-2"></i> Forms
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../target_forms/target.php">Target</a></li>
-                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Generate Form</a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-file-invoice me-2"></i> PPAs
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_form/ppas.php">Data Entry</a></li>
-                        <li><a class="dropdown-item" href="../gad_proposal/gad_proposal.php">GAD Proposal</a></li>
-                        <li><a class="dropdown-item" href="../gad_narrative/gad_narrative.php">GAD Narrative</a></li>
-                        <li><a class="dropdown-item" href="../extension_proposal/extension_proposal.php">Extension Proposal</a></li>
-                        <li><a class="dropdown-item" href="../extension_narrative/extension_narrative.php">Extension Narrative</a></li>
+                        <li><a class="dropdown-item" href="target.php">Target Form</a></li>
+                        <li><a class="dropdown-item" href="../gbp_forms/gbp.php">GBP Form</a></li>
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#" id="ppasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                PPAs Form
+                            </a>
+                            <ul class="dropdown-menu dropdown-submenu" aria-labelledby="ppasDropdown">
+                                <li><a class="dropdown-item" href="../ppas_form/ppas.php">Main PPAs Form</a></li>
+                                <li><a class="dropdown-item" href="../ppas_proposal/gad_proposal.php">GAD Proposal Form</a></li>
+                                <li><a class="dropdown-item" href="../narrative/narrative.php">Narrative Form</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
                 <div class="nav-item dropdown">
@@ -2144,9 +2086,11 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         <i class="fas fa-chart-bar me-2"></i> Reports
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../ppas_report/ppas_report.php">Quarterly Report</a></li>
-                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PS Attribution</a></li>
-                        <li><a class="dropdown-item" href="../annual_reports/annual_report.php">Annual Report</a></li>
+                        <li><a class="dropdown-item" href="../gpb_reports/gbp_reports.php">Annual GPB Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_reports/ppas_report.php">Quarterly PPAs Reports</a></li>
+                        <li><a class="dropdown-item" href="../ps_atrib_reports/ps.php">PSA Reports</a></li>
+                        <li><a class="dropdown-item" href="../ppas_proposal_reports/print_proposal.php">GAD Proposal Reports</a></li>
+                        <li><a class="dropdown-item" href="../narrative_reports/print_narrative.php">Narrative Reports</a></li>
                     </ul>
                 </div>
                 <?php
@@ -2182,17 +2126,15 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         <i class="fas fa-file-alt"></i>
                         <h4>Target Form</h4>
                     </div>
-                    <form id="targetForm" class="needs-validation" novalidate>
+                    <form id="targetForm" class="needs-validation <?php echo $isCentralUser ? 'central-user' : ($isCampusUser ? 'campus-user' : ''); ?>" novalidate>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="campus" class="form-label">Campus</label>
                                     <?php if ($isCampusUser): ?>
                                         <input type="text" class="form-control campus-readonly" id="campus" name="campus" value="<?php echo htmlspecialchars($userCampus); ?>" readonly>
-                                    <?php elseif ($isCentralUser): ?>
-                                        <input type="text" class="form-control campus-readonly" id="campus" name="campus" value="Central" readonly>
                                     <?php else: ?>
-                                        <select class="form-select" id="campus" name="campus" required>
+                                        <select class="form-select" id="campus" name="campus" required <?php echo $isCentralUser ? 'disabled' : ''; ?>>
                                             <option value="">Select Campus</option>
                                             <option value="Lipa">Lipa</option>
                                             <option value="Pablo Borbon">Pablo Borbon</option>
@@ -2204,7 +2146,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                             <option value="Lemery">Lemery</option>
                                             <option value="San Juan">San Juan</option>
                                             <option value="Lobo">Lobo</option>
-                                            <option value="Central">Central</option>
                                         </select>
                                     <?php endif; ?>
                                     <div class="invalid-feedback">Please select a campus.</div>
@@ -2214,7 +2155,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="year" class="form-label">Year</label>
-                                    <select class="form-select" id="year" name="year" required style="background-image: none;">
+                                    <select class="form-select" id="year" name="year" required style="background-image: none;" <?php echo $isCentralUser ? 'disabled' : ''; ?>>
                                         <option value="">Select Year</option>
                                     </select>
                                     <div class="invalid-feedback">Please select a year.</div>
@@ -2226,7 +2167,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                     <label for="total_gaa" class="form-label">Total GAA</label>
                                     <div class="input-group">
                                         <span class="input-group-text">₱</span>
-                                        <input type="number" class="form-control" id="total_gaa" name="total_gaa" step="0.01" required>
+                                        <input type="number" class="form-control" id="total_gaa" name="total_gaa" step="0.01" required <?php echo $isCentralUser ? 'disabled' : ''; ?>>
                                     </div>
                                     <div class="invalid-feedback">Please enter a valid total GAA amount (no leading zeros)</div>
                                 </div>
@@ -2244,13 +2185,13 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                             </div>
 
                             <div class="col-12 text-end mt-4">
-                                <button type="submit" class="btn btn-icon me-2" id="addTargetBtn">
+                                <button type="submit" class="btn btn-icon me-2 <?php echo $isCentralUser ? 'btn-disabled' : ''; ?>" id="addTargetBtn" <?php echo $isCentralUser ? 'disabled' : ''; ?>>
                                     <i class="fas fa-plus"></i>
                                 </button>
-                                <button type="button" class="btn btn-icon me-2" id="editTargetBtn">
+                                <button type="button" class="btn btn-icon me-2 <?php echo $isCentralUser ? 'btn-disabled' : ''; ?>" id="editTargetBtn" <?php echo $isCentralUser ? 'disabled' : ''; ?>>
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-icon" id="deleteTargetBtn">
+                                <button type="button" class="btn btn-icon <?php echo $isCentralUser ? 'btn-disabled' : ''; ?>" id="deleteTargetBtn" <?php echo $isCentralUser ? 'disabled' : ''; ?>>
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -2269,7 +2210,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         </div>
                         <div class="d-flex align-items-center year-overview-controls">
                             <select id="campusFilter" class="form-select me-2" <?php echo $isCampusUser ? 'disabled' : ''; ?>>
-                                <option value="All">All Campuses</option>
                                 <option value="Lipa" <?php echo $userCampus === 'Lipa' ? 'selected' : ''; ?>>Lipa</option>
                                 <option value="Pablo Borbon" <?php echo $userCampus === 'Pablo Borbon' ? 'selected' : ''; ?>>Pablo Borbon</option>
                                 <option value="Alangilan" <?php echo $userCampus === 'Alangilan' ? 'selected' : ''; ?>>Alangilan</option>
@@ -2280,8 +2220,15 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 <option value="Lemery" <?php echo $userCampus === 'Lemery' ? 'selected' : ''; ?>>Lemery</option>
                                 <option value="San Juan" <?php echo $userCampus === 'San Juan' ? 'selected' : ''; ?>>San Juan</option>
                                 <option value="Lobo" <?php echo $userCampus === 'Lobo' ? 'selected' : ''; ?>>Lobo</option>
-                                <option value="Central" <?php echo $userCampus === 'Central' ? 'selected' : ''; ?>>Central</option>
                             </select>
+                            <div class="view-toggle btn-group me-2">
+                                <button type="button" class="btn btn-outline-primary active" id="tableViewBtn">
+                                    <i class="fas fa-table"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" id="graphViewBtn">
+                                    <i class="fas fa-chart-line"></i>
+                                </button>
+                            </div>
                             <div class="year-navigation">
                                 <button class="btn btn-outline-primary" id="prevYearSet">
                                     <i class="fas fa-chevron-left"></i>
@@ -2468,39 +2415,25 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 campusSelect.disabled = true;
                 yearSelect.disabled = false;
 
-                // Set the campus value for campus users
-                campusSelect.value = '<?php echo $userCampus; ?>';
-
                 // Fetch available years for the campus user
-                fetch(`../target_forms/get_existing_years.php?campus=${encodeURIComponent('<?php echo $userCampus; ?>')}`)
-                    .then(response => response.json())
-                    .then(existingYears => {
-                        if (Array.isArray(existingYears)) {
-                            const years = existingYears.map(year => parseInt(year, 10));
-                            populateYears(years);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching years:', error);
-                    });
+                const userCampus = campusSelect.value;
+                if (userCampus) {
+                    fetch(`../target_forms/get_existing_years.php?campus=${encodeURIComponent(userCampus)}`)
+                        .then(response => response.json())
+                        .then(existingYears => {
+                            if (Array.isArray(existingYears)) {
+                                const years = existingYears.map(year => parseInt(year, 10));
+                                populateYears(years);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching years:', error);
+                        });
+                }
             } else if (isCentralUser) {
-                // For Central users, when not editing, reset to Central
-                campusSelect.value = "Central";
+                // For Central users, disable all form fields
                 campusSelect.disabled = true;
-                yearSelect.disabled = false;
-
-                // Fetch available years for Central
-                fetch(`../target_forms/get_existing_years.php?campus=Central`)
-                    .then(response => response.json())
-                    .then(existingYears => {
-                        if (Array.isArray(existingYears)) {
-                            const years = existingYears.map(year => parseInt(year, 10));
-                            populateYears(years);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching years:', error);
-                    });
+                yearSelect.disabled = true;
             } else {
                 // For other users, enable campus but disable year until campus is selected
                 campusSelect.disabled = false;
@@ -2640,24 +2573,16 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     // Trigger the change event to load data for this campus
                     const event = new Event('change');
                     campusFilter.dispatchEvent(event);
-                } else if (isCentralUser) {
-                    // Set the campus filter to "Central" for Central users
-                    campusFilter.value = "Central";
-                    
-                    // Trigger the change event to load data for Central
-                    const event = new Event('change');
-                    campusFilter.dispatchEvent(event);
                 }
             }
 
             // For campus users, fetch and populate years
-            if (isCampusUser || isCentralUser) {
-                // Enable form fields for campus users and Central users
+            if (isCampusUser) {
+                // Enable form fields for campus users
                 yearSelect.disabled = false;
 
                 // Fetch existing years for the campus user
-                const campusValue = isCentralUser ? 'Central' : userCampus;
-                fetch(`../target_forms/get_existing_years.php?campus=${encodeURIComponent(campusValue)}`)
+                fetch(`../target_forms/get_existing_years.php?campus=${encodeURIComponent(userCampus)}`)
                     .then(response => response.json())
                     .then(existingYears => {
                         console.log('API Response for campus user:', existingYears);
@@ -2676,6 +2601,10 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                     .catch(error => {
                         console.error('Error fetching years for campus user:', error);
                     });
+            } else if (isCentralUser) {
+                // For Central users, disable form fields
+                yearSelect.disabled = true;
+                totalGaaInput.disabled = true;
             } else {
                 // For other users, initially disable year and total_gaa
                 yearSelect.disabled = true;
@@ -2767,23 +2696,12 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                 }
 
                 const isUpdate = document.getElementById('editTargetBtn').classList.contains('editing');
-                
-                // Determine campus value - when editing, use the campus value that's in the input
-                // rather than assuming Central for Central users
-                const campusValue = document.getElementById('campus').value;
-                
-                // Create the form data object
                 const formData = {
-                    campus: campusValue,
+                    campus: document.getElementById('campus').value,
                     year: document.getElementById('year').value,
                     total_gaa: document.getElementById('total_gaa').value,
                     total_gad_fund: document.getElementById('total_gad_fund').value
                 };
-
-                // Additional logging for debugging
-                console.log("Form submit handler - campus value:", campusValue);
-                console.log("Form submit handler - campus element:", document.getElementById('campus'));
-                console.log("Full form data being sent:", formData);
 
                 console.log(`${isUpdate ? 'Updating' : 'Adding'} target:`, formData);
 
@@ -2949,129 +2867,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 confirmButtonColor: '#dc3545'
                             });
                         });
-                <?php elseif ($isCentralUser): ?>
-                    // For Central users, allow selection of any campus
-                    Swal.fire({
-                        title: 'Select Campus',
-                        html: '<h6 class="mb-3">Step 1 of 2</h6>',
-                        input: 'select',
-                        inputOptions: {
-                            'Lipa': 'Lipa',
-                            'Pablo Borbon': 'Pablo Borbon',
-                            'Alangilan': 'Alangilan',
-                            'Nasugbu': 'Nasugbu',
-                            'Malvar': 'Malvar',
-                            'Rosario': 'Rosario',
-                            'Balayan': 'Balayan',
-                            'Lemery': 'Lemery',
-                            'San Juan': 'San Juan',
-                            'Lobo': 'Lobo',
-                            'Central': 'Central'
-                        },
-                        inputPlaceholder: 'Select Campus',
-                        showCancelButton: true,
-                        confirmButtonColor: '#6c757d',
-                        cancelButtonColor: '#dc3545',
-                        confirmButtonText: '<i class="fas fa-arrow-right"></i>',
-                        cancelButtonText: '<i class="fas fa-times"></i>',
-                        reverseButtons: true,
-                        inputValidator: (value) => !value && 'Please select a campus'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const selectedCampus = result.value;
-                            console.log('Selected campus:', selectedCampus);
-
-                            fetch(`../target_forms/get_existing_years.php?campus=${encodeURIComponent(selectedCampus)}`)
-                                .then(response => response.json())
-                                .then(years => {
-                                    if (!years || years.length === 0) {
-                                        Swal.fire({
-                                            title: 'No Data',
-                                            text: `No targets found for ${selectedCampus} campus`,
-                                            icon: 'info',
-                                            confirmButtonColor: '#dc3545'
-                                        });
-                                        return;
-                                    }
-
-                                    const yearOptions = {};
-                                    years.forEach(year => yearOptions[year] = year);
-
-                                    return Swal.fire({
-                                        title: 'Select Year',
-                                        html: `<h6 class="mb-3">Step 2 of 2</h6><p>Selected Campus: ${selectedCampus}</p>`,
-                                        input: 'select',
-                                        inputOptions: yearOptions,
-                                        inputPlaceholder: 'Select Year',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#6c757d',
-                                        cancelButtonColor: '#dc3545',
-                                        confirmButtonText: '<i class="fas fa-check"></i>',
-                                        cancelButtonText: '<i class="fas fa-times"></i>',
-                                        reverseButtons: true,
-                                        inputValidator: (value) => !value && 'Please select a year'
-                                    });
-                                })
-                                .then(yearResult => {
-                                    if (yearResult && yearResult.isConfirmed) {
-                                        console.log('Fetching data for:', selectedCampus, yearResult.value);
-                                        return fetch(`../target_forms/get_target_data.php?campus=${encodeURIComponent(selectedCampus)}&year=${encodeURIComponent(yearResult.value)}`)
-                                            .then(response => response.json())
-                                            .then(data => {
-                                                console.log('Received data:', data);
-                                                if (data && !data.error) {
-                                                    const campusInput = document.getElementById('campus');
-                                                    const yearSelect = document.getElementById('year');
-                                                    const totalGaaInput = document.getElementById('total_gaa');
-                                                    const totalGadFundInput = document.getElementById('total_gad_fund');
-                                                    const addTargetBtn = document.getElementById('addTargetBtn');
-                                                    const deleteTargetBtn = document.getElementById('deleteTargetBtn');
-
-                                                    // Set form values
-                                                    campusInput.value = data.campus;
-
-                                                    // Update year options and select the correct year
-                                                    populateYearOptions();
-                                                    yearSelect.value = data.year;
-
-                                                    totalGaaInput.value = data.total_gaa;
-                                                    totalGadFundInput.value = data.total_gad_fund;
-
-                                                    // Update button states
-                                                    this.classList.add('editing');
-                                                    this.innerHTML = '<i class="fas fa-times"></i>';
-                                                    addTargetBtn.classList.add('btn-update');
-                                                    addTargetBtn.innerHTML = '<i class="fas fa-save"></i>';
-                                                    deleteTargetBtn.disabled = true;
-
-                                                    // Enable total GAA input but disable year field for editing
-                                                    totalGaaInput.disabled = false;
-                                                    yearSelect.disabled = true;
-
-                                                    // Trigger validation
-                                                    validateForm();
-                                                } else {
-                                                    Swal.fire({
-                                                        title: 'Error',
-                                                        text: data.error || 'Failed to load target data',
-                                                        icon: 'error',
-                                                        confirmButtonColor: '#dc3545'
-                                                    });
-                                                }
-                                            });
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'An error occurred while fetching data',
-                                        icon: 'error',
-                                        confirmButtonColor: '#dc3545'
-                                    });
-                                });
-                        }
-                    });
                 <?php else: ?>
                     Swal.fire({
                         title: 'Select Campus',
@@ -3296,134 +3091,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                                 confirmButtonColor: '#dc3545'
                             });
                         });
-                <?php elseif ($isCentralUser): ?>
-                    // For Central users, allow selection of any campus for deletion
-                    Swal.fire({
-                        title: 'Select Campus',
-                        html: '<h6 class="mb-3">Step 1 of 2</h6>',
-                        input: 'select',
-                        inputOptions: {
-                            'Lipa': 'Lipa',
-                            'Pablo Borbon': 'Pablo Borbon',
-                            'Alangilan': 'Alangilan',
-                            'Nasugbu': 'Nasugbu',
-                            'Malvar': 'Malvar',
-                            'Rosario': 'Rosario',
-                            'Balayan': 'Balayan',
-                            'Lemery': 'Lemery',
-                            'San Juan': 'San Juan',
-                            'Lobo': 'Lobo',
-                            'Central': 'Central'
-                        },
-                        showCancelButton: true,
-                        confirmButtonColor: '#6c757d',
-                        cancelButtonColor: '#dc3545',
-                        confirmButtonText: '<i class="fas fa-arrow-right"></i>',
-                        cancelButtonText: '<i class="fas fa-times"></i>',
-                        reverseButtons: true,
-                        inputValidator: (value) => {
-                            if (!value) {
-                                return 'Please select a campus';
-                            }
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const selectedCampus = result.value;
-                            fetch(`../target_forms/get_existing_years.php?campus=${encodeURIComponent(selectedCampus)}`)
-                                .then(response => response.json())
-                                .then(years => {
-                                    if (!years || years.length === 0) {
-                                        Swal.fire({
-                                            title: 'No Data',
-                                            text: `No targets found for ${selectedCampus} campus`,
-                                            icon: 'info',
-                                            confirmButtonColor: '#dc3545'
-                                        });
-                                        return;
-                                    }
-
-                                    const yearOptions = {};
-                                    years.forEach(year => yearOptions[year] = year);
-
-                                    return Swal.fire({
-                                        title: 'Select Year',
-                                        html: `<h6 class="mb-3">Step 2 of 2</h6><p>Selected Campus: ${selectedCampus}</p>`,
-                                        input: 'select',
-                                        inputOptions: yearOptions,
-                                        inputPlaceholder: 'Select Year',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#6c757d',
-                                        cancelButtonColor: '#dc3545',
-                                        confirmButtonText: '<i class="fas fa-trash-alt"></i>',
-                                        cancelButtonText: '<i class="fas fa-times"></i>',
-                                        reverseButtons: true,
-                                        inputValidator: (value) => !value && 'Please select a year'
-                                    });
-                                })
-                                .then(yearResult => {
-                                    if (yearResult && yearResult.isConfirmed) {
-                                        const selectedYear = yearResult.value;
-
-                                        return Swal.fire({
-                                            title: 'Confirm Deletion',
-                                            text: `Are you sure you want to delete the target for ${selectedCampus} campus, year ${selectedYear}?`,
-                                            icon: 'warning',
-                                            showCancelButton: true,
-                                            confirmButtonColor: '#dc3545',
-                                            cancelButtonColor: '#6c757d',
-                                            confirmButtonText: 'Yes, delete it!',
-                                            cancelButtonText: 'Cancel'
-                                        }).then((confirmResult) => {
-                                            if (confirmResult.isConfirmed) {
-                                                return fetch('../target_forms/delete_target.php', {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Content-Type': 'application/json',
-                                                        },
-                                                        body: JSON.stringify({
-                                                            campus: selectedCampus,
-                                                            year: selectedYear
-                                                        })
-                                                    })
-                                                    .then(response => response.json())
-                                                    .then(data => {
-                                                        if (data.success) {
-                                                            Swal.fire({
-                                                                title: 'Deleted!',
-                                                                text: `Target for ${selectedCampus} campus, year ${selectedYear} has been deleted.`,
-                                                                icon: 'success',
-                                                                confirmButtonColor: '#28a745',
-                                                                showConfirmButton: false,
-                                                                timer: 1500
-                                                            }).then(() => {
-                                                                resetForm();
-                                                                // Refresh the target overview table
-                                                                updateYearOverview(new Date().getFullYear());
-                                                            });
-                                                        } else {
-                                                            Swal.fire({
-                                                                title: 'Error',
-                                                                text: data.error || 'Failed to delete target',
-                                                                icon: 'error',
-                                                                confirmButtonColor: '#dc3545'
-                                                            });
-                                                        }
-                                                    });
-                                            }
-                                        });
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'An error occurred while processing your request',
-                                        icon: 'error',
-                                        confirmButtonColor: '#dc3545'
-                                    });
-                                });
-                        }
-                    });
                 <?php else: ?>
                     Swal.fire({
                         title: 'Select Campus',
@@ -3441,7 +3108,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                             'San Juan': 'San Juan',
                             'Lobo': 'Lobo'
                         },
-                        inputPlaceholder: 'Select Campus',
                         showCancelButton: true,
                         confirmButtonColor: '#6c757d',
                         cancelButtonColor: '#dc3545',
@@ -3567,7 +3233,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         function updateYearOverview(centerYear = new Date().getFullYear()) {
             const campus = document.getElementById('campusFilter').value;
-            const isAllCampuses = campus === 'All';
 
             fetch(`../target_forms/get_multi_year_data.php?campus=${encodeURIComponent(campus)}&centerYear=${centerYear}`)
                 .then(response => response.json())
@@ -3608,11 +3273,7 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         // Target status
                         const targetCell = document.createElement('td');
                         if (yearData.hasTarget) {
-                            if (isAllCampuses && yearData.campus_count) {
-                                targetCell.innerHTML = `<i class="fas fa-check-circle text-success"></i> <span class="small">(${yearData.campus_count} campuses)</span>`;
-                            } else {
-                                targetCell.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
-                            }
+                            targetCell.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
                             targetCell.classList.add('has-target');
                         } else {
                             targetCell.innerHTML = '—';
@@ -3623,18 +3284,13 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         // Fund information
                         const fundCell = document.createElement('td');
                         if (yearData.hasTarget) {
-                            let fundHtml = `
+                            fundCell.innerHTML = `
                                 <span class="fund-label">GAA</span>
                                 <div class="fund-amount">${formatCurrency(yearData.total_gaa)}</div>
                                 <span class="fund-label">GAD</span>
                                 <div class="fund-amount">${formatCurrency(yearData.total_gad_fund)}</div>
                             `;
-                            
-                            
-                            fundCell.innerHTML = fundHtml;
 
-                            // Add data for chart
-                            years.push(yearData.year);
                             // Add data for chart
                             years.push(yearData.year);
                             gaaData.push(parseFloat(yearData.total_gaa));
@@ -3670,8 +3326,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
 
         function updateYearOverviewChart(years, gaaData, gadData) {
             const ctx = document.getElementById('yearOverviewChart').getContext('2d');
-            const campus = document.getElementById('campusFilter').value;
-            const isAllCampuses = campus === 'All';
 
             // Destroy previous chart if it exists
             if (yearOverviewChart) {
@@ -3691,9 +3345,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             const gadGradient = ctx.createLinearGradient(0, 0, 0, 300);
             gadGradient.addColorStop(0, 'rgba(28, 200, 138, 0.4)');
             gadGradient.addColorStop(1, 'rgba(28, 200, 138, 0.0)');
-
-            // Set chart title based on campus selection
-            const chartTitle = isAllCampuses ? 'Consolidated Data (All Campuses)' : campus;
 
             // Create new chart - using line chart with dual Y axes
             yearOverviewChart = new Chart(ctx, {
@@ -3827,19 +3478,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
                         }
                     },
                     plugins: {
-                        title: {
-                            display: true,
-                            text: chartTitle,
-                            font: {
-                                size: 16,
-                                weight: 'bold'
-                            },
-                            color: textColor,
-                            padding: {
-                                top: 10,
-                                bottom: 20
-                            }
-                        },
                         legend: {
                             labels: {
                                 color: textColor,
@@ -4319,7 +3957,6 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
         .nav-link.active .notification-badge {
             background-color: white;
             color: var(--accent-color);
-
         }
     </style>
 

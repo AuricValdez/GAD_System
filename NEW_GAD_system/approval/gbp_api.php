@@ -142,7 +142,6 @@ function fetchGbpDetails() {
         $entry['generic_activity'] = json_decode($entry['generic_activity'], true);
         $entry['specific_activities'] = json_decode($entry['specific_activities'], true);
         $entry['feedback'] = json_decode($entry['feedback'], true) ?? [];
-        $entry['reply'] = json_decode($entry['reply'], true) ?? [];
         
         // Calculate total participants if not already set
         if (!isset($entry['total_participants'])) {
@@ -175,16 +174,6 @@ function approveGbp() {
     try {
         $conn->begin_transaction();
         
-        // Get campus information for notification
-        $campusQuery = "SELECT campus, gender_issue FROM gpb_entries WHERE id = ?";
-        $campusStmt = $conn->prepare($campusQuery);
-        $campusStmt->bind_param("i", $id);
-        $campusStmt->execute();
-        $campusResult = $campusStmt->get_result();
-        $campusRow = $campusResult->fetch_assoc();
-        $campus = $campusRow['campus'];
-        $genderIssue = $campusRow['gender_issue'];
-        
         // Update entry status
         $query = "UPDATE gpb_entries SET status = 'Approved', created_at = NOW() WHERE id = ?";
         $stmt = $conn->prepare($query);
@@ -192,21 +181,6 @@ function approveGbp() {
         $result = $stmt->execute();
         
         if ($result) {
-            // Delete any existing rejection notifications for this GBP entry
-            $deleteQuery = "DELETE FROM gbp_notifications WHERE gbp_id = ? AND status = 'Rejected'";
-            $deleteStmt = $conn->prepare($deleteQuery);
-            $deleteStmt->bind_param("i", $id);
-            $deleteStmt->execute();
-            
-            // Create notification for the campus
-            $notificationMessage = "Your GBP entry addressing \"$genderIssue\" has been approved by Central Office.";
-            $notificationStatus = "Approved";
-            
-            $notifQuery = "INSERT INTO gbp_notifications (gbp_id, campus, status, message) VALUES (?, ?, ?, ?)";
-            $notifStmt = $conn->prepare($notifQuery);
-            $notifStmt->bind_param("isss", $id, $campus, $notificationStatus, $notificationMessage);
-            $notifStmt->execute();
-            
             $conn->commit();
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'message' => 'GBP entry approved successfully.']);
@@ -247,43 +221,26 @@ function rejectGbp() {
     try {
         $conn->begin_transaction();
         
-        // Get entry information for notification
-        $entryQuery = "SELECT campus, gender_issue, feedback, reply FROM gpb_entries WHERE id = ?";
-        $entryStmt = $conn->prepare($entryQuery);
-        $entryStmt->bind_param("i", $id);
-        $entryStmt->execute();
-        $entryResult = $entryStmt->get_result();
-        $entryRow = $entryResult->fetch_assoc();
-        $campus = $entryRow['campus'];
-        $genderIssue = $entryRow['gender_issue'];
+        // Get current feedback if any
+        $query = "SELECT feedback FROM gpb_entries WHERE id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
         
         // Merge new feedback with existing feedback
-        $existingFeedback = json_decode($entryRow['feedback'] ?? '[]', true) ?? [];
+        $existingFeedback = json_decode($row['feedback'] ?? '[]', true) ?? [];
         $allFeedback = array_merge($existingFeedback, $feedbackItems);
         $feedbackJson = json_encode($allFeedback);
         
-        // Get existing replies and add empty strings for new feedback items
-        $existingReplies = json_decode($entryRow['reply'] ?? '[]', true) ?? [];
-        $emptyReplies = array_fill(0, count($feedbackItems), ""); // Add empty strings for new feedback
-        $allReplies = array_merge($existingReplies, $emptyReplies);
-        $replyJson = json_encode($allReplies);
-        
-        // Update entry status, feedback, and reply
-        $query = "UPDATE gpb_entries SET status = 'Rejected', feedback = ?, reply = ?, created_at = NOW() WHERE id = ?";
+        // Update entry status and feedback
+        $query = "UPDATE gpb_entries SET status = 'Rejected', feedback = ?, created_at = NOW() WHERE id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("ssi", $feedbackJson, $replyJson, $id);
+        $stmt->bind_param("si", $feedbackJson, $id);
         $result = $stmt->execute();
         
         if ($result) {
-            // Create notification for the campus
-            $notificationMessage = "Your GPB entry addressing \"$genderIssue\" has been rejected by Central Office. Please review the feedback and make necessary revisions.";
-            $notificationStatus = "Rejected";
-            
-            $notifQuery = "INSERT INTO gbp_notifications (gbp_id, campus, status, message) VALUES (?, ?, ?, ?)";
-            $notifStmt = $conn->prepare($notifQuery);
-            $notifStmt->bind_param("isss", $id, $campus, $notificationStatus, $notificationMessage);
-            $notifStmt->execute();
-            
             $conn->commit();
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'message' => 'GBP entry rejected with feedback.']);
@@ -316,8 +273,8 @@ function deleteFeedback() {
     }
     
     try {
-        // Get current feedback and reply
-        $query = "SELECT feedback, reply FROM gpb_entries WHERE id = ?";
+        // Get current feedback
+        $query = "SELECT feedback FROM gpb_entries WHERE id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $gbpId);
         $stmt->execute();
@@ -338,34 +295,22 @@ function deleteFeedback() {
             return;
         }
         
-        // Get reply items if they exist
-        $replyItems = [];
-        if (!empty($row['reply'])) {
-            $replyItems = json_decode($row['reply'], true) ?? [];
-        }
-        
         // Remove the feedback item
         array_splice($feedbackItems, $feedbackIndex, 1);
         $feedbackJson = json_encode($feedbackItems);
         
-        // Remove the corresponding reply item if it exists
-        if (!empty($replyItems) && count($replyItems) > $feedbackIndex) {
-            array_splice($replyItems, $feedbackIndex, 1);
-        }
-        $replyJson = json_encode($replyItems);
-        
-        // Update the entry with the new feedback and reply arrays
-        $query = "UPDATE gpb_entries SET feedback = ?, reply = ? WHERE id = ?";
+        // Update the entry with the new feedback array
+        $query = "UPDATE gpb_entries SET feedback = ? WHERE id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("ssi", $feedbackJson, $replyJson, $gbpId);
+        $stmt->bind_param("si", $feedbackJson, $gbpId);
         $result = $stmt->execute();
         
         if ($result) {
             header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => 'Feedback and reply deleted successfully.']);
+            echo json_encode(['success' => true, 'message' => 'Feedback deleted successfully.']);
         } else {
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Failed to delete feedback and reply.']);
+            echo json_encode(['success' => false, 'message' => 'Failed to delete feedback.']);
         }
     } catch (Exception $e) {
         error_log("Database error: " . $e->getMessage());
@@ -393,4 +338,3 @@ function countPendingEntries() {
         echo json_encode(['success' => false, 'message' => 'Failed to count pending entries.']);
     }
 } 
-?> 

@@ -2086,7 +2086,7 @@ html {
                     </div>
                 </div>
                 
-                <!-- TARGET TABLE VALUES - Simple format with smaller font -->
+                <!-- TARGET TABLE VALUES -->
                 <div class="mb-1">
                     <div class="row">
                         <div class="col-12" style="line-height: 1.1;">
@@ -2129,15 +2129,15 @@ html {
             `;
 
             if (!data || data.length === 0) {
-                html += '<tr><td colspan="' + (isCentral && selectedCampus === 'All Campus' ? '11' : '10') + '" class="text-center">No data available</td></tr>';
+                html += '<tr><td colspan="' + (isCentral && selectedCampus === 'All Campus' ? '11' : '10') + '" class="text-center" style="font-size: 10px;">No data available</td></tr>';
             } else {
                 // Process each category
                 allCategories.forEach(category => {
                     // Add category header
                     html += `
-                        <tr>
-                            <td colspan="${isCentral && selectedCampus === 'All Campus' ? '11' : '10'}" class="category-header" style="font-size: 10px; font-weight: bold; padding: 2px;">${category}</td>
-                        </tr>
+                                            <tr>
+                        <td colspan="${isCentral && selectedCampus === 'All Campus' ? '11' : '10'}" class="category-header" style="font-size: 10px; font-weight: bold; padding: 2px; text-align: center;">${category}</td>
+                    </tr>
                     `;
                     
                     // Filter data for current category
@@ -2238,12 +2238,12 @@ html {
                             // Format activities with proper layout - each generic activity gets its own specific activities
                             genericActivities.forEach((gen, idx) => {
                                 // Add generic activity
-                                formattedActivities += `${gen.trim()}<br>`;
+                                formattedActivities += `<span style="font-size: 10px;">${gen.trim()}</span><br>`;
                                 
                                 // Get specific activities for this generic activity
                                 const specificsForThisGeneric = specificActivities[idx] || [];
                                 specificsForThisGeneric.forEach(spec => {
-                                    formattedActivities += `• ${spec.trim()}<br>`;
+                                    formattedActivities += `<span style="font-size: 10px;">• ${spec.trim()}</span><br>`;
                                 });
                                 
                                 // Add spacing between groups, but not after the last one
@@ -2262,8 +2262,8 @@ html {
                             const totalActivities = specificActivities.reduce((sum, group) => sum + group.length, 0);
                             
                             // Format exactly as requested with correct spacing and using gender issue
-                            formattedOutputs = "   No. of activities in \"" + genderIssue + "\" conducted - at least " + totalActivities + " " + (totalActivities > 1 ? 'activities' : 'activity') + ".<br><br>";
-                            formattedOutputs += "   No. of participants in \"" + genderIssue + "\" - at least " + (item.male_participants || '0') + " male and " + (item.female_participants || '0') + " female participants.";
+                            formattedOutputs = "<span style=\"font-size: 10px;\">   No. of activities in \"" + genderIssue + "\" conducted - at least " + totalActivities + " " + (totalActivities > 1 ? 'activities' : 'activity') + ".</span><br><br>";
+                            formattedOutputs += "<span style=\"font-size: 10px;\">   No. of participants in \"" + genderIssue + "\" - at least " + (item.male_participants || '0') + " male and " + (item.female_participants || '0') + " female participants.</span>";
                             
                             html += `
                                 <tr>
@@ -2275,20 +2275,20 @@ html {
                                     <td style="font-size: 10px; width: 18%; padding: 2px; border-right: 1px solid #000;">${formattedActivities}</td>
                                     <td style="font-size: 10px; width: 12%; padding: 2px; border-left: 1px solid #000;">${formattedOutputs}</td>
                                     <td style="font-size: 10px; padding: 2px;">₱${parseFloat(item.gad_budget || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                                                    <td style="font-size: 10px; padding: 2px;">${formattedSourceOfBudget || ''}</td>
-                                <td style="font-size: 10px; padding: 2px;">${formattedResponsibleUnit || ''}</td>
+                                    <td style="font-size: 10px; padding: 2px;">${formattedSourceOfBudget || ''}</td>
+                                    <td style="font-size: 10px; padding: 2px;">${formattedResponsibleUnit || ''}</td>
                                 </tr>
                             `;
                         });
                     }
                 });
                 
-                // Add total row at the end of the table for GAD Budget with smaller font
+                // Add total row at the end of the table for GAD Budget
                 html += `
                     <tr class="total-row" style="background-color: #f9f9fa; font-weight: bold !important; margin-bottom: 0 !important;">
-                        <td colspan="${isCentral && selectedCampus === 'All Campus' ? '7' : '6'}" class="text-end" style="font-size: 10px; padding: 2px;"><strong>Total GAD Budget</strong></td>
-                        <td style="font-size: 10px; padding: 2px;"><strong>₱${totalGADBudget.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
-                        <td colspan="3"></td>
+                        <td colspan="${isCentral && selectedCampus === 'All Campus' ? '7' : '6'}" class="text-end" style="font-size: 10px; padding: 2px;"><strong style="font-size: 10px;">Total GAD Budget</strong></td>
+                        <td style="font-size: 10px; padding: 2px;"><strong style="font-size: 10px;">₱${totalGADBudget.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+                        <td colspan="3" style="font-size: 10px;"></td>
                     </tr>
                 `;
             }

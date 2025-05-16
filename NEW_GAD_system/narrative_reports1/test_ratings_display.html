@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ratings Test: Test Activity</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        .header { background-color: #4CAF50; color: white; padding: 10px; }
+        pre { background-color: #f5f5f5; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Ratings Data Test: Test Activity</h1>
+        <p>ID: 9, Campus: Lipa</p>
+    </div>
+    
+    <h2>Raw JSON Data</h2>
+    <h3>Activity Ratings:</h3>
+    <pre>{"Excellent":{"BatStateU":5,"Others":2},"Very Satisfactory":{"BatStateU":123,"Others":777},"Satisfactory":{"BatStateU":7,"Others":277},"Fair":{"BatStateU":23,"Others":2},"Poor":{"BatStateU":7,"Others":7}}</pre>
+    
+    <h3>Timeliness Ratings:</h3>
+    <pre>{"Excellent":{"BatStateU":7,"Others":7},"Very Satisfactory":{"BatStateU":7,"Others":77},"Satisfactory":{"BatStateU":77,"Others":77},"Fair":{"BatStateU":7,"Others":8},"Poor":{"BatStateU":81,"Others":8}}</pre>
+    
+    <h2>Activity Ratings Table</h2>
+    <table>
+        <tr>
+            <th>Rating Category</th>
+            <th>BatStateU</th>
+            <th>Others</th>
+            <th>Total</th>
+        </tr>
+        <tr>
+            <td>Excellent</td>
+            <td>5</td>
+            <td>2</td>
+            <td>7</td>
+        </tr>        <tr>
+            <td>Very Satisfactory</td>
+            <td>123</td>
+            <td>777</td>
+            <td>900</td>
+        </tr>        <tr>
+            <td>Satisfactory</td>
+            <td>7</td>
+            <td>277</td>
+            <td>284</td>
+        </tr>        <tr>
+            <td>Fair</td>
+            <td>23</td>
+            <td>2</td>
+            <td>25</td>
+        </tr>        <tr>
+            <td>Poor</td>
+            <td>7</td>
+            <td>7</td>
+            <td>14</td>
+        </tr>    </table>
+    
+    <h2>Timeliness Ratings Table</h2>
+    <table>
+        <tr>
+            <th>Rating Category</th>
+            <th>BatStateU</th>
+            <th>Others</th>
+            <th>Total</th>
+        </tr>
+        <tr>
+            <td>Excellent</td>
+            <td>7</td>
+            <td>7</td>
+            <td>14</td>
+        </tr>        <tr>
+            <td>Very Satisfactory</td>
+            <td>7</td>
+            <td>77</td>
+            <td>84</td>
+        </tr>        <tr>
+            <td>Satisfactory</td>
+            <td>77</td>
+            <td>77</td>
+            <td>154</td>
+        </tr>        <tr>
+            <td>Fair</td>
+            <td>7</td>
+            <td>8</td>
+            <td>15</td>
+        </tr>        <tr>
+            <td>Poor</td>
+            <td>81</td>
+            <td>8</td>
+            <td>89</td>
+        </tr>    </table>
+    
+    <h2>JavaScript Function to Transform Ratings</h2>
+    <pre>
+function transformRatingsToProperFormat(ratingsData) {
+    console.log('Processing ratings data:', ratingsData);
+    
+    // If ratingsData is null or undefined, use defaults
+    if (!ratingsData) {
+        console.log('No ratings data provided, using defaults');
+        return getDefaultRatings();
+    }
+    
+    try {
+        // Check if ratings data is a string (JSON)
+        if (typeof ratingsData === 'string') {
+            try {
+                const parsed = JSON.parse(ratingsData);
+                if (parsed) {
+                    console.log('Successfully parsed JSON ratings data');
+                    ratingsData = parsed;
+                }
+            } catch (e) {
+                console.error('Error parsing ratings JSON:', e);
+                return getDefaultRatings();
+            }
+        }
+        
+        // Check if data already has the correct structure
+        if (ratingsData.Excellent && ratingsData.Excellent.BatStateU !== undefined) {
+            console.log('Ratings data already in correct format');
+            return ratingsData;
+        }
+        
+        // Convert to standardized format
+        const standardFormat = {
+            "Excellent": { "BatStateU": 0, "Others": 0 },
+            "Very Satisfactory": { "BatStateU": 0, "Others": 0 },
+            "Satisfactory": { "BatStateU": 0, "Others": 0 },
+            "Fair": { "BatStateU": 0, "Others": 0 },
+            "Poor": { "BatStateU": 0, "Others": 0 }
+        };
+        
+        // ...rest of the function...
+        
+        return standardFormat;
+    } catch (e) {
+        console.error('Error in transformRatingsToProperFormat:', e);
+        return getDefaultRatings();
+    }
+}
+    </pre>
+    
+    <p><a href="print_narrative.php?id=9">Go to print narrative page</a></p>
+    
+</body>
+</html>

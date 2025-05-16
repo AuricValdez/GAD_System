@@ -1977,13 +1977,21 @@ $_SESSION['campus'] = $userCampus;
             const totalGAABudget = parseFloat(data.total_gaa) || 0;
             const totalGADFund = parseFloat(data.total_gad_fund) || 0;
             const totalBudget = totalGAABudget + totalGADFund;
+            
+            // Check if we're displaying consolidated data
+            const isCentral = <?php echo $isCentral ? 'true' : 'false' ?>;
+            const selectedCampus = isCentral ? $('#campus').val() : "<?php echo $userCampus ?>";
+            const isAllCampuses = selectedCampus === 'All';
+            
+            // Add 'Consolidated' prefix for All Campuses view
+            const budgetPrefix = isAllCampuses ? 'Consolidated ' : '';
 
             const html = `
                 <div class="row">
                     <div class="col-md-4">
                         <div class="card border-primary h-100">
                             <div class="card-body text-center">
-                                <h6 class="text-primary mb-2">Total GAA Budget for ${year}</h6>
+                                <h6 class="text-primary mb-2">${budgetPrefix}Total GAA Budget for ${year}</h6>
                                 <h3 class="mb-0">₱${totalGAABudget.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h3>
                             </div>
                         </div>
@@ -1991,7 +1999,7 @@ $_SESSION['campus'] = $userCampus;
                     <div class="col-md-4">
                         <div class="card border-success h-100">
                             <div class="card-body text-center">
-                                <h6 class="text-success mb-2">Total GAD Fund for ${year}</h6>
+                                <h6 class="text-success mb-2">${budgetPrefix}Total GAD Fund for ${year}</h6>
                                 <h3 class="mb-0">₱${totalGADFund.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h3>
                             </div>
                         </div>
@@ -1999,7 +2007,7 @@ $_SESSION['campus'] = $userCampus;
                     <div class="col-md-4">
                         <div class="card border-dark h-100">
                             <div class="card-body text-center">
-                                <h6 class="text-dark mb-2">Total GAD Budget for ${year}</h6>
+                                <h6 class="text-dark mb-2">${budgetPrefix}Total GAD Budget for ${year}</h6>
                                 <h3 class="mb-0">₱${totalBudget.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h3>
                             </div>
                         </div>
@@ -2461,8 +2469,8 @@ $_SESSION['campus'] = $userCampus;
                     <div class="row">
                         <div class="col-12" style="line-height: 1.1;">
                             <p class="mb-0" style="font-size: 10px;"><strong>Campus:</strong> ${isCentral && $('#campus').val() === 'All' ? 'All Campuses' : data[0]?.campus || ''}</p>
-                            <p class="mb-0" style="font-size: 10px;"><strong>Total GAA:</strong> ₱${totalGAA.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                            <p class="mb-0" style="font-size: 10px;"><strong>Total GAD Fund (5%):</strong> ₱${totalGADFund.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p class="mb-0" style="font-size: 10px;"><strong>${isCentral && $('#campus').val() === 'All' ? 'Consolidated Total GAA:' : 'Total GAA:'}</strong> ₱${totalGAA.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p class="mb-0" style="font-size: 10px;"><strong>${isCentral && $('#campus').val() === 'All' ? 'Consolidated Total GAD Fund (5%):' : 'Total GAD Fund (5%):'}</strong> ₱${totalGADFund.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                     </div>
                 </div>

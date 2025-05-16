@@ -2645,6 +2645,10 @@ if($isCentral):
                                 padding: 2px !important;
                                 font-size: 7pt !important;
                             }
+
+                            #reportTable td *, #reportTable th *, #reportTable span, #reportTable strong {
+                                font-size: 7pt !important;
+                            }
                             
                             #reportTable thead {
                                 display: table-header-group !important;
@@ -2692,9 +2696,9 @@ if($isCentral):
                             <td colspan="${isAllCampuses ? '4' : '3'}" style="width: 20%; border: 1px solid #000;">
                                 <img src="../images/BatStateU-NEU-Logo.png" alt="BatStateU Logo" style="height: 40px; display: block; margin: 5px auto;">
                             </td>
-                            <td colspan="3" style="width: 30%; padding: 5px; border: 1px solid #000; font-size: 8pt;">Reference No.: BatStateU-FO-ESO-03</td>
-                            <td colspan="4" style="width: 30%; padding: 5px; border: 1px solid #000; font-size: 8pt;">Effectivity Date: January 03, 2024</td>
-                            <td colspan="1" style="width: 10%; padding: 5px; border: 1px solid #000; font-size: 8pt;">Revision No.: 02</td>
+                            <td colspan="3" style="width: 30%; padding: 5px; border: 1px solid #000; font-size: 7pt;">Reference No.: BatStateU-FO-ESO-03</td>
+                            <td colspan="4" style="width: 30%; padding: 5px; border: 1px solid #000; font-size: 7pt;">Effectivity Date: January 03, 2024</td>
+                            <td colspan="1" style="width: 10%; padding: 5px; border: 1px solid #000; font-size: 7pt;">Revision No.: 02</td>
                         </tr>
                         <tr class="no-repeat-header">
                             <td colspan="${isAllCampuses ? '12' : '11'}" style="text-align: center; padding: 8px; border: 1px solid #000;">
@@ -2702,15 +2706,15 @@ if($isCentral):
                             </td>
                         </tr>
                         <tr class="no-repeat-header">
-                            <td colspan="${isAllCampuses ? '12' : '11'}" style="text-align: center; padding: 5px; border: 1px solid #000; font-size: 8pt;">
+                            <td colspan="${isAllCampuses ? '12' : '11'}" style="text-align: center; padding: 5px; border: 1px solid #000; font-size: 7pt;">
                                 ${quarterText.split(' ')[0]} Quarter, FY ${year}
                             </td>
                         </tr>
                         <tr class="no-repeat-header">
-                            <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 5px; border: 1px solid #000; font-size: 8pt;"> &nbsp; Campus: ${isAllCampuses ? 'All Campuses' : selectedCampus}</td>
+                            <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 5px; border: 1px solid #000; font-size: 7pt;"> &nbsp; Campus: ${isAllCampuses ? 'All Campuses' : selectedCampus}</td>
                         </tr>
                         <!-- This is the column headers row that can repeat on each page -->
-                        <tr style="background-color: #f2f2f2; text-align: center; font-size: 6pt;">
+                        <tr style="background-color: #f2f2f2; text-align: center; font-size: 7pt;">
                             <th style="vertical-align: middle; border: 1px solid #000; padding: 2px;">Gender\nIssue/s*</th>
                             ${isAllCampuses ? '<th style="vertical-align: middle; border: 1px solid #000; padding: 2px;">Campus</th>' : ''}
                             <th style="vertical-align: middle; border: 1px solid #000; padding: 2px;">Title of\nImplemented\nPPAs</th>
@@ -2757,17 +2761,17 @@ if($isCentral):
                     reports.forEach((report, index) => {
                         // Format the title column with Program, Project, Activity vertically
                         const titleColumn = `
-                            <strong style="font-size: 6pt;">Program:</strong> ${report.program || 'N/A'}<br>
-                            <strong style="font-size: 6pt;">Project:</strong> ${report.project || 'N/A'}<br>
-                            <strong style="font-size: 6pt;">Activity:</strong> ${report.activity || 'N/A'}
+                            <span style="font-size: 7pt;"><strong>Program:</strong> ${report.program || 'N/A'}</span><br>
+                            <span style="font-size: 7pt;"><strong>Project:</strong> ${report.project || 'N/A'}</span><br>
+                            <span style="font-size: 7pt;"><strong>Activity:</strong> ${report.activity || 'N/A'}</span>
                         `;
                         
                         // Format the date and duration column
                         const dateDurationColumn = `
-                            <strong style="font-size: 6pt;">Date:</strong> ${report.start_date === report.end_date 
+                            <span style="font-size: 7pt;"><strong>Date:</strong> ${report.start_date === report.end_date 
                                 ? report.start_date 
-                                : `${report.start_date} to ${report.end_date}`}<br>
-                            <strong style="font-size: 6pt;">Duration:</strong> ${report.duration} hrs.
+                                : `${report.start_date} to ${report.end_date}`}</span><br>
+                            <span style="font-size: 7pt;"><strong>Duration:</strong> ${report.duration} hrs.</span>
                         `;
                         
                         // Format participants
@@ -2784,11 +2788,11 @@ if($isCentral):
                         const totalParticipants = totalMale + totalFemale;
                         
                         const participantsBreakdown = `
-                            <strong style="font-size: 6pt;">Internal:</strong><br>
-                            Male-${internalMale} Female-${internalFemale}<br>
-                            <strong style="font-size: 6pt;">External:</strong><br>
-                            Male-${externalMale} Female-${externalFemale}<br>
-                            <strong style="font-size: 6pt;">Total:</strong> ${totalParticipants}
+                            <span style="font-size: 7pt;"><strong>Internal:</strong></span><br>
+                            <span style="font-size: 7pt;">Male-${internalMale} Female-${internalFemale}</span><br>
+                            <span style="font-size: 7pt;"><strong>External:</strong></span><br>
+                            <span style="font-size: 7pt;">Male-${externalMale} Female-${externalFemale}</span><br>
+                            <span style="font-size: 7pt;"><strong>Total:</strong> ${totalParticipants}</span>
                         `;
                         
                         // Type of beneficiaries
@@ -2817,13 +2821,13 @@ if($isCentral):
                                 }
                                 
                                 personnelHtml += `
-                                    <strong style="font-size: 6pt;">${role}:</strong>
-                                    <span style="display: block; margin-left: 3px; margin-bottom: 2px; font-size: 6pt;">
+                                    <span style="font-size: 7pt;"><strong>${role}:</strong></span>
+                                    <span style="display: block; margin-left: 3px; margin-bottom: 2px; font-size: 7pt;">
                                         ${rank ? rank + ' ' : ''}${name}
                                     </span>
                                 `;
                             } else {
-                                personnelHtml += `<span style="display: block; margin-bottom: 2px; font-size: 6pt;">${p}</span>`;
+                                personnelHtml += `<span style="display: block; margin-bottom: 2px; font-size: 7pt;">${p}</span>`;
                             }
                         });
                         
@@ -2847,7 +2851,7 @@ if($isCentral):
                         
                         // Only add the gender issue cell on the first row of each group
                         if (index === 0) {
-                            html += `<td style="border: 1px solid #000; padding: 1px; text-align: center; vertical-align: middle; font-size: 6pt;" rowspan="${rowspan}">${issue}</td>`;
+                            html += `<td style="border: 1px solid #000; padding: 1px; text-align: center; vertical-align: middle; font-size: 7pt;" rowspan="${rowspan}">${issue}</td>`;
                         }
                         
                         // Add all other cells with modified border-top for rows after the first in a group
@@ -2855,20 +2859,20 @@ if($isCentral):
                         
                         // Add campus column if showing all campuses
                         if (isAllCampuses) {
-                            html += `<td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt; font-weight: bold;">${report.campus || 'N/A'}</td>`;
+                            html += `<td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt; font-weight: bold;">${report.campus || 'N/A'}</td>`;
                         }
                         
                         html += `
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${titleColumn}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${dateDurationColumn}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${participantsBreakdown}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${beneficiaryTypesText}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${report.location}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${personnelHtml}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; text-align: right; font-size: 6pt;">₱${parseFloat(report.budget).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; text-align: right; font-size: 6pt;">₱${parseFloat(report.actual_cost).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; text-align: right; font-size: 6pt;">₱${parseFloat(report.ps_attribution || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 6pt;">${report.source_of_budget || 'N/A'}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${titleColumn}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${dateDurationColumn}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${participantsBreakdown}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${beneficiaryTypesText}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${report.location}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${personnelHtml}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; text-align: right; font-size: 7pt;">₱${parseFloat(report.budget).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; text-align: right; font-size: 7pt;">₱${parseFloat(report.actual_cost).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; text-align: right; font-size: 7pt;">₱${parseFloat(report.ps_attribution || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td style="border: 1px solid #000; ${borderStyle} padding: 1px; font-size: 7pt;">${report.source_of_budget || 'N/A'}</td>
                         `;
                         
                         // Close the row
@@ -2880,16 +2884,16 @@ if($isCentral):
             // Add subtotal and total rows
             html += `
                 <tr>
-                    <td colspan="${isAllCampuses ? '11' : '10'}" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 6pt;"><strong>Subtotal (Other Sources)</strong></td>
-                    <td colspan="1" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 6pt;">₱ ${totalOtherSources.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td colspan="${isAllCampuses ? '11' : '10'}" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 7pt;"><strong style="font-size: 7pt;">Subtotal (Other Sources)</strong></td>
+                    <td colspan="1" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 7pt;">₱ ${totalOtherSources.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 <tr>
-                    <td colspan="${isAllCampuses ? '11' : '10'}" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 6pt;"><strong>Subtotal (MDS-GAD)</strong></td>
-                    <td colspan="1" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 6pt;">₱ ${totalMdsGad.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td colspan="${isAllCampuses ? '11' : '10'}" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 7pt;"><strong style="font-size: 7pt;">Subtotal (MDS-GAD)</strong></td>
+                    <td colspan="1" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 7pt;">₱ ${totalMdsGad.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
                 <tr>
-                    <td colspan="${isAllCampuses ? '11' : '10'}" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 6pt;"><strong>TOTAL</strong></td>
-                    <td colspan="1" style="text-align: right; padding: 1px; font-weight: bold; color: #007bff; border: 1px solid #000; font-size: 6pt;">₱ ${overallTotal.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td colspan="${isAllCampuses ? '11' : '10'}" style="text-align: right; padding: 1px; border: 1px solid #000; font-size: 7pt;"><strong style="font-size: 7pt;">TOTAL</strong></td>
+                    <td colspan="1" style="text-align: right; padding: 1px; font-weight: bold; color: #007bff; border: 1px solid #000; font-size: 7pt;">₱ ${overallTotal.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 </tr>
             `;
             
@@ -2899,42 +2903,42 @@ if($isCentral):
                     <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 0; border: none;">
                         <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                             <tr>
-                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 6pt;">
-                                    Prepared by:<br>
-                                    <strong>${preparedByName}</strong><br>
-                                    ${preparedByPosition}<br>
-                                    Date Signed: _______________
+                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 7pt;">
+                                    <span style="font-size: 7pt;">Prepared by:</span><br>
+                                    <strong style="font-size: 7pt;">${preparedByName}</strong><br>
+                                    <span style="font-size: 7pt;">${preparedByPosition}</span><br>
+                                    <span style="font-size: 7pt;">Date Signed: _______________</span>
                                 </td>
-                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 6pt;">
-                                    Checked by:<br>
-                                    <strong>${checkedByName}</strong><br>
-                                    ${checkedByPosition}<br>
-                                    Date Signed: _______________
+                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 7pt;">
+                                    <span style="font-size: 7pt;">Checked by:</span><br>
+                                    <strong style="font-size: 7pt;">${checkedByName}</strong><br>
+                                    <span style="font-size: 7pt;">${checkedByPosition}</span><br>
+                                    <span style="font-size: 7pt;">Date Signed: _______________</span>
                                 </td>
-                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 6pt;">
+                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 7pt;">
                                    <br>
-                                    <strong>${verifiedByName}</strong><br>
-                                    ${verifiedByPosition}<br>
-                                    Date Signed: _______________
+                                    <strong style="font-size: 7pt;">${verifiedByName}</strong><br>
+                                    <span style="font-size: 7pt;">${verifiedByPosition}</span><br>
+                                    <span style="font-size: 7pt;">Date Signed: _______________</span>
                                 </td>
-                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 6pt;">
-                                    Verified by:<br>
-                                    <strong>${asstDirectorName}</strong><br>
-                                    ${asstDirectorPosition}<br>
-                                    Date Signed: _______________
+                                <td style="width: 25%; padding: 1px; text-align: center; border: 1px solid #000; font-size: 7pt;">
+                                    <span style="font-size: 7pt;">Verified by:</span><br>
+                                    <strong style="font-size: 7pt;">${asstDirectorName}</strong><br>
+                                    <span style="font-size: 7pt;">${asstDirectorPosition}</span><br>
+                                    <span style="font-size: 7pt;">Date Signed: _______________</span>
                                 </td>
                             </tr>
                         </table>
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 1px; font-style: italic; border: 1px solid #000; font-size: 5pt;">
+                    <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 1px; font-style: italic; border: 1px solid #000; font-size: 7pt;">
                         Required Attachments: Signed and approved: (1) PPA Proposal or Request Letter
                         (2) Narrative or Evaluation Report of the PPAs implemented
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 1px; font-style: italic; border: 1px solid #000; font-size: 5pt;">
+                    <td colspan="${isAllCampuses ? '12' : '11'}" style="padding: 1px; font-style: italic; border: 1px solid #000; font-size: 7pt;">
                         *based on the gender issue in the campus annual GPB
                     </td>
                 </tr>
@@ -3010,7 +3014,7 @@ if($isCentral):
                             width: 100% !important;
                             max-width: none !important;
                             border-collapse: collapse !important;
-                            font-size: 8pt !important;
+                            font-size: 7pt !important;
                             margin: 0 !important;
                             padding: 0 !important;
                             page-break-inside: auto !important;
@@ -3027,6 +3031,15 @@ if($isCentral):
                             padding: 4px !important;
                             vertical-align: top !important;
                             word-wrap: break-word !important;
+                            font-size: 7pt !important;
+                        }
+                        
+                        /* Ensure all text within cells has consistent font size */
+                        #reportTable td *, #reportTable th *, 
+                        #reportTable span, #reportTable strong,
+                        #reportTable p, #reportTable div {
+                            font-size: 7pt !important;
+                        }
                             overflow-wrap: break-word !important;
                             white-space: normal !important;
                             line-height: 1.2 !important;
