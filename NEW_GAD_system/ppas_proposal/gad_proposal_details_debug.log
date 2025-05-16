@@ -1,8 +1,0 @@
-2025-04-08 02:50:44: Request received for GAD proposal details
-2025-04-08 02:50:44: Fetching proposal ID: 37 for user campus: Lipa, isCentral: false
-2025-04-08 02:50:44: Checking table structure
-2025-04-08 02:50:44: Using ID field: proposal_id for query
-2025-04-08 02:50:44: Proposal found, processing data
-2025-04-08 02:50:44: Fetching related activity details for ppas_form_id: 18
-2025-04-08 02:50:44: Activity data added to proposal
-2025-04-08 02:50:44: Sending proposal data
