@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 30, 2025 at 03:26 AM
+-- Generation Time: May 16, 2025 at 04:44 AM
 -- Server version: 8.3.0
 -- PHP Version: 8.2.18
 
@@ -76,6 +76,26 @@ INSERT INTO `academic_ranks` (`id`, `academic_rank`, `salary_grade`, `monthly_sa
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `central_notifications`
+--
+
+DROP TABLE IF EXISTS `central_notifications`;
+CREATE TABLE IF NOT EXISTS `central_notifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `gbp_id` int NOT NULL,
+  `campus` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `campus` (`campus`(250)),
+  KEY `gbp_id` (`gbp_id`),
+  KEY `is_read` (`is_read`)
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `credentials`
 --
 
@@ -108,36 +128,21 @@ INSERT INTO `credentials` (`id`, `username`, `password`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `gad_proposals`
+-- Table structure for table `gbp_notifications`
 --
 
-DROP TABLE IF EXISTS `gad_proposals`;
-CREATE TABLE IF NOT EXISTS `gad_proposals` (
-  `proposal_id` int NOT NULL AUTO_INCREMENT,
-  `ppas_form_id` int NOT NULL,
+DROP TABLE IF EXISTS `gbp_notifications`;
+CREATE TABLE IF NOT EXISTS `gbp_notifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `gbp_id` int NOT NULL,
   `campus` varchar(100) NOT NULL,
-  `mode_of_delivery` varchar(50) NOT NULL,
-  `partner_office` varchar(255) NOT NULL,
-  `rationale` text NOT NULL,
-  `general_objectives` text NOT NULL,
-  `description` text NOT NULL,
-  `budget_breakdown` text NOT NULL,
-  `sustainability_plan` text NOT NULL,
-  `project_leader_responsibilities` json NOT NULL,
-  `assistant_leader_responsibilities` json NOT NULL,
-  `staff_responsibilities` json NOT NULL,
-  `specific_objectives` json NOT NULL,
-  `strategies` json NOT NULL,
-  `methods` json NOT NULL,
-  `materials` json NOT NULL,
-  `workplan` json NOT NULL,
-  `monitoring_items` json NOT NULL,
-  `specific_plans` json NOT NULL,
+  `message` text NOT NULL,
+  `status` varchar(20) NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`proposal_id`),
-  KEY `idx_ppas_form_id` (`ppas_form_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  KEY `gbp_id` (`gbp_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -167,36 +172,44 @@ CREATE TABLE IF NOT EXISTS `gpb_entries` (
   `year` int DEFAULT NULL,
   `status` varchar(100) NOT NULL,
   `feedback` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `reply` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `narrative`
+-- Table structure for table `narrative_entries`
 --
 
-DROP TABLE IF EXISTS `narrative`;
-CREATE TABLE IF NOT EXISTS `narrative` (
+DROP TABLE IF EXISTS `narrative_entries`;
+CREATE TABLE IF NOT EXISTS `narrative_entries` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `ppas_form_id` int NOT NULL,
-  `campus` varchar(100) NOT NULL,
-  `implementing_office` text NOT NULL,
-  `partner_agency` varchar(255) DEFAULT NULL,
-  `extension_service_agenda` text NOT NULL,
-  `type_beneficiaries` varchar(255) NOT NULL,
-  `beneficiary_distribution` json NOT NULL,
-  `leader_tasks` json NOT NULL,
-  `assistant_tasks` json NOT NULL,
-  `staff_tasks` json NOT NULL,
-  `activity_narrative` text NOT NULL,
-  `activity_ratings` json NOT NULL,
-  `timeliness_ratings` json NOT NULL,
-  `activity_images` json NOT NULL,
+  `campus` varchar(255) NOT NULL,
+  `year` varchar(10) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `background` text,
+  `participants` text,
+  `topics` text,
+  `results` text,
+  `lessons` text,
+  `what_worked` text,
+  `issues` text,
+  `recommendations` text,
+  `ps_attribution` varchar(255) DEFAULT NULL,
+  `evaluation` text,
+  `activity_ratings` text,
+  `timeliness_ratings` text,
+  `photo_path` varchar(255) DEFAULT NULL,
+  `photo_paths` text,
+  `photo_caption` text,
+  `gender_issue` text,
+  `created_by` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `ppas_form_id` (`ppas_form_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `updated_by` varchar(100) DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -216,7 +229,7 @@ CREATE TABLE IF NOT EXISTS `personnel` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_academic_rank` (`academic_rank`)
-) ENGINE=MyISAM AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=159 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -227,56 +240,75 @@ CREATE TABLE IF NOT EXISTS `personnel` (
 DROP TABLE IF EXISTS `ppas_forms`;
 CREATE TABLE IF NOT EXISTS `ppas_forms` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `campus` varchar(50) NOT NULL,
-  `year` int NOT NULL,
-  `quarter` varchar(10) NOT NULL,
+  `campus` varchar(255) NOT NULL,
+  `year` varchar(10) NOT NULL,
+  `quarter` varchar(50) NOT NULL,
   `gender_issue_id` int NOT NULL,
-  `project` varchar(255) NOT NULL,
   `program` varchar(255) NOT NULL,
-  `activity` varchar(255) NOT NULL,
+  `project` varchar(255) NOT NULL,
+  `activity` varchar(500) NOT NULL,
   `location` varchar(255) NOT NULL,
-  `start_date` date NOT NULL,
-  `end_date` date NOT NULL,
-  `start_time` time NOT NULL,
-  `end_time` time NOT NULL,
-  `total_duration_hours` decimal(10,2) NOT NULL,
-  `lunch_break` enum('with','without') NOT NULL,
-  `students_male` int NOT NULL DEFAULT '0',
-  `students_female` int NOT NULL DEFAULT '0',
-  `faculty_male` int NOT NULL DEFAULT '0',
-  `faculty_female` int NOT NULL DEFAULT '0',
-  `total_internal_male` int NOT NULL DEFAULT '0',
-  `total_internal_female` int NOT NULL DEFAULT '0',
+  `start_date` varchar(20) NOT NULL,
+  `end_date` varchar(20) NOT NULL,
+  `start_time` varchar(20) NOT NULL,
+  `end_time` varchar(20) NOT NULL,
+  `lunch_break` tinyint(1) DEFAULT '0',
+  `total_duration` varchar(100) NOT NULL,
+  `mode_of_delivery` varchar(255) NOT NULL,
+  `agenda` text NOT NULL,
+  `sdg` json NOT NULL,
+  `office_college_organization` json NOT NULL,
+  `program_list` json NOT NULL,
+  `project_leader` json NOT NULL,
+  `project_leader_responsibilities` json NOT NULL,
+  `assistant_project_leader` json NOT NULL,
+  `assistant_project_leader_responsibilities` json NOT NULL,
+  `project_staff_coordinator` json NOT NULL,
+  `project_staff_coordinator_responsibilities` json NOT NULL,
+  `internal_type` varchar(255) NOT NULL,
+  `internal_male` int NOT NULL,
+  `internal_female` int NOT NULL,
+  `internal_total` int NOT NULL,
   `external_type` varchar(255) NOT NULL,
-  `external_male` int NOT NULL DEFAULT '0',
-  `external_female` int NOT NULL DEFAULT '0',
-  `total_male` int NOT NULL DEFAULT '0',
-  `total_female` int NOT NULL DEFAULT '0',
-  `total_beneficiaries` int NOT NULL DEFAULT '0',
-  `approved_budget` decimal(15,2) NOT NULL DEFAULT '0.00',
-  `source_of_budget` varchar(100) NOT NULL,
-  `ps_attribution` decimal(15,2) NOT NULL DEFAULT '0.00',
-  `sdgs` text,
-  `created_at` datetime NOT NULL,
+  `external_male` int NOT NULL,
+  `external_female` int NOT NULL,
+  `external_total` int NOT NULL,
+  `grand_total_male` int NOT NULL,
+  `grand_total_female` int NOT NULL,
+  `grand_total` int NOT NULL,
+  `rationale` text NOT NULL,
+  `general_objectives` text NOT NULL,
+  `specific_objectives` json NOT NULL,
+  `description` text NOT NULL,
+  `strategy` json NOT NULL,
+  `expected_output` json NOT NULL,
+  `functional_requirements` text NOT NULL,
+  `sustainability_plan` text NOT NULL,
+  `specific_plan` json NOT NULL,
+  `workplan_activity` json NOT NULL,
+  `workplan_date` json NOT NULL,
+  `financial_plan` tinyint(1) DEFAULT '0',
+  `financial_plan_items` json NOT NULL,
+  `financial_plan_quantity` json NOT NULL,
+  `financial_plan_unit` json NOT NULL,
+  `financial_plan_unit_cost` json NOT NULL,
+  `financial_total_cost` varchar(50) NOT NULL,
+  `source_of_fund` json NOT NULL,
+  `financial_note` text NOT NULL,
+  `approved_budget` double NOT NULL,
+  `ps_attribution` varchar(255) NOT NULL,
+  `monitoring_objectives` json NOT NULL,
+  `monitoring_baseline_data` json NOT NULL,
+  `monitoring_data_source` json NOT NULL,
+  `monitoring_frequency_data_collection` json NOT NULL,
+  `monitoring_performance_indicators` json NOT NULL,
+  `monitoring_performance_target` json NOT NULL,
+  `monitoring_collection_method` json NOT NULL,
+  `monitoring_office_persons_involved` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `ppas_personnel`
---
-
-DROP TABLE IF EXISTS `ppas_personnel`;
-CREATE TABLE IF NOT EXISTS `ppas_personnel` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `ppas_form_id` int NOT NULL,
-  `personnel_id` int NOT NULL,
-  `role` varchar(50) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -305,7 +337,7 @@ CREATE TABLE IF NOT EXISTS `signatories` (
   `name7` varchar(255) DEFAULT NULL,
   `dean` varchar(255) DEFAULT 'Dean',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -317,14 +349,14 @@ DROP TABLE IF EXISTS `target`;
 CREATE TABLE IF NOT EXISTS `target` (
   `id` int NOT NULL AUTO_INCREMENT,
   `year` year NOT NULL,
-  `campus` enum('Lipa','Pablo Borbon','Alangilan','Nasugbu','Malvar''Rosario','Balayan','Lemery','San Juan','Lobo') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `campus` enum('Lipa','Pablo Borbon','Alangilan','Nasugbu','Malvar','Rosario','Balayan','Lemery','San Juan','Lobo','Central') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `total_gaa` decimal(15,2) NOT NULL,
   `total_gad_fund` decimal(15,2) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_year_campus` (`year`,`campus`),
   KEY `idx_year` (`year`),
   KEY `idx_campus` (`campus`)
-) ENGINE=InnoDB AUTO_INCREMENT=167 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=186 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
