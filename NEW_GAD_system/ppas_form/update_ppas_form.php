@@ -34,13 +34,32 @@ try {
     }
 
     // 1. Gender Issue Section
-    $campus = $userCampus;
-    $year = isset($_POST['year']) ? htmlspecialchars(trim($_POST['year']), ENT_QUOTES, 'UTF-8') : '';
-    $quarter = isset($_POST['quarter']) ? htmlspecialchars(trim($_POST['quarter']), ENT_QUOTES, 'UTF-8') : '';
-    $gender_issue_id = filter_input(INPUT_POST, 'gender_issue_id', FILTER_SANITIZE_NUMBER_INT);
-    $program = isset($_POST['program']) ? htmlspecialchars(trim($_POST['program']), ENT_QUOTES, 'UTF-8') : '';
-    $project = isset($_POST['project']) ? htmlspecialchars(trim($_POST['project']), ENT_QUOTES, 'UTF-8') : '';
-    $activity = isset($_POST['activity']) ? htmlspecialchars(trim($_POST['activity']), ENT_QUOTES, 'UTF-8') : '';
+$campus = $userCampus;
+$year = isset($_POST['year']) ? htmlspecialchars(trim($_POST['year']), ENT_QUOTES, 'UTF-8') : '';
+$quarter = isset($_POST['quarter']) ? htmlspecialchars(trim($_POST['quarter']), ENT_QUOTES, 'UTF-8') : '';
+$gender_issue_id = filter_input(INPUT_POST, 'gender_issue_id', FILTER_SANITIZE_NUMBER_INT);
+$program = isset($_POST['program']) ? htmlspecialchars(trim($_POST['program']), ENT_QUOTES, 'UTF-8') : '';
+$project = isset($_POST['project']) ? htmlspecialchars(trim($_POST['project']), ENT_QUOTES, 'UTF-8') : '';
+// Check the activity field
+$activity = '';
+if (isset($_POST['activity']) && !empty($_POST['activity'])) {
+    $activity = htmlspecialchars(trim($_POST['activity']), ENT_QUOTES, 'UTF-8');
+    error_log("Using 'activity' field: " . $activity);
+} else if (isset($_POST['form_activity']) && !empty($_POST['form_activity'])) {
+    $activity = htmlspecialchars(trim($_POST['form_activity']), ENT_QUOTES, 'UTF-8');
+    error_log("Using 'form_activity' field: " . $activity);
+} else {
+    error_log("Activity field not found in POST data. POST contents: " . print_r($_POST, true));
+}
+
+// Debug activity value
+error_log("Update PPAS Form - Activity value submitted: " . $activity);
+// Ensure we're using the correct activity value, not a fallback value
+if (empty($activity)) {
+    throw new Exception('Activity value cannot be empty');
+}
+
+// IMPORTANT: Don't overwrite activity with hardcoded value
 
     // 2. Basic Info Section
     $location = isset($_POST['location']) ? htmlspecialchars(trim($_POST['location']), ENT_QUOTES, 'UTF-8') : '';
@@ -124,16 +143,16 @@ try {
         $uniqueActivities = [];
         $seenActivities = [];
         
-        foreach ($workplanActivityData as $index => $activity) {
+        foreach ($workplanActivityData as $index => $workplanItem) {
             // Skip any empty activities
-            if (empty(trim($activity))) continue;
+            if (empty(trim($workplanItem))) continue;
             
             // Only keep the first occurrence of each activity
-            if (!in_array($activity, $seenActivities)) {
-                $uniqueActivities[] = $activity;
-                $seenActivities[] = $activity;
+            if (!in_array($workplanItem, $seenActivities)) {
+                $uniqueActivities[] = $workplanItem;
+                $seenActivities[] = $workplanItem;
             } else {
-                error_log("Removing duplicate activity: " . $activity);
+                error_log("Removing duplicate activity: " . $workplanItem);
             }
         }
         
