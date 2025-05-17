@@ -1,0 +1,305 @@
+[15-May-2025 04:18:05 UTC] get_ppas.php started - 2025-05-15 04:18:05
+[15-May-2025 04:18:05 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[15-May-2025 04:18:05 UTC] get_ppas.php started - 2025-05-15 04:18:05
+[15-May-2025 04:18:05 UTC] GET parameters: {"quarter":"2","campus":"Lipa"}
+[15-May-2025 04:18:05 UTC] get_ppas.php started - 2025-05-15 04:18:05
+[15-May-2025 04:18:05 UTC] GET parameters: {"quarter":"3","campus":"Lipa"}
+[15-May-2025 04:18:05 UTC] Database connection successful
+[15-May-2025 04:18:05 UTC] Received quarter: 2
+[15-May-2025 04:18:05 UTC] Received campus: Lipa
+[15-May-2025 04:18:05 UTC] Formatted quarter: Q2
+[15-May-2025 04:18:05 UTC] Has campus column: Yes
+[15-May-2025 04:18:05 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:05 UTC] Bound parameters: Quarter = Q2, Campus = Lipa
+[15-May-2025 04:18:05 UTC] Query executed successfully
+[15-May-2025 04:18:05 UTC] Fetching results
+[15-May-2025 04:18:05 UTC] Found 0 records
+[15-May-2025 04:18:05 UTC] Database connection successful
+[15-May-2025 04:18:05 UTC] Received quarter: 3
+[15-May-2025 04:18:05 UTC] Received campus: Lipa
+[15-May-2025 04:18:05 UTC] Formatted quarter: Q3
+[15-May-2025 04:18:05 UTC] Database connection successful
+[15-May-2025 04:18:05 UTC] Received quarter: 1
+[15-May-2025 04:18:05 UTC] Received campus: Lipa
+[15-May-2025 04:18:05 UTC] Formatted quarter: Q1
+[15-May-2025 04:18:05 UTC] Has campus column: Yes
+[15-May-2025 04:18:05 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:05 UTC] Bound parameters: Quarter = Q3, Campus = Lipa
+[15-May-2025 04:18:05 UTC] Has campus column: Yes
+[15-May-2025 04:18:05 UTC] Query executed successfully
+[15-May-2025 04:18:05 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:05 UTC] Fetching results
+[15-May-2025 04:18:05 UTC] Found 0 records
+[15-May-2025 04:18:05 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[15-May-2025 04:18:05 UTC] get_ppas.php started - 2025-05-15 04:18:05
+[15-May-2025 04:18:05 UTC] Query executed successfully
+[15-May-2025 04:18:05 UTC] GET parameters: {"quarter":"4","campus":"Lipa"}
+[15-May-2025 04:18:05 UTC] Fetching results
+[15-May-2025 04:18:05 UTC] Found 2 records
+[15-May-2025 04:18:05 UTC] Database connection successful
+[15-May-2025 04:18:05 UTC] Received quarter: 4
+[15-May-2025 04:18:05 UTC] Received campus: Lipa
+[15-May-2025 04:18:05 UTC] Formatted quarter: Q4
+[15-May-2025 04:18:05 UTC] Has campus column: Yes
+[15-May-2025 04:18:05 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:05 UTC] Bound parameters: Quarter = Q4, Campus = Lipa
+[15-May-2025 04:18:05 UTC] Query executed successfully
+[15-May-2025 04:18:05 UTC] Fetching results
+[15-May-2025 04:18:05 UTC] Found 0 records
+[15-May-2025 04:18:06 UTC] get_ppas.php started - 2025-05-15 04:18:06
+[15-May-2025 04:18:06 UTC] GET parameters: {"quarter":"2","campus":"Lipa"}
+[15-May-2025 04:18:06 UTC] Database connection successful
+[15-May-2025 04:18:06 UTC] Received quarter: 2
+[15-May-2025 04:18:06 UTC] Received campus: Lipa
+[15-May-2025 04:18:06 UTC] Formatted quarter: Q2
+[15-May-2025 04:18:06 UTC] Has campus column: Yes
+[15-May-2025 04:18:06 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:06 UTC] Bound parameters: Quarter = Q2, Campus = Lipa
+[15-May-2025 04:18:06 UTC] Query executed successfully
+[15-May-2025 04:18:06 UTC] Fetching results
+[15-May-2025 04:18:06 UTC] Found 0 records
+[15-May-2025 04:18:07 UTC] get_ppas.php started - 2025-05-15 04:18:07
+[15-May-2025 04:18:07 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[15-May-2025 04:18:07 UTC] Database connection successful
+[15-May-2025 04:18:07 UTC] Received quarter: 1
+[15-May-2025 04:18:07 UTC] Received campus: Lipa
+[15-May-2025 04:18:07 UTC] Formatted quarter: Q1
+[15-May-2025 04:18:07 UTC] Has campus column: Yes
+[15-May-2025 04:18:07 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:07 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[15-May-2025 04:18:07 UTC] Query executed successfully
+[15-May-2025 04:18:07 UTC] Fetching results
+[15-May-2025 04:18:07 UTC] Found 2 records
+[15-May-2025 04:18:08 UTC] Getting details for PPA ID: 29
+[15-May-2025 04:18:08 UTC] Successfully fetched PPA details
+[15-May-2025 04:18:08 UTC] Getting academic ranks for PPA ID: 29
+[15-May-2025 04:18:08 UTC] Total duration for PPA ID 29: 12 hours
+[15-May-2025 04:18:08 UTC] ERROR in get_academic_ranks_simple.php: Table 'gad_db.ppas_personnel' doesn't exist
+[15-May-2025 04:18:19 UTC] get_ppas.php started - 2025-05-15 04:18:19
+[15-May-2025 04:18:19 UTC] GET parameters: {"quarter":"2","campus":"Lipa"}
+[15-May-2025 04:18:19 UTC] Database connection successful
+[15-May-2025 04:18:19 UTC] Received quarter: 2
+[15-May-2025 04:18:19 UTC] Received campus: Lipa
+[15-May-2025 04:18:19 UTC] Formatted quarter: Q2
+[15-May-2025 04:18:19 UTC] Has campus column: Yes
+[15-May-2025 04:18:19 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:19 UTC] Bound parameters: Quarter = Q2, Campus = Lipa
+[15-May-2025 04:18:19 UTC] Query executed successfully
+[15-May-2025 04:18:19 UTC] Fetching results
+[15-May-2025 04:18:19 UTC] Found 0 records
+[15-May-2025 04:18:19 UTC] get_ppas.php started - 2025-05-15 04:18:19
+[15-May-2025 04:18:19 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[15-May-2025 04:18:19 UTC] Database connection successful
+[15-May-2025 04:18:19 UTC] Received quarter: 1
+[15-May-2025 04:18:19 UTC] Received campus: Lipa
+[15-May-2025 04:18:19 UTC] Formatted quarter: Q1
+[15-May-2025 04:18:19 UTC] Has campus column: Yes
+[15-May-2025 04:18:19 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[15-May-2025 04:18:19 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[15-May-2025 04:18:19 UTC] Query executed successfully
+[15-May-2025 04:18:19 UTC] Fetching results
+[15-May-2025 04:18:19 UTC] Found 2 records
+[16-May-2025 03:10:32 UTC] get_ppas.php started - 2025-05-16 03:10:32
+[16-May-2025 03:10:32 UTC] GET parameters: {"quarter":"1","campus":"Alangilan"}
+[16-May-2025 03:10:32 UTC] Database connection successful
+[16-May-2025 03:10:32 UTC] Received quarter: 1
+[16-May-2025 03:10:32 UTC] Received campus: Alangilan
+[16-May-2025 03:10:32 UTC] Formatted quarter: Q1
+[16-May-2025 03:10:32 UTC] Has campus column: Yes
+[16-May-2025 03:10:32 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 03:10:32 UTC] Bound parameters: Quarter = Q1, Campus = Alangilan
+[16-May-2025 03:10:32 UTC] Query executed successfully
+[16-May-2025 03:10:32 UTC] Fetching results
+[16-May-2025 03:10:32 UTC] Found 0 records
+[16-May-2025 03:10:32 UTC] get_ppas.php started - 2025-05-16 03:10:32
+[16-May-2025 03:10:32 UTC] GET parameters: {"quarter":"1","campus":"Alangilan"}
+[16-May-2025 03:10:32 UTC] Database connection successful
+[16-May-2025 03:10:32 UTC] Received quarter: 1
+[16-May-2025 03:10:32 UTC] Received campus: Alangilan
+[16-May-2025 03:10:32 UTC] Formatted quarter: Q1
+[16-May-2025 03:10:32 UTC] Has campus column: Yes
+[16-May-2025 03:10:32 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 03:10:32 UTC] Bound parameters: Quarter = Q1, Campus = Alangilan
+[16-May-2025 03:10:32 UTC] Query executed successfully
+[16-May-2025 03:10:32 UTC] Fetching results
+[16-May-2025 03:10:32 UTC] Found 0 records
+[16-May-2025 04:08:44 UTC] get_ppas.php started - 2025-05-16 04:08:44
+[16-May-2025 04:08:44 UTC] GET parameters: {"quarter":"1","campus":"Central"}
+[16-May-2025 04:08:44 UTC] Database connection successful
+[16-May-2025 04:08:44 UTC] Received quarter: 1
+[16-May-2025 04:08:44 UTC] Received campus: Central
+[16-May-2025 04:08:44 UTC] Formatted quarter: Q1
+[16-May-2025 04:08:44 UTC] Has campus column: Yes
+[16-May-2025 04:08:44 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:08:44 UTC] Bound parameters: Quarter = Q1, Campus = Central
+[16-May-2025 04:08:44 UTC] Query executed successfully
+[16-May-2025 04:08:44 UTC] Fetching results
+[16-May-2025 04:08:44 UTC] Found 1 records
+[16-May-2025 04:08:44 UTC] get_ppas.php started - 2025-05-16 04:08:44
+[16-May-2025 04:08:44 UTC] GET parameters: {"quarter":"1","campus":"Central"}
+[16-May-2025 04:08:44 UTC] Database connection successful
+[16-May-2025 04:08:44 UTC] Received quarter: 1
+[16-May-2025 04:08:44 UTC] Received campus: Central
+[16-May-2025 04:08:44 UTC] Formatted quarter: Q1
+[16-May-2025 04:08:44 UTC] Has campus column: Yes
+[16-May-2025 04:08:44 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:08:44 UTC] Bound parameters: Quarter = Q1, Campus = Central
+[16-May-2025 04:08:44 UTC] Query executed successfully
+[16-May-2025 04:08:44 UTC] Fetching results
+[16-May-2025 04:08:44 UTC] Found 1 records
+[16-May-2025 04:08:47 UTC] Getting details for PPA ID: 52
+[16-May-2025 04:08:47 UTC] Successfully fetched PPA details
+[16-May-2025 04:08:47 UTC] Getting academic ranks for PPA ID: 52
+[16-May-2025 04:08:47 UTC] Total duration for PPA ID 52: 9 hours
+[16-May-2025 04:08:47 UTC] ERROR in get_academic_ranks_simple.php: Table 'gad_db.ppas_personnel' doesn't exist
+[16-May-2025 04:18:22 UTC] get_ppas.php started - 2025-05-16 04:18:22
+[16-May-2025 04:18:22 UTC] GET parameters: {"quarter":"1","campus":"Central"}
+[16-May-2025 04:18:22 UTC] Database connection successful
+[16-May-2025 04:18:22 UTC] Received quarter: 1
+[16-May-2025 04:18:22 UTC] Received campus: Central
+[16-May-2025 04:18:22 UTC] Formatted quarter: Q1
+[16-May-2025 04:18:22 UTC] Has campus column: Yes
+[16-May-2025 04:18:22 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:18:22 UTC] Bound parameters: Quarter = Q1, Campus = Central
+[16-May-2025 04:18:22 UTC] Query executed successfully
+[16-May-2025 04:18:22 UTC] Fetching results
+[16-May-2025 04:18:22 UTC] Found 1 records
+[16-May-2025 04:18:22 UTC] get_ppas.php started - 2025-05-16 04:18:22
+[16-May-2025 04:18:22 UTC] GET parameters: {"quarter":"1","campus":"Central"}
+[16-May-2025 04:18:22 UTC] Database connection successful
+[16-May-2025 04:18:22 UTC] Received quarter: 1
+[16-May-2025 04:18:22 UTC] Received campus: Central
+[16-May-2025 04:18:22 UTC] Formatted quarter: Q1
+[16-May-2025 04:18:22 UTC] Has campus column: Yes
+[16-May-2025 04:18:22 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:18:22 UTC] Bound parameters: Quarter = Q1, Campus = Central
+[16-May-2025 04:18:22 UTC] Query executed successfully
+[16-May-2025 04:18:22 UTC] Fetching results
+[16-May-2025 04:18:22 UTC] Found 1 records
+[16-May-2025 04:18:23 UTC] Getting academic ranks for PPA ID: 52
+[16-May-2025 04:18:23 UTC] Total duration for PPA ID 52: 9 hours
+[16-May-2025 04:18:23 UTC] ERROR in get_academic_ranks_simple.php: Table 'gad_db.ppas_personnel' doesn't exist
+[16-May-2025 04:18:23 UTC] Getting details for PPA ID: 52
+[16-May-2025 04:18:23 UTC] Successfully fetched PPA details
+[16-May-2025 04:18:30 UTC] get_ppas.php started - 2025-05-16 04:18:30
+[16-May-2025 04:18:30 UTC] GET parameters: {"quarter":"1","campus":"Alangilan"}
+[16-May-2025 04:18:30 UTC] Database connection successful
+[16-May-2025 04:18:30 UTC] Received quarter: 1
+[16-May-2025 04:18:30 UTC] Received campus: Alangilan
+[16-May-2025 04:18:30 UTC] Formatted quarter: Q1
+[16-May-2025 04:18:30 UTC] Has campus column: Yes
+[16-May-2025 04:18:30 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:18:30 UTC] Bound parameters: Quarter = Q1, Campus = Alangilan
+[16-May-2025 04:18:30 UTC] Query executed successfully
+[16-May-2025 04:18:30 UTC] Fetching results
+[16-May-2025 04:18:30 UTC] Found 0 records
+[16-May-2025 04:18:30 UTC] get_ppas.php started - 2025-05-16 04:18:30
+[16-May-2025 04:18:30 UTC] GET parameters: {"quarter":"1","campus":"Alangilan"}
+[16-May-2025 04:18:30 UTC] Database connection successful
+[16-May-2025 04:18:30 UTC] Received quarter: 1
+[16-May-2025 04:18:30 UTC] Received campus: Alangilan
+[16-May-2025 04:18:30 UTC] Formatted quarter: Q1
+[16-May-2025 04:18:30 UTC] Has campus column: Yes
+[16-May-2025 04:18:30 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:18:30 UTC] Bound parameters: Quarter = Q1, Campus = Alangilan
+[16-May-2025 04:18:30 UTC] Query executed successfully
+[16-May-2025 04:18:30 UTC] Fetching results
+[16-May-2025 04:18:30 UTC] Found 0 records
+[16-May-2025 04:18:33 UTC] get_ppas.php started - 2025-05-16 04:18:33
+[16-May-2025 04:18:33 UTC] GET parameters: {"quarter":"1","campus":"Central"}
+[16-May-2025 04:18:33 UTC] Database connection successful
+[16-May-2025 04:18:33 UTC] Received quarter: 1
+[16-May-2025 04:18:33 UTC] Received campus: Central
+[16-May-2025 04:18:33 UTC] Formatted quarter: Q1
+[16-May-2025 04:18:33 UTC] Has campus column: Yes
+[16-May-2025 04:18:33 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:18:33 UTC] Bound parameters: Quarter = Q1, Campus = Central
+[16-May-2025 04:18:33 UTC] Query executed successfully
+[16-May-2025 04:18:33 UTC] Fetching results
+[16-May-2025 04:18:33 UTC] Found 1 records
+[16-May-2025 04:18:33 UTC] get_ppas.php started - 2025-05-16 04:18:33
+[16-May-2025 04:18:33 UTC] GET parameters: {"quarter":"1","campus":"Central"}
+[16-May-2025 04:18:33 UTC] Database connection successful
+[16-May-2025 04:18:33 UTC] Received quarter: 1
+[16-May-2025 04:18:33 UTC] Received campus: Central
+[16-May-2025 04:18:33 UTC] Formatted quarter: Q1
+[16-May-2025 04:18:33 UTC] Has campus column: Yes
+[16-May-2025 04:18:33 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:18:33 UTC] Bound parameters: Quarter = Q1, Campus = Central
+[16-May-2025 04:18:33 UTC] Query executed successfully
+[16-May-2025 04:18:33 UTC] Fetching results
+[16-May-2025 04:18:33 UTC] Found 1 records
+[16-May-2025 04:18:34 UTC] Getting details for PPA ID: 52
+[16-May-2025 04:18:34 UTC] Successfully fetched PPA details
+[16-May-2025 04:18:34 UTC] Getting academic ranks for PPA ID: 52
+[16-May-2025 04:18:34 UTC] Total duration for PPA ID 52: 9 hours
+[16-May-2025 04:18:34 UTC] ERROR in get_academic_ranks_simple.php: Table 'gad_db.ppas_personnel' doesn't exist
+[16-May-2025 04:19:24 UTC] get_ppas.php started - 2025-05-16 04:19:24
+[16-May-2025 04:19:24 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[16-May-2025 04:19:24 UTC] Database connection successful
+[16-May-2025 04:19:24 UTC] Received quarter: 1
+[16-May-2025 04:19:24 UTC] Received campus: Lipa
+[16-May-2025 04:19:24 UTC] Formatted quarter: Q1
+[16-May-2025 04:19:24 UTC] Has campus column: Yes
+[16-May-2025 04:19:24 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:19:24 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[16-May-2025 04:19:24 UTC] Query executed successfully
+[16-May-2025 04:19:24 UTC] Fetching results
+[16-May-2025 04:19:24 UTC] Found 1 records
+[16-May-2025 04:19:24 UTC] get_ppas.php started - 2025-05-16 04:19:24
+[16-May-2025 04:19:24 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[16-May-2025 04:19:24 UTC] Database connection successful
+[16-May-2025 04:19:24 UTC] Received quarter: 1
+[16-May-2025 04:19:24 UTC] Received campus: Lipa
+[16-May-2025 04:19:24 UTC] Formatted quarter: Q1
+[16-May-2025 04:19:24 UTC] Has campus column: Yes
+[16-May-2025 04:19:24 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[16-May-2025 04:19:24 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[16-May-2025 04:19:24 UTC] Query executed successfully
+[16-May-2025 04:19:24 UTC] Fetching results
+[16-May-2025 04:19:24 UTC] Found 1 records
+[16-May-2025 04:19:25 UTC] Getting details for PPA ID: 53
+[16-May-2025 04:19:25 UTC] Successfully fetched PPA details
+[16-May-2025 04:19:25 UTC] Getting academic ranks for PPA ID: 53
+[16-May-2025 04:19:25 UTC] Total duration for PPA ID 53: 9 hours
+[16-May-2025 04:19:25 UTC] ERROR in get_academic_ranks_simple.php: Table 'gad_db.ppas_personnel' doesn't exist
