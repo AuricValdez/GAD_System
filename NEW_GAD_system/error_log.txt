@@ -303,3 +303,143 @@
 [16-May-2025 04:19:25 UTC] Getting academic ranks for PPA ID: 53
 [16-May-2025 04:19:25 UTC] Total duration for PPA ID 53: 9 hours
 [16-May-2025 04:19:25 UTC] ERROR in get_academic_ranks_simple.php: Table 'gad_db.ppas_personnel' doesn't exist
+[17-May-2025 05:06:57 UTC] get_ppas.php started - 2025-05-17 05:06:57
+[17-May-2025 05:06:57 UTC] get_ppas.php started - 2025-05-17 05:06:57
+[17-May-2025 05:06:57 UTC] get_ppas.php started - 2025-05-17 05:06:57
+[17-May-2025 05:06:57 UTC] get_ppas.php started - 2025-05-17 05:06:57
+[17-May-2025 05:06:57 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[17-May-2025 05:06:57 UTC] GET parameters: {"quarter":"2","campus":"Lipa"}
+[17-May-2025 05:06:57 UTC] GET parameters: {"quarter":"3","campus":"Lipa"}
+[17-May-2025 05:06:57 UTC] GET parameters: {"quarter":"4","campus":"Lipa"}
+[17-May-2025 05:06:57 UTC] Database connection successful
+[17-May-2025 05:06:57 UTC] Received quarter: 4
+[17-May-2025 05:06:57 UTC] Received campus: Lipa
+[17-May-2025 05:06:57 UTC] Formatted quarter: Q4
+[17-May-2025 05:06:57 UTC] Database connection successful
+[17-May-2025 05:06:57 UTC] Received quarter: 2
+[17-May-2025 05:06:57 UTC] Received campus: Lipa
+[17-May-2025 05:06:57 UTC] Formatted quarter: Q2
+[17-May-2025 05:06:57 UTC] Has campus column: Yes
+[17-May-2025 05:06:57 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 05:06:57 UTC] Database connection successful
+[17-May-2025 05:06:57 UTC] Bound parameters: Quarter = Q4, Campus = Lipa
+[17-May-2025 05:06:57 UTC] Received quarter: 3
+[17-May-2025 05:06:57 UTC] Received campus: Lipa
+[17-May-2025 05:06:57 UTC] Formatted quarter: Q3
+[17-May-2025 05:06:57 UTC] Query executed successfully
+[17-May-2025 05:06:57 UTC] Fetching results
+[17-May-2025 05:06:57 UTC] Found 0 records
+[17-May-2025 05:06:57 UTC] Has campus column: Yes
+[17-May-2025 05:06:57 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 05:06:57 UTC] Database connection successful
+[17-May-2025 05:06:57 UTC] Received quarter: 1
+[17-May-2025 05:06:57 UTC] Bound parameters: Quarter = Q2, Campus = Lipa
+[17-May-2025 05:06:57 UTC] Received campus: Lipa
+[17-May-2025 05:06:57 UTC] Formatted quarter: Q1
+[17-May-2025 05:06:57 UTC] Query executed successfully
+[17-May-2025 05:06:57 UTC] Fetching results
+[17-May-2025 05:06:57 UTC] Found 0 records
+[17-May-2025 05:06:57 UTC] Has campus column: Yes
+[17-May-2025 05:06:57 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 05:06:57 UTC] Bound parameters: Quarter = Q3, Campus = Lipa
+[17-May-2025 05:06:57 UTC] Query executed successfully
+[17-May-2025 05:06:57 UTC] Fetching results
+[17-May-2025 05:06:57 UTC] Found 0 records
+[17-May-2025 05:06:57 UTC] Has campus column: Yes
+[17-May-2025 05:06:57 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 05:06:57 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[17-May-2025 05:06:57 UTC] Query executed successfully
+[17-May-2025 05:06:57 UTC] Fetching results
+[17-May-2025 05:06:57 UTC] Found 0 records
+[17-May-2025 07:20:00 UTC] get_ppas.php started - 2025-05-17 07:20:00
+[17-May-2025 07:20:00 UTC] GET parameters: {"quarter":"1","campus":"Lipa"}
+[17-May-2025 07:20:00 UTC] get_ppas.php started - 2025-05-17 07:20:00
+[17-May-2025 07:20:00 UTC] GET parameters: {"quarter":"2","campus":"Lipa"}
+[17-May-2025 07:20:00 UTC] get_ppas.php started - 2025-05-17 07:20:00
+[17-May-2025 07:20:00 UTC] GET parameters: {"quarter":"4","campus":"Lipa"}
+[17-May-2025 07:20:00 UTC] get_ppas.php started - 2025-05-17 07:20:00
+[17-May-2025 07:20:00 UTC] GET parameters: {"quarter":"3","campus":"Lipa"}
+[17-May-2025 07:20:00 UTC] Database connection successful
+[17-May-2025 07:20:00 UTC] Received quarter: 1
+[17-May-2025 07:20:00 UTC] Received campus: Lipa
+[17-May-2025 07:20:00 UTC] Formatted quarter: Q1
+[17-May-2025 07:20:00 UTC] Has campus column: Yes
+[17-May-2025 07:20:00 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 07:20:00 UTC] Bound parameters: Quarter = Q1, Campus = Lipa
+[17-May-2025 07:20:00 UTC] Query executed successfully
+[17-May-2025 07:20:00 UTC] Fetching results
+[17-May-2025 07:20:00 UTC] Found 0 records
+[17-May-2025 07:20:00 UTC] Database connection successful
+[17-May-2025 07:20:00 UTC] Received quarter: 4
+[17-May-2025 07:20:00 UTC] Received campus: Lipa
+[17-May-2025 07:20:00 UTC] Formatted quarter: Q4
+[17-May-2025 07:20:00 UTC] Database connection successful
+[17-May-2025 07:20:00 UTC] Received quarter: 2
+[17-May-2025 07:20:00 UTC] Received campus: Lipa
+[17-May-2025 07:20:00 UTC] Formatted quarter: Q2
+[17-May-2025 07:20:00 UTC] Has campus column: Yes
+[17-May-2025 07:20:00 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 07:20:00 UTC] Database connection successful
+[17-May-2025 07:20:00 UTC] Received quarter: 3
+[17-May-2025 07:20:00 UTC] Received campus: Lipa
+[17-May-2025 07:20:00 UTC] Bound parameters: Quarter = Q4, Campus = Lipa
+[17-May-2025 07:20:00 UTC] Formatted quarter: Q3
+[17-May-2025 07:20:00 UTC] Query executed successfully
+[17-May-2025 07:20:00 UTC] Fetching results
+[17-May-2025 07:20:00 UTC] Found 1 records
+[17-May-2025 07:20:00 UTC] Has campus column: Yes
+[17-May-2025 07:20:00 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 07:20:00 UTC] Bound parameters: Quarter = Q2, Campus = Lipa
+[17-May-2025 07:20:00 UTC] Query executed successfully
+[17-May-2025 07:20:00 UTC] Fetching results
+[17-May-2025 07:20:00 UTC] Found 0 records
+[17-May-2025 07:20:00 UTC] Has campus column: Yes
+[17-May-2025 07:20:00 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 07:20:00 UTC] Bound parameters: Quarter = Q3, Campus = Lipa
+[17-May-2025 07:20:00 UTC] Query executed successfully
+[17-May-2025 07:20:00 UTC] Fetching results
+[17-May-2025 07:20:00 UTC] Found 0 records
+[17-May-2025 07:20:03 UTC] get_ppas.php started - 2025-05-17 07:20:03
+[17-May-2025 07:20:03 UTC] GET parameters: {"quarter":"4","campus":"Lipa"}
+[17-May-2025 07:20:03 UTC] Database connection successful
+[17-May-2025 07:20:03 UTC] Received quarter: 4
+[17-May-2025 07:20:03 UTC] Received campus: Lipa
+[17-May-2025 07:20:03 UTC] Formatted quarter: Q4
+[17-May-2025 07:20:03 UTC] Has campus column: Yes
+[17-May-2025 07:20:03 UTC] SQL with campus filter: SELECT id, activity as title, start_date, campus 
+                FROM ppas_forms 
+                WHERE quarter = ? AND campus = ?
+[17-May-2025 07:20:03 UTC] Bound parameters: Quarter = Q4, Campus = Lipa
+[17-May-2025 07:20:03 UTC] Query executed successfully
+[17-May-2025 07:20:03 UTC] Fetching results
+[17-May-2025 07:20:03 UTC] Found 1 records
+[17-May-2025 07:20:04 UTC] Getting details for PPA ID: 62
+[17-May-2025 07:20:04 UTC] Executing query: SELECT 
+                id, 
+                activity as title, 
+                campus, 
+                CONCAT(start_date, ' - ', end_date) as date_range,
+                DATE_FORMAT(start_date, '%m/%d/%Y') as date, 
+                total_duration,
+                project_leader,
+                assistant_project_leader,
+                project_staff_coordinator,
+                ps_attribution
+              FROM ppas_forms WHERE id = ? with ID: 62
+[17-May-2025 07:20:04 UTC] PPA details retrieved successfully: {"id":62,"title":"Activity","campus":"Lipa","date_range":"12\/16\/2030 - 12\/17\/2030","date":null,"total_duration":"12.00","project_leader":["Test 1"],"assistant_project_leader":["Test 2"],"project_staff_coordinator":["Test 3"],"ps_attribution":"4159.20","total_personnel":3}

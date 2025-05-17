@@ -1286,29 +1286,35 @@ html {
         
         /* Card header link styling */
         .card-header-link {
-            color: #ffffff;
+            color: #333333;
             font-weight: 500;
             font-size: 0.9rem;
             text-decoration: none;
             padding: 6px 12px;
             border-radius: 6px;
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: #f0f0f0;
+            border: 1px solid #dedede;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
         }
         
         .card-header-link:hover {
-            background-color: rgba(255, 255, 255, 0.25);
-            color: #ffffff;
+            background-color: #e0e0e0;
+            color: #000000;
+            border-color: #c0c0c0;
         }
         
         [data-bs-theme="dark"] .card-header-link {
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: #4a5056;
+            color: #ffffff;
+            border-color: #555a60;
         }
         
         [data-bs-theme="dark"] .card-header-link:hover {
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: #566066;
+            color: #ffffff;
+            border-color: #656a70;
         }
         
         .form-control:focus, .form-select:focus {
