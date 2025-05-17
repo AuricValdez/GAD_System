@@ -1407,6 +1407,147 @@ html {
     color: var(--accent-color);
 }
 
+        /* Special styling for the approval link - only visible to Central users */
+        .approval-link {
+            background-color: var(--accent-color);
+            color: white !important;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .approval-link::before {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: 0;
+            width: 40px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: skewX(-25deg);
+            opacity: 0.7;
+            transition: all 0.5s ease;
+        }
+
+        .approval-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background-color: var(--accent-hover) !important;
+            color: white !important;
+        }
+
+        .approval-link:hover::before {
+            right: 100%;
+        }
+
+        /* Ensure the icon in approval link stands out */
+        .approval-link i {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .approval-link:hover i {
+            transform: scale(1.2);
+        }
+
+        /* Dark theme adjustments for approval link */
+        [data-bs-theme="dark"] .approval-link {
+            background-color: var(--accent-color);
+        }
+
+        [data-bs-theme="dark"] .approval-link:hover {
+            background-color: var(--accent-hover) !important;
+        }
+
+        /* Revamped active state - distinctive but elegant */
+        .approval-link.active {
+            background-color: transparent !important;
+            color: white !important;
+            border: 2px solid white;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: visible;
+        }
+
+        .approval-link.active::before {
+            display: none;
+        }
+
+        .approval-link.active i {
+            color: white;
+        }
+
+        /* Dark theme revamped active state */
+        [data-bs-theme="dark"] .approval-link.active {
+            background-color: transparent !important;
+            color: white !important;
+            border: 2px solid #e0b6ff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        [data-bs-theme="dark"] .approval-link.active i {
+            color: #e0b6ff;
+        }
+
+        /* Fixed active state using accent color */
+        .approval-link.active {
+            background-color: transparent !important;
+            color: var(--accent-color) !important;
+            border: 2px solid var(--accent-color);
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .approval-link.active i {
+            color: var(--accent-color);
+        }
+
+        /* Dark theme with accent color */
+        [data-bs-theme="dark"] .approval-link.active {
+            background-color: transparent !important;
+            color: white !important;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        [data-bs-theme="dark"] .approval-link.active i {
+            color: var(--accent-color);
+        }
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] .notification-badge {
+    background-color: #ff5c6c;
+}
+
+/* Active state styling */
+.nav-link.active .notification-badge {
+    background-color: white;
+    color: var(--accent-color);
+}
     </style>
 </head>
 <body>
