@@ -40,8 +40,7 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Global Styles -->
-    <link href="../js/global-styles.css" rel="stylesheet">
+    <!-- Global Styles - Include inline instead of external file -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -2123,11 +2122,24 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                             console.error("Raw response:", text);
                             throw new Error("Invalid JSON response from server. Check server logs for details.");
                         }
+                    }),
+                    // Fetch additional personnel from narrative entries
+                    fetch(`get_narrative_personnel.php?ppaId=${ppaId}`)
+                    .then(response => response.text())
+                    .then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error("JSON parse error in get_narrative_personnel.php:", e);
+                            console.error("Raw response:", text);
+                            throw new Error("Invalid JSON response from server. Check server logs for details.");
+                        }
                     })
                 ])
-                .then(([ppaDetails, academicRanksResponse]) => {
+                .then(([ppaDetails, academicRanksResponse, narrativePersonnelResponse]) => {
                     console.log('Received PPA details:', ppaDetails);
                     console.log('Received academic ranks:', academicRanksResponse);
+                    console.log('Received narrative personnel:', narrativePersonnelResponse);
 
                     // Check if there was an error in the responses
                     if (ppaDetails.error || !ppaDetails.success) {
@@ -2165,49 +2177,89 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                         }
                     }
 
-                    // Update table with academic ranks data
+                    // Combine academic ranks data from both sources
+                    let combinedAcademicRanks = [];
+                    
                     if (academicRanksResponse.success && academicRanksResponse.academicRanks) {
-                        if (academicRanksResponse.academicRanks.length === 0) {
-                            console.log('No personnel found for this PPA');
-                            table.innerHTML = '<tr><td colspan="6" class="text-center">No personnel found for this PPA. Unable to calculate PS attribution.</td></tr>';
-                            if (printBtn) {
-                                printBtn.disabled = true;
-                                printBtn.style.pointerEvents = 'none';
-                                printBtn.style.opacity = '0.65';
-                            }
-                            if (exportBtn) {
-                                exportBtn.disabled = true;
-                                exportBtn.style.pointerEvents = 'none';
-                                exportBtn.style.opacity = '0.65';
-                            }
+                        combinedAcademicRanks = [...academicRanksResponse.academicRanks];
+                    }
+                    
+                    // Add narrative personnel if available
+                    if (narrativePersonnelResponse && narrativePersonnelResponse.success && narrativePersonnelResponse.academicRanks) {
+                        if (narrativePersonnelResponse.academicRanks.length > 0) {
+                            console.log(`Found ${narrativePersonnelResponse.academicRanks.length} narrative personnel ranks to add`);
+                            
+                            // Merge the narrative personnel with the existing academic ranks
+                            narrativePersonnelResponse.academicRanks.forEach(narrativeRank => {
+                                console.log(`Processing narrative rank: ${narrativeRank.rank_name}, count: ${narrativeRank.personnel_count}`);
+                                
+                                // Check if this rank already exists in the combined list
+                                const existingRankIndex = combinedAcademicRanks.findIndex(
+                                    rank => rank.rank_name === narrativeRank.rank_name
+                                );
+                                
+                                if (existingRankIndex !== -1) {
+                                    // Update existing entry by adding personnel count
+                                    const oldCount = parseInt(combinedAcademicRanks[existingRankIndex].personnel_count) || 0;
+                                    const addCount = parseInt(narrativeRank.personnel_count) || 0;
+                                    const newCount = oldCount + addCount;
+                                    
+                                    console.log(`Updating existing rank ${narrativeRank.rank_name}: ${oldCount} + ${addCount} = ${newCount}`);
+                                    
+                                    combinedAcademicRanks[existingRankIndex].personnel_count = newCount;
+                                } else {
+                                    // Add new entry
+                                    console.log(`Adding new rank from narrative: ${narrativeRank.rank_name} with count ${narrativeRank.personnel_count}`);
+                                    combinedAcademicRanks.push(narrativeRank);
+                                }
+                            });
                         } else {
-                            console.log('Updating table with personnel academic ranks');
-                            
-                            // Check if we have PS attribution from ppas_forms
-                            if (ppaDetails.ps_attribution) {
-                                console.log('Using PS attribution from PPA form:', ppaDetails.ps_attribution);
-                                document.getElementById(`totalPS${quarter}`).value = parseFloat(ppaDetails.ps_attribution) ? 
-                                    `₱${parseFloat(ppaDetails.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '-';
-                            }
-                            
-                            updatePSTable(quarter, academicRanksResponse.academicRanks);
-
-                            // Enable buttons and remove inline styles
-                            if (printBtn) {
-                                printBtn.disabled = false;
-                                printBtn.style.pointerEvents = '';
-                                printBtn.style.opacity = '';
-                                console.log('Print button enabled');
-                            }
-                            if (exportBtn) {
-                                exportBtn.disabled = false;
-                                exportBtn.style.pointerEvents = '';
-                                exportBtn.style.opacity = '';
-                                console.log('Export button enabled');
-                            }
+                            console.log('No narrative personnel ranks found in the response');
                         }
                     } else {
-                        throw new Error('Failed to get academic ranks data');
+                        console.log('No narrative personnel data available or error occurred');
+                        console.log('narrativePersonnelResponse:', narrativePersonnelResponse);
+                    }
+
+                    // Update table with combined academic ranks data
+                    if (combinedAcademicRanks.length === 0) {
+                        console.log('No personnel found for this PPA');
+                        table.innerHTML = '<tr><td colspan="6" class="text-center">No personnel found for this PPA. Unable to calculate PS attribution.</td></tr>';
+                        if (printBtn) {
+                            printBtn.disabled = true;
+                            printBtn.style.pointerEvents = 'none';
+                            printBtn.style.opacity = '0.65';
+                        }
+                        if (exportBtn) {
+                            exportBtn.disabled = true;
+                            exportBtn.style.pointerEvents = 'none';
+                            exportBtn.style.opacity = '0.65';
+                        }
+                    } else {
+                        console.log('Updating table with combined personnel academic ranks');
+                        
+                        // Check if we have PS attribution from ppas_forms
+                        if (ppaDetails.ps_attribution) {
+                            console.log('Using PS attribution from PPA form:', ppaDetails.ps_attribution);
+                            document.getElementById(`totalPS${quarter}`).value = parseFloat(ppaDetails.ps_attribution) ? 
+                                `₱${parseFloat(ppaDetails.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '-';
+                        }
+                        
+                        updatePSTable(quarter, combinedAcademicRanks);
+
+                        // Enable buttons and remove inline styles
+                        if (printBtn) {
+                            printBtn.disabled = false;
+                            printBtn.style.pointerEvents = '';
+                            printBtn.style.opacity = '';
+                            console.log('Print button enabled');
+                        }
+                        if (exportBtn) {
+                            exportBtn.disabled = false;
+                            exportBtn.style.pointerEvents = '';
+                            exportBtn.style.opacity = '';
+                            console.log('Export button enabled');
+                        }
                     }
                 })
                 .catch(error => {

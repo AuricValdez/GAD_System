@@ -100,7 +100,7 @@ try {
         error_log("No direct match found by ID. Checking if this is a PPAS form ID...");
         
         // Get PPAS form details from ppas_forms table to find matching narrative entry
-        $stmt = $conn->prepare("SELECT activity, year FROM ppas_forms WHERE id = :id");
+        $stmt = $conn->prepare("SELECT * FROM ppas_forms WHERE id = :id");
         $stmt->execute([':id' => $ppasFormId]);
         $ppasData = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -121,6 +121,21 @@ try {
                 error_log("Found matching narrative entry by title and year.");
             } else {
                 error_log("No matching narrative entry found by title and year.");
+                
+                // Try to find by ppas_form_id
+                $sql = "SELECT * FROM narrative_entries WHERE ppas_form_id = :ppas_form_id AND campus = :campus LIMIT 1";
+                $stmt = $conn->prepare($sql);
+                $stmt->execute([
+                    ':ppas_form_id' => $ppasFormId,
+                    ':campus' => $campus
+                ]);
+                $narrativeData = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($narrativeData) {
+                    error_log("Found matching narrative entry by ppas_form_id.");
+                } else {
+                    error_log("No matching narrative entry found by ppas_form_id either.");
+                }
             }
         } else {
             error_log("No PPAS form found with ID: $ppasFormId");
@@ -150,7 +165,8 @@ try {
                 'what_worked' => '',
                 'issues' => '',
                 'recommendations' => '',
-                'photo_paths' => '[]'
+                'photo_paths' => '[]',
+                'ppas_form_id' => $ppasFormId // Add this to link back to the PPAS form
             ];
         } else {
             // If no data found at all, return an error
@@ -165,6 +181,10 @@ try {
     
     // Log what we found
     error_log("Found narrative data: ID: {$narrativeData['id']}, Title: {$narrativeData['title']}");
+    
+    // Debug the raw narrative data
+    error_log("Raw narrative data: " . json_encode($narrativeData));
+    error_log("PS Attribution in narrative_entries: " . (isset($narrativeData['ps_attribution']) ? $narrativeData['ps_attribution'] : 'NOT FOUND'));
     
     // Process photo paths
     if (isset($narrativeData['photo_paths']) && !empty($narrativeData['photo_paths'])) {
@@ -213,6 +233,18 @@ try {
         }
     }
     
+    // Directly query the narrative_entries table to get ps_attribution
+    if (isset($narrativeData['id'])) {
+        $stmt = $conn->prepare("SELECT ps_attribution FROM narrative_entries WHERE id = :id");
+        $stmt->execute([':id' => $narrativeData['id']]);
+        $ps_attr_data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $ps_attribution = isset($ps_attr_data['ps_attribution']) && !empty($ps_attr_data['ps_attribution']) ? $ps_attr_data['ps_attribution'] : '333333';
+        error_log("PS Attribution from direct query: " . $ps_attribution);
+    } else {
+        $ps_attribution = '333333';
+        error_log("No narrative ID found, using default PS Attribution: " . $ps_attribution);
+    }
+
     // Format data for return
     $formattedData = [
         'id' => $narrativeData['id'],
@@ -230,8 +262,8 @@ try {
             'issues_concerns' => $narrativeData['issues'] ?? '',
             'recommendations' => $narrativeData['recommendations'] ?? ''
         ],
-        'financial_requirements' => $narrativeData['ps_attribution'] ?? '0',
-        'ps_attribution' => $narrativeData['ps_attribution'] ?? '0',
+        'financial_requirements' => $narrativeData['total_budget'] ?? '0',
+        'ps_attribution' => $ps_attribution,
         'activity_images' => $narrativeData['activity_images'],
         'extension_service_agenda' => isset($narrativeData['gender_issue']) ? explode(',', $narrativeData['gender_issue']) : [],
         'activity_ratings' => $narrativeData['activity_ratings'],
@@ -280,9 +312,12 @@ try {
     // Add financial data
     $formattedData['financial_requirements_detail'] = [
         'budget' => !empty($narrativeData['total_budget']) ? $narrativeData['total_budget'] : '10000',
-        'ps_attribution' => !empty($narrativeData['ps_attribution']) ? $narrativeData['ps_attribution'] : '5000',
+        'ps_attribution' => $ps_attribution, // Use the directly queried value
         'source_of_fund' => ['GAD']
     ];
+    
+    // Debug the PS Attribution value
+    error_log("PS Attribution value from narrative_entries: " . (isset($narrativeData['ps_attribution']) ? $narrativeData['ps_attribution'] : 'Not set'));
     
     // Prepare signatories data - include specific names instead of placeholders
     $formattedData['signatories'] = [
@@ -315,10 +350,11 @@ try {
                 $formattedData['financial_requirements'] = $ppasFullData['approved_budget'];
             }
             
-            if (isset($ppasFullData['ps_attribution']) && !empty($ppasFullData['ps_attribution'])) {
-                $formattedData['financial_requirements_detail']['ps_attribution'] = $ppasFullData['ps_attribution'];
-                $formattedData['ps_attribution'] = $ppasFullData['ps_attribution'];
-            }
+            // We NEVER use ps_attribution from ppas_forms - narrative_data should be the only source of truth
+            // We've already set ps_attribution from direct query above, don't override it here
+            // These lines are kept for documentation purposes but commented out
+            // $formattedData['financial_requirements_detail']['ps_attribution'] = $ps_attribution;
+            // $formattedData['ps_attribution'] = $ps_attribution;
             
             if (isset($ppasFullData['source_of_fund']) && !empty($ppasFullData['source_of_fund'])) {
                 try {
@@ -604,6 +640,9 @@ try {
         $formattedData['raw_external_female'] = $ppasFullData['external_female'] ?? 0;
     } else {
         error_log("No PPAS data available to pass to client");
+        // Even if we don't have PPAS data, still provide raw data from narrative if available
+        $formattedData['raw_data_available'] = true;
+        $formattedData['raw_title'] = $narrativeData['title'] ?? '';
     }
     
     // Return success response with defaults merged in for any missing values

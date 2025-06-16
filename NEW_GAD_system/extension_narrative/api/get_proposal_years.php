@@ -2,6 +2,9 @@
 session_start();
 header('Content-Type: application/json');
 
+// For debugging - log all available years
+error_log("DEBUG: Starting get_proposal_years.php");
+
 // Check if user is logged in
 if (!isset($_SESSION['username'])) {
     echo json_encode([
@@ -43,39 +46,62 @@ try {
     // Get database connection
     $conn = isset($pdo) ? $pdo : getConnection();
     
-    // Query to fetch unique years from narrative table directly
-    $sql = "SELECT DISTINCT YEAR(created_at) as year FROM narrative";
+    // IMPROVED: Get years from both ppas_forms and narrative_entries
+    $allYears = [];
     
-    $params = [];
-    
-    // Add campus filter if provided
+    // 1. Get years from narrative_entries using the year field directly
+    $sql1 = "SELECT DISTINCT year FROM narrative_entries";
     if ($campus) {
-        $sql .= " WHERE campus = :campus";
-        $params[':campus'] = $campus;
+        $sql1 .= " WHERE campus = :campus";
     }
+    $stmt1 = $conn->prepare($sql1);
+    if ($campus) {
+        $stmt1->bindParam(':campus', $campus);
+    }
+    $stmt1->execute();
+    $narrativeYears = $stmt1->fetchAll(PDO::FETCH_COLUMN, 0);
+    error_log("DEBUG: Years from narrative_entries: " . json_encode($narrativeYears));
     
-    $sql .= " ORDER BY year DESC";
+    // 2. Get years from ppas_forms
+    $sql2 = "SELECT DISTINCT year FROM ppas_forms";
+    if ($campus) {
+        $sql2 .= " WHERE campus = :campus";
+    }
+    $stmt2 = $conn->prepare($sql2);
+    if ($campus) {
+        $stmt2->bindParam(':campus', $campus);
+    }
+    $stmt2->execute();
+    $ppasYears = $stmt2->fetchAll(PDO::FETCH_COLUMN, 0);
+    error_log("DEBUG: Years from ppas_forms: " . json_encode($ppasYears));
     
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-    $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // 3. Combine and format years
+    $combinedYears = array_unique(array_merge($narrativeYears, $ppasYears));
+    rsort($combinedYears); // Sort in descending order (newest first)
+    error_log("DEBUG: Combined years: " . json_encode($combinedYears));
     
-    // If there's no created_at field in narrative, try using a different approach
-    if (empty($years) || $years[0]['year'] === null) {
-        // Alternative approach: just get all distinct years available
-        $sql = "SELECT DISTINCT EXTRACT(YEAR FROM NOW()) as year";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute();
-        $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // For older years, manually add them
-        $currentYear = (int)date('Y');
-        $additionalYears = [];
-        for ($i = 1; $i <= 5; $i++) {
-            $additionalYears[] = ['year' => $currentYear - $i];
+    // Format into the expected array structure
+    foreach ($combinedYears as $year) {
+        if (!empty($year)) {
+            $allYears[] = ['year' => $year];
         }
-        $years = array_merge($years, $additionalYears);
     }
+    
+    // If no years were found, fallback to the current year and a few previous years
+    if (empty($allYears)) {
+        error_log("DEBUG: No years found, using fallback");
+        $currentYear = (int)date('Y');
+        for ($i = 0; $i <= 5; $i++) {
+            $allYears[] = ['year' => $currentYear - $i];
+        }
+    }
+    
+    // For debugging
+    error_log("Narrative Years: " . json_encode($narrativeYears));
+    error_log("PPAS Years: " . json_encode($ppasYears));
+    error_log("Combined Years: " . json_encode($allYears));
+    
+    $years = $allYears;
     
     // Return success response
     echo json_encode([

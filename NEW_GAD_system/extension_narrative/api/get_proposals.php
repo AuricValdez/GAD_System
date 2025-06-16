@@ -110,8 +110,8 @@ try {
     
     // For each narrative entry, add to proposals
     foreach ($narratives as $narrative) {
-        // Get PPAS form if it exists
-        $ppasFormId = $narrative['id']; // Default to narrative ID as fallback
+        // Get the correct PPAS form ID
+        $ppasFormId = $narrative['ppas_form_id'] ? $narrative['ppas_form_id'] : $narrative['id'];
         $activityTitle = $narrative['title'] ?: 'Untitled Activity';
         
         // Add to proposals array

@@ -23,4 +23,18 @@ A new endpoint is needed to fetch a single PPAS entry from the `ppas_forms` tabl
 - **Other modules (gbp_forms, target_forms, etc.)**: Have their own fetch endpoints, but nothing for PPAS in the main directory.
 - **Frontend JS:** All fetches for single entry data expect this endpoint.
 
+# NEW FILE REQUESTS & FEATURE LOG
+
+## [ppas_form/ppas.php] Auto-compute Internal Participants (Section 7) from Project Team Gender
+
+**Description:**
+- Internal Participants (Male/Female) in Section 7 are now non-interactive and auto-computed from the Project Team section (leaders, assistant leaders, staff) based on their gender fields. Manual editing is disabled. The total is also auto-updated.
+
+**Searched for duplicate functionality in:**
+- All of `ppas_form/ppas.php` (HTML, JS, and form logic)
+- All JavaScript for participant totals and gender handling
+- All references to 'gender' and 'personnel-autocomplete' in the codebase
+- All code handling Agencies & Participants and Project Team sections
+- No existing code auto-computed internal participants from project team gender fields
+
 --- 

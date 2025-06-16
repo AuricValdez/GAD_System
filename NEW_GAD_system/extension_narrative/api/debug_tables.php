@@ -44,13 +44,13 @@ try {
     $stmt = $conn->query("SHOW TABLES");
     $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    // 2. Get structure of the narrative table
+    // 2. Get structure of the narrative_entries table
     $narrativeColumns = [];
     try {
-        $stmt = $conn->query("DESCRIBE narrative");
+        $stmt = $conn->query("DESCRIBE narrative_entries");
         $narrativeColumns = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
-        error_log("Error getting narrative structure: " . $e->getMessage());
+        error_log("Error getting narrative_entries structure: " . $e->getMessage());
     }
     
     // 3. Try to find ppas-related tables and their structure
@@ -80,13 +80,13 @@ try {
         }
     }
     
-    // 4. Get sample data from narrative table
+    // 4. Get sample data from narrative_entries table
     $narrativeData = [];
     try {
-        $stmt = $conn->query("SELECT * FROM narrative LIMIT 1");
+        $stmt = $conn->query("SELECT * FROM narrative_entries LIMIT 1");
         $narrativeData = $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
-        error_log("Error getting narrative sample: " . $e->getMessage());
+        error_log("Error getting narrative_entries sample: " . $e->getMessage());
     }
     
     // 5. Check if we can find the corresponding ppas entry for the sample

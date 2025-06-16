@@ -469,7 +469,7 @@ function getNarrativeData($ppas_form_id) {
         // First, verify if the PPAS form exists and display info about it
         $check_sql = "SELECT id, activity, location, year, quarter, start_date, end_date, start_time, end_time, 
                      approved_budget, office_college_organization, partner_agency,
-                     source_of_fund, ps_attribution, sdg as sdgs, mode_of_delivery, 
+                     source_of_fund, sdg as sdgs, mode_of_delivery, gender_issue_id,
                      project_leader, assistant_project_leader, project_staff_coordinator, 
                      external_type, internal_type, general_objectives, specific_objectives, description,
                      internal_male, internal_female, 
@@ -558,6 +558,30 @@ function getNarrativeData($ppas_form_id) {
             $flexible_stmt->bindParam(':activity_pattern', $activity_pattern, PDO::PARAM_STR);
             $flexible_stmt->execute();
             $possible_matches = $flexible_stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Try to get gender issue data if gender_issue_id exists
+            $gender_issue_data = null;
+            if (!empty($ppas_form['gender_issue_id'])) {
+                try {
+                    $gender_issue_sql = "SELECT gender_issue, gad_budget FROM gpb_entries WHERE id = :id LIMIT 1";
+                    $gender_issue_stmt = $conn->prepare($gender_issue_sql);
+                    $gender_issue_stmt->bindParam(':id', $ppas_form['gender_issue_id'], PDO::PARAM_INT);
+                    $gender_issue_stmt->execute();
+                    $gender_issue_data = $gender_issue_stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($gender_issue_data) {
+                        echo "<p><strong>Gender Issue Data:</strong> <span style='color:green'>✓</span> Retrieved successfully</p>";
+                        echo "<p>Gender Issue: " . htmlspecialchars($gender_issue_data['gender_issue']) . "</p>";
+                        echo "<p>GAD Budget: ₱" . htmlspecialchars(number_format($gender_issue_data['gad_budget'], 2)) . "</p>";
+                    } else {
+                        echo "<p><strong>Gender Issue Data:</strong> <span style='color:orange'>⚠</span> No data found for ID: " . htmlspecialchars($ppas_form['gender_issue_id']) . "</p>";
+                    }
+                } catch (Exception $e) {
+                    error_log("Error fetching gender issue data: " . $e->getMessage());
+                    echo "<p><strong>Gender Issue Data:</strong> <span style='color:red'>✕</span> Error retrieving data</p>";
+                }
+            } else {
+                echo "<p><strong>Gender Issue Data:</strong> <span style='color:orange'>⚠</span> No gender issue ID available</p>";
+            }
             
             if (!empty($possible_matches)) {
                 echo "<p><strong>Possible matches found:</strong></p><ul>";
@@ -737,7 +761,7 @@ function getNarrativeData($ppas_form_id) {
             'specific_objectives' => $specific_objectives ?: []
         ];
         
-        // Final data that will be used in the report
+                    // Final data that will be used in the report
         // Initialize with direct field mappings per field_correct.txt
         $final_data = [
             'ppas_form_id' => $ppas_form_id,
@@ -785,6 +809,9 @@ function getNarrativeData($ppas_form_id) {
             'internal_female' => $ppas_form['internal_female'] ?? 0,
             'external_male' => $ppas_form['external_male'] ?? 0,
             'external_female' => $ppas_form['external_female'] ?? 0,
+            // Gender issue and GAD budget
+            'gender_issue_id' => $ppas_form['gender_issue_id'] ?? null,
+            'debug_gender_issue' => $gender_issue_data ?? null,
             // Debug info - useful for troubleshooting
             'debug_ppas_form' => $ppas_form,
             'debug_narrative' => $narrative_entries
@@ -802,6 +829,13 @@ function getNarrativeData($ppas_form_id) {
         echo "<li>Location: " . htmlspecialchars($final_data['location']) . "</li>";
         echo "<li>Project Leader: " . (is_string($final_data['project_leader']) ? htmlspecialchars($final_data['project_leader']) : 'Complex value') . "</li>";
         echo "<li>General Objectives: " . (is_string($final_data['general_objectives']) ? htmlspecialchars($final_data['general_objectives']) : 'Complex value') . "</li>";
+        echo "<li>PS Attribution debug:</li>";
+        echo "<li>- narrative_entries ps_attribution: " . (isset($narrative_entries['ps_attribution']) ? htmlspecialchars($narrative_entries['ps_attribution']) : 'Not set') . "</li>";
+        echo "<li>- financial_requirements_detail: " . (isset($final_data['financial_requirements_detail']) ? htmlspecialchars(json_encode($final_data['financial_requirements_detail'])) : 'Not set') . "</li>"; 
+        echo "<li>- raw_ps_attribution removed: " . (!isset($final_data['raw_ps_attribution']) ? 'YES' : 'NO') . "</li>"; 
+        // Set PS attribution from narrative_entries only - use 5000 as default if not set
+        $final_data['ps_attribution'] = $narrative_entries['ps_attribution'] ?? '5000';
+        echo "<li>- final ps_attribution value: " . htmlspecialchars($final_data['ps_attribution']) . "</li>";
         echo "</ul>";
         echo "</div>";
         
@@ -824,6 +858,23 @@ function getNarrativeData($ppas_form_id) {
         $final_data['raw_internal_type'] = $ppas_form['internal_type'] ?? '';
         $final_data['raw_general_objectives'] = $ppas_form['general_objectives'] ?? '';
         $final_data['raw_specific_objectives'] = $ppas_form['specific_objectives'] ?? '';
+        
+        // Make sure we never use ps_attribution from ppas_form directly
+        if (isset($final_data['raw_ps_attribution'])) {
+            unset($final_data['raw_ps_attribution']);
+        }
+        
+        // Ensure financial_requirements_detail is populated from the provided data with PS attribution from narrative_entries
+        if (!isset($final_data['financial_requirements_detail'])) {
+            $final_data['financial_requirements_detail'] = [
+                'budget' => $narrative_entries['total_budget'] ?? '0.00',
+                'ps_attribution' => $narrative_entries['ps_attribution'] ?? $final_data['ps_attribution'] ?? '0.00',
+                'source_of_fund' => isset($narrative_entries['source_of_fund']) ? processSourceOfFund($narrative_entries['source_of_fund']) : []
+            ];
+        } else {
+            // Ensure ps_attribution uses narrative_entries data or the value already set in final_data
+            $final_data['financial_requirements_detail']['ps_attribution'] = $narrative_entries['ps_attribution'] ?? $final_data['ps_attribution'] ?? '0.00';
+        }
         
         return $final_data;
     } catch (Exception $e) {
@@ -1079,29 +1130,6 @@ if ($ppas_form_id) {
             --scrollbar-thumb-hover: #9c27b0;
             --accent-color: #9c27b0;
             --accent-hover: #7b1fa2;
-            --table-header-bg: #3a3a3a;
-            --table-header-hover: #4a4a4a;
-        }
-        
-        /* Table styling for dark mode */
-        [data-bs-theme="dark"] table th,
-        [data-bs-theme="dark"] td[style*="font-weight: bold"],
-        [data-bs-theme="dark"] tr[style*="background-color: #f2f2f2"] th,
-        [data-bs-theme="dark"] tr[style*="background-color: #f2f2f2"] td {
-            background-color: var(--table-header-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: #505050 !important;
-        }
-        
-        [data-bs-theme="dark"] table th:hover,
-        [data-bs-theme="dark"] td[style*="font-weight: bold"]:hover {
-            background-color: var(--table-header-hover) !important;
-        }
-        
-        /* Target specific tables used in the reports */
-        [data-bs-theme="dark"] table.signatures-table td,
-        [data-bs-theme="dark"] [style*="border-collapse: collapse"] td[style*="font-weight: bold"] {
-            background-color: var(--table-header-bg) !important;
         }
 
         body {
@@ -3931,6 +3959,8 @@ if($isCentral):
 
                     <p><strong>XI. Financial Requirements and Source of Funds:</strong></p>
                     <div style="margin-left: 20px;">
+                        <p><strong>Approved Budget as proposed:</strong> ₱${parseFloat(sections.financial.gad_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p><strong>Personal Services (PS) Attribution:</strong> ₱${parseFloat(sections.financial.ps_attribution || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         <p><strong>Source of Funds:</strong> ${sections.financial.source || 'N/A'}</p>
                         <p><strong>Total Budget:</strong> ₱${parseFloat(sections.financial.total || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
@@ -4297,7 +4327,7 @@ if($isCentral):
                             </tr>
                             <tr>
                                 <td style="padding: 5px; border: 1px solid black;">Personal Services (PS) Attribution</td>
-                                <td style="padding: 5px; border: 1px solid black; text-align: right;">Php ${(sections.financial_requirements_detail && sections.financial_requirements_detail.ps_attribution) ? Number(sections.financial_requirements_detail.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</td>
+                                <td style="padding: 5px; border: 1px solid black; text-align: right;">Php ${sections.ps_attribution ? Number(sections.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '5000.00'}</td>
                                 <td style="padding: 5px; border: 1px solid black; text-align: center;">
                                     ${sections.financial_requirements_detail && sections.financial_requirements_detail.source_of_fund ? 
                                       (Array.isArray(sections.financial_requirements_detail.source_of_fund) ? 
@@ -4835,8 +4865,14 @@ if($isCentral):
                     issues_concerns: cleanTextData(data.narrative_sections?.issues_concerns || 'Not specified'),
                     recommendations: cleanTextData(data.narrative_sections?.recommendations || 'Not specified'),
                 },
+                financial: {
+                    source: data.source_of_fund || data.source_of_budget || [],
+                    total: data.financial_requirements || data.approved_budget || '0.00',
+                    ps_attribution: data.ps_attribution || '5000', // Use top-level ps_attribution set directly from narrative_entries with default
+                    gad_budget: data.gender_issue_id ? (data.debug_gender_issue?.gad_budget || '0.00') : '0.00'
+                },
                 financial_requirements: data.financial_requirements || data.approved_budget || '0.00',
-                ps_attribution: data.ps_attribution || '0.00',
+                ps_attribution: data.ps_attribution || '5000', // Use top-level ps_attribution set directly from narrative_entries with default
                 source_of_budget: data.source_of_budget || [],
                 activity_images: data.activity_images || [],
                 // Additional sections data
@@ -4894,7 +4930,7 @@ if($isCentral):
                 narrative_of_project: cleanTextData(data.narrative_of_project || data.activity_narrative || 'Not specified'),
                 financial_requirements_detail: data.financial_requirements_detail || {
                     budget: data.financial_requirements || data.approved_budget || 0,
-                    ps_attribution: data.ps_attribution || 0,
+                    ps_attribution: data.ps_attribution || 5000, // Use top-level ps_attribution set directly from narrative_entries with default
                     source_of_fund: data.source_of_budget || []
                 },
                 photo_documentation: data.photo_documentation || (data.activity_images ? 
@@ -5160,10 +5196,10 @@ if($isCentral):
                         <div style="margin-left: 80px; margin-top: 10px;">
                             <table style="width: 60%; border-collapse: collapse; text-align: center; margin-top:10px;">
                                     <tr>
-                                        <th style="background-color: var(--table-header-bg, #f8f9fa); padding: 8px;"></th>
-                                        <th style="text-align: center; border: 1px solid black; background-color: var(--table-header-bg, #f8f9fa); padding: 8px;">Male</th>
-                                        <th style="text-align: center; border: 1px solid black; background-color: var(--table-header-bg, #f8f9fa); padding: 8px;">Female</th>
-                                        <th style="text-align: center; border: 1px solid black; background-color: var(--table-header-bg, #f8f9fa); padding: 8px;">Total</th>
+                                        <th></th>
+                                        <th style="text-align: center; border: 1px solid black;">Male</th>
+                                        <th style="text-align: center; border: 1px solid black;">Female</th>
+                                        <th style="text-align: center; border: 1px solid black;">Total</th>
                                     </tr>
                                     <tr>
                                         <td style="border: 1px solid black; text-align: left;">BatStateU</td>
@@ -5238,13 +5274,13 @@ if($isCentral):
                         <span style="font-weight: bold; color: var(--text-primary);">Evaluation Results:</span>
                         
                         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid black;">
-                            <tr>
-                                <th style="padding: 5px; border: 1px solid black; text-align: center; background-color: var(--table-header-bg, #f2f2f2);">CRITERIA</th>
-                                <th style="padding: 5px; border: 1px solid black; text-align: center; background-color: var(--table-header-bg, #f2f2f2);" colspan="2">EXCELLENT</th>
-                                <th style="padding: 5px; border: 1px solid black; text-align: center; background-color: var(--table-header-bg, #f2f2f2);" colspan="2">VERY SATISFACTORY</th>
-                                <th style="padding: 5px; border: 1px solid black; text-align: center; background-color: var(--table-header-bg, #f2f2f2);" colspan="2">SATISFACTORY</th>
-                                <th style="padding: 5px; border: 1px solid black; text-align: center; background-color: var(--table-header-bg, #f2f2f2);" colspan="2">FAIR</th>
-                                <th style="padding: 5px; border: 1px solid black; text-align: center; background-color: var(--table-header-bg, #f2f2f2);" colspan="2">POOR</th>
+                            <tr style="background-color:rgb(156, 152, 152);">
+                                <th style="padding: 5px; border: 1px solid black; text-align: center;">CRITERIA</th>
+                                <th style="padding: 5px; border: 1px solid black; text-align: center;" colspan="2">EXCELLENT</th>
+                                <th style="padding: 5px; border: 1px solid black; text-align: center;" colspan="2">VERY SATISFACTORY</th>
+                                <th style="padding: 5px; border: 1px solid black; text-align: center;" colspan="2">SATISFACTORY</th>
+                                <th style="padding: 5px; border: 1px solid black; text-align: center;" colspan="2">FAIR</th>
+                                <th style="padding: 5px; border: 1px solid black; text-align: center;" colspan="2">POOR</th>
                             </tr>
                             <tr>
                                 <td style="padding: 5px; border: 1px solid black;"></td>
@@ -5374,7 +5410,7 @@ if($isCentral):
                             </tr>
                             <tr>
                                 <td style="padding: 5px; border: 1px solid black;">Personal Services (PS) Attribution</td>
-                                <td style="padding: 5px; border: 1px solid black; text-align: right;">Php ${(sections.financial_requirements_detail && sections.financial_requirements_detail.ps_attribution) ? Number(sections.financial_requirements_detail.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</td>
+                                <td style="padding: 5px; border: 1px solid black; text-align: right;">Php ${sections.ps_attribution ? Number(sections.ps_attribution).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '5000.00'}</td>
                                 <td style="padding: 5px; border: 1px solid black; text-align: center;">
                                     ${sections.financial_requirements_detail && sections.financial_requirements_detail.source_of_fund ? 
                                       (Array.isArray(sections.financial_requirements_detail.source_of_fund) ? 

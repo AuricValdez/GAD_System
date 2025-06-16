@@ -199,6 +199,56 @@ $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central'
             transition: transform 0.4s ease;
         }
         
+        /* Pagination styles */
+        .page-link {
+            color: var(--purple-color);
+            border-color: #e9ecef;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--purple-color);
+            border-color: var(--purple-color);
+            color: white;
+        }
+        
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #e9ecef;
+        }
+        
+        .page-link:hover {
+            color: #563d7c;
+            background-color: #f8f9fa;
+        }
+        
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        /* Dark mode pagination */
+        [data-bs-theme="dark"] .page-link {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        
+        [data-bs-theme="dark"] .page-item.active .page-link {
+            background-color: var(--purple-color);
+            border-color: var(--purple-color);
+        }
+        
+        [data-bs-theme="dark"] .page-item.disabled .page-link {
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+        
+        [data-bs-theme="dark"] .pagination-info {
+            color: var(--text-secondary);
+        }
+        
         .photo-card:hover .photo-img {
             transform: scale(1.08);
         }
@@ -1653,6 +1703,12 @@ if($isCentral):
                         </div>
                         
                         <div class="col-md-12 mb-3">
+                            <label for="genderIssue" class="form-label">Gender Issue</label>
+                            <textarea class="form-control" id="genderIssue" name="genderIssue" rows="2" readonly></textarea>
+                            <small class="text-muted">Auto-populated from GPB</small>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
                             <label for="background" class="form-label">Background/Rationale</label>
                             <textarea class="form-control" id="background" name="background" rows="3"></textarea>
                         </div>
@@ -1692,6 +1748,312 @@ if($isCentral):
                             <textarea class="form-control" id="recommendations" name="recommendations" rows="3"></textarea>
                         </div>
                         
+                        <div class="col-md-12 mb-3">
+                            <label for="personnelName" class="form-label">Other Internal Participant </label>
+                            <select class="form-select" id="personnelName" name="personnelName">
+                                <option value="">Select Personnel</option>
+                            </select>
+                            <div id="selectedPersonnelList" class="mt-2">
+                                <ul class="list-group">
+                                    <!-- Selected personnel will appear here -->
+                                </ul>
+                            </div>
+                            <script>
+                                // Initialize selected personnel array if not exists
+                                window.selectedPersonnel = window.selectedPersonnel || [];
+                                
+                                // Function to update personnel list display
+                                function updatePersonnelList() {
+                                    const list = $('#selectedPersonnelList ul');
+                                    list.empty();
+                                    
+                                    // Add PPAS Form PS Attribution if available
+                                    if (window.ppasPS > 0) {
+                                        list.append(`
+                                            <li class="list-group-item theme-bg">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong class="theme-text">PPAS Form PS Attribution</strong>
+                                                        <div class="small theme-text-muted">
+                                                            PS: ₱${window.ppasPS.toFixed(2)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        `);
+                                    }
+                                    
+                                    window.selectedPersonnel.forEach((person, index) => {
+                                        const ps = (person.duration || 0) * (person.hourlyRate || 0);
+                                        const li = $('<li>').addClass('list-group-item');
+                                        
+                                        const content = `
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>${person.name || 'Unknown Personnel'}</strong>
+                                                    <div class="small text-muted">
+                                                        ${person.rank ? person.rank + ' • ' : ''}
+                                                        Hourly Rate: ₱${person.hourlyRate ? person.hourlyRate.toFixed(2) : '0.00'} • 
+                                                        Duration: ${person.duration ? person.duration : '0'} hours • 
+                                                        PS: ₱${ps.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                                <button class="btn btn-danger btn-sm" onclick="removePersonnel(${index})">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        `;
+                                        
+                                        li.html(content);
+                                        list.append(li);
+                                    });
+                                    
+                                    // Calculate total PS
+                                    window.calculateTotalPS();
+                                    
+                                    console.log('Updated personnel list:', window.selectedPersonnel);
+                                }
+                                
+                                // Handle personnel selection
+                                $('#personnelName').on('change', function() {
+                                    const selectedOption = $(this).find('option:selected');
+                                    const personnelId = selectedOption.val();
+                                    const personnelName = selectedOption.text();
+                                    
+                                    console.log('Personnel selected:', { id: personnelId, name: personnelName });
+                                    
+                                    if (personnelId && personnelName !== 'Select Personnel') {
+                                        // Check if person is already selected
+                                        if (!window.selectedPersonnel.some(p => p.id === personnelId)) {
+                                            const newPerson = {
+                                                id: personnelId,
+                                                name: personnelName
+                                            };
+                                            window.selectedPersonnel.push(newPerson);
+                                            console.log('Added new person:', newPerson);
+                                            console.log('Current personnel list:', window.selectedPersonnel);
+                                            updatePersonnelList();
+                                        }
+                                        
+                                        // Reset select
+                                        $(this).val('');
+                                    }
+                                });
+                                
+                                // Load personnel data if editing
+                                if (typeof narrativeData !== 'undefined') {
+                                    try {
+                                        // Clear any existing selected personnel first
+                                        window.selectedPersonnel = [];
+                                        
+                                        // Load personnel data - first try to get from narrative_personnel table
+                                        const narrativeId = narrativeData.id;
+                                        if (narrativeId) {
+                                            $.ajax({
+                                                url: 'get_narrative_personnel.php',
+                                                type: 'GET',
+                                                data: { narrative_id: narrativeId },
+                                                dataType: 'json',
+                                                success: function(response) {
+                                                    if (response.status === 'success' && response.data && response.data.length > 0) {
+                                                        console.log('Loaded personnel from narrative_personnel table:', response.data);
+                                                        
+                                                        // Set PPAS PS if available
+                                                        if (response.ppas_ps) {
+                                                            window.ppasPS = parseFloat(response.ppas_ps) || 0;
+                                                            console.log('Setting PPAS PS to:', window.ppasPS);
+                                                        }
+                                                        
+                                                        // Set total duration from PPAS if available
+                                                        if (response.ppas_info && response.ppas_info.total_duration) {
+                                                            const duration = parseFloat(response.ppas_info.total_duration) || 0;
+                                                            console.log('Setting total duration from PPAS:', duration);
+                                                            $('#totalDuration').val(duration.toFixed(2));
+                                                            
+                                                            // Force update the stored duration value
+                                                            if (typeof window.storedDuration !== 'undefined') {
+                                                                window.storedDuration = duration;
+                                                            }
+                                                            
+                                                            // Apply duration to all loaded personnel
+                                                            window.selectedPersonnel.forEach(person => {
+                                                                person.duration = duration;
+                                                                // Recalculate PS
+                                                                person.ps = duration * parseFloat(person.hourlyRate || 0);
+                                                            });
+                                                            
+                                                            // Visual indicator that personnel are selected in dropdown
+                                                            window.selectedPersonnel.forEach(person => {
+                                                                const option = $(`#personnelName option[value="${person.id}"]`);
+                                                                if (option.length) {
+                                                                    // Mark it visually but don't select it (to avoid duplication)
+                                                                    option.attr('data-selected', 'true');
+                                                                    option.css('background-color', '#e9ecef');
+                                                                    option.css('color', '#495057');
+                                                                    option.prop('disabled', true); // Prevent duplicate selection
+                                                                } 
+                                                            });
+                                                        }
+                                                        
+                                                        // Process personnel data
+                                                        response.data.forEach(person => {
+                                                            // Get duration from PPAS form if available, otherwise use duration from personnel record
+                                                            let duration = parseFloat(person.duration) || 0;
+                                                            
+                                                            // Override with PPAS duration if available
+                                                            if (response.ppas_info && response.ppas_info.total_duration) {
+                                                                duration = parseFloat(response.ppas_info.total_duration) || duration;
+                                                                console.log('Using PPAS duration:', duration);
+                                                            }
+                                                            
+                                                            // Calculate PS using the formula: duration * hourly_rate
+                                                            const hourlyRate = parseFloat(person.hourly_rate) || 0;
+                                                            const ps = duration * hourlyRate;
+                                                            
+                                                            window.selectedPersonnel.push({
+                                                                id: person.personnel_id,
+                                                                name: person.name || 'Unknown Personnel',
+                                                                rank: person.academic_rank || 'N/A',
+                                                                hourlyRate: hourlyRate,
+                                                                duration: duration,
+                                                                ps: ps
+                                                            });
+                                                            
+                                                            console.log('Loaded personnel:', { 
+                                                                name: person.name, 
+                                                                hourlyRate: hourlyRate, 
+                                                                duration: duration, 
+                                                                ps: ps 
+                                                            });
+                                                        });
+                                                        
+                                                        // Update the UI
+                                                        updatePersonnelList();
+                                                        
+                                                        // Calculate total PS
+                                                        calculateTotalPS();
+                                                    } else {
+                                                        // Fallback to legacy format if no data in narrative_personnel table
+                                                        loadLegacyPersonnelData();
+                                                    }
+                                                    
+                                                    // Load total duration and PS attribution regardless
+                                                    if (response.ppas_info && response.ppas_info.total_duration) {
+                                                        const duration = parseFloat(response.ppas_info.total_duration) || 0;
+                                                        console.log('Setting total duration from PPAS:', duration);
+                                                        $('#totalDuration').val(duration.toFixed(2));
+                                                    }
+                                                },
+                                                error: function() {
+                                                    // Fallback to legacy format on error
+                                                    loadLegacyPersonnelData();
+                                                }
+                                            });
+                                        } else {
+                                            // Fallback to legacy format if no narrative ID
+                                            loadLegacyPersonnelData();
+                                        }
+                                        
+                                        // Function to load legacy personnel data from other_internal_personnel field
+                                        function loadLegacyPersonnelData() {
+                                            if (!narrativeData.other_internal_personnel) {
+                                                console.log('No legacy personnel data found');
+                                                return;
+                                            }
+                                            
+                                    try {
+                                        const savedPersonnel = JSON.parse(narrativeData.other_internal_personnel);
+                                                console.log('Loading saved personnel from legacy format:', savedPersonnel);
+                                        if (Array.isArray(savedPersonnel)) {
+                                                savedPersonnel.forEach(person => {
+                                                    // Handle different formats of saved personnel
+                                                    if (typeof person === 'object' && person.id) {
+                                                window.selectedPersonnel.push({
+                                                            id: person.id,
+                                                            name: person.name || 'Unknown Personnel',
+                                                            rank: person.rank || '',
+                                                            hourlyRate: person.hourlyRate || 0,
+                                                            duration: person.duration || 0,
+                                                            ps: (person.duration || 0) * (person.hourlyRate || 0)
+                                                        });
+                                                    } else {
+                                                        window.selectedPersonnel.push({
+                                                            id: person,
+                                                            name: typeof person === 'string' && person ? person : 'Unknown Personnel',
+                                                            rank: '',
+                                                            hourlyRate: 0,
+                                                            duration: 0,
+                                                            ps: 0
+                                                        });
+                                                    }
+                                            });
+                                            updatePersonnelList();
+                                                
+                                                // Get personnel details for calculating PS
+                                                const promises = window.selectedPersonnel.map(person => {
+                                                    return $.ajax({
+                                                        url: 'get_personnel_details.php',
+                                                        type: 'GET',
+                                                        data: { personnel_id: person.id },
+                                                        dataType: 'json'
+                                                    }).then(function(response) {
+                                                        if (response.status === 'success') {
+                                                            person.rank = response.data.academic_rank || person.rank;
+                                                            person.hourlyRate = parseFloat(response.data.hourly_rate) || person.hourlyRate;
+                                                            person.ps = person.duration * person.hourlyRate;
+                                                        }
+                                                    });
+                                                });
+                                                
+                                                // After all personnel details are loaded, calculate PS
+                                                Promise.all(promises).then(function() {
+                                                    // Update UI to show that these personnel are selected in dropdown
+                                                    window.selectedPersonnel.forEach(person => {
+                                                        const option = $(`#personnelName option[value="${person.id}"]`);
+                                                        if (option.length) {
+                                                            // Mark it visually but don't select it (to avoid duplication)
+                                                            option.attr('data-selected', 'true');
+                                                            option.css('background-color', '#e9ecef');
+                                                            option.css('color', '#495057');
+                                                            option.prop('disabled', true); // Prevent duplicate selection
+                                                        } 
+                                                    });
+                                                    
+                                                    calculateTotalPS();
+                                                });
+                                            }
+                                            } catch (error) {
+                                                console.error('Error parsing legacy personnel data:', error);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.error('Error loading saved personnel:', e);
+                                    }
+                                }
+                                
+                                // Add form submission event to ensure personnel are included
+                                $('form').on('submit', function(e) {
+                                    console.log('Form submission started');
+                                    
+                                    // Get the current selected personnel
+                                    const selectedPersonnel = window.selectedPersonnel || [];
+                                    console.log('Personnel to be submitted:', selectedPersonnel);
+                                    
+                                    // We no longer need to add a hidden input here since we're
+                                    // adding the data to FormData in handleFormSubmit
+                                    // Just log that submission is happening
+                                    console.log('Form submitting with', selectedPersonnel.length, 'personnel');
+                                });
+                            </script>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label for="totalDuration" class="form-label">Total Duration (hours)</label>
+                            <input type="number" class="form-control" id="totalDuration" name="totalDuration" step="0.01" min="0"readonly>
+                        </div>
+
+                       
+
                         <div class="col-md-12 mb-3">
                             <label for="psAttribution" class="form-label">PS Attribution</label>
                             <input type="text" class="form-control" id="psAttribution" name="psAttribution" readonly>
@@ -1830,11 +2192,7 @@ if($isCentral):
                                     <div id="upload-status"></div>
                                 </div>
                                 
-                                <div class="col-md-12 mb-3">
-                                    <label for="genderIssue" class="form-label">Gender Issue</label>
-                                    <input type="text" class="form-control" id="genderIssue" name="genderIssue" readonly>
-                                    <small class="text-muted">Auto-populated from GPB</small>
-                                </div>
+                               
                             </div>
                             
                             <!-- Add hidden input for narrative ID when editing -->
@@ -1909,8 +2267,11 @@ if($isCentral):
     </div>
     
     <!-- Narrative List Modal -->
-    <div class="modal fade" id="narrativeListModal" tabindex="-1" aria-labelledby="narrativeListModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
+    <!-- Using data-bs-focus="false" to prevent auto-focus that causes aria-hidden issues -->
+    <div class="modal fade" id="narrativeListModal" tabindex="-1" role="dialog" 
+         aria-labelledby="narrativeListModalLabel" data-bs-backdrop="static" 
+         data-bs-focus="false">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-purple text-white rounded-0">
                     <h5 class="modal-title" id="narrativeListModalLabel">Narrative Entries</h5>
@@ -1920,7 +2281,7 @@ if($isCentral):
                     <!-- Content will be loaded dynamically -->
                 </div>
                 <div class="modal-footer bg-soft rounded-0">
-                    <button type="button" class="btn btn-purple-outline" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-purple-outline" data-bs-dismiss="modal" id="narrativeListCloseBtn">
                         <i class="fas fa-times me-1"></i> Close
                     </button>
                 </div>
@@ -1929,6 +2290,41 @@ if($isCentral):
     </div>
     
     <script>
+        // Add polyfill support for the inert attribute if needed
+        if (!('inert' in document.createElement('div'))) {
+            // Simple polyfill - just load the script
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/wicg-inert@3.1.2/dist/inert.min.js';
+            document.head.appendChild(script);
+            console.log('Added inert attribute polyfill');
+        }
+        
+        // Function to use inert attribute instead of aria-hidden where possible
+        function useInertForAccessibility(modalElement, isShowing) {
+            try {
+                // Get all top-level content containers except the modal
+                const containers = document.querySelectorAll('body > *:not(script):not(style):not(link)');
+                
+                for (const container of containers) {
+                    // Skip the modal element and its parent chain
+                    if (container.contains(modalElement) || modalElement.contains(container)) {
+                        continue;
+                    }
+                    
+                    // Use inert for all other elements when modal is showing
+                    if (isShowing) {
+                        container.setAttribute('inert', '');
+                        container.setAttribute('aria-hidden', 'true');
+                    } else {
+                        container.removeAttribute('inert');
+                        container.removeAttribute('aria-hidden');
+                    }
+                }
+            } catch (e) {
+                console.error('Error applying inert attribute:', e);
+            }
+        }
+        
         function updateDateTime() {
             const now = new Date();
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -2008,6 +2404,73 @@ if($isCentral):
 
         // Add this to the DOMContentLoaded event
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the selected personnel array
+            window.selectedPersonnel = window.selectedPersonnel || [];
+            
+            // Comprehensive fix for the aria-hidden accessibility issue in Bootstrap modals
+            $(document).on('show.bs.modal', '#narrativeListModal', function () {
+                console.log('Modal showing - preparing accessibility fixes');
+                
+                // Remove any existing observers
+                if (window.ariaObserver) {
+                    window.ariaObserver.disconnect();
+                }
+                
+                // Setup mutation observer to prevent aria-hidden from being added
+                const modalElement = this;
+                window.ariaObserver = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && 
+                            mutation.attributeName === 'aria-hidden' && 
+                            modalElement.getAttribute('aria-hidden') === 'true') {
+                            console.log('Intercepted aria-hidden - removing');
+                            modalElement.removeAttribute('aria-hidden');
+                        }
+                    });
+                });
+                
+                // Start observing
+                window.ariaObserver.observe(modalElement, { 
+                    attributes: true,
+                    attributeFilter: ['aria-hidden'] 
+                });
+                
+                // Apply inert to other elements instead of using aria-hidden
+                useInertForAccessibility(modalElement, true);
+            });
+            
+            // Additional handling when modal is fully shown
+            $(document).on('shown.bs.modal', '#narrativeListModal', function () {
+                console.log('Modal shown - applying accessibility fixes');
+                
+                // Remove aria-hidden attribute
+                $(this).removeAttr('aria-hidden');
+                
+                // Make sure all focusable elements are properly configured
+                $(this).find('a, button, input, select, textarea, [tabindex]').each(function() {
+                    if ($(this).attr('tabindex') === '-1') {
+                        $(this).attr('tabindex', '0');
+                    }
+                });
+                
+                // Set initial focus to a safe element (the close button)
+                $('#narrativeListCloseBtn').focus();
+            });
+            
+            // Clean up when modal is hidden
+            $(document).on('hidden.bs.modal', '#narrativeListModal', function () {
+                console.log('Modal hidden - cleaning up');
+                
+                // Clean up mutation observer
+                if (window.ariaObserver) {
+                    window.ariaObserver.disconnect();
+                    window.ariaObserver = null;
+                }
+                
+                // Remove inert from other elements
+                useInertForAccessibility(this, false);
+            });
+            
             // Clear any old temporary uploads on page load
             clearTemporaryUploads();
             
@@ -3049,8 +3512,29 @@ if($isCentral):
                     formData.append('campus', document.getElementById('campus_override').value);
                 }
                 
+                // Get photo paths from preview container
+                const previewContainer = document.getElementById('photoPreviewContainer');
+                const photoPreviews = previewContainer.querySelectorAll('[data-path]');
+                const photoPaths = Array.from(photoPreviews).map(div => div.getAttribute('data-path'));
+                
+                // Add photo paths to form data
+                formData.append('photo_paths', JSON.stringify(photoPaths));
+                if (photoPaths.length > 0) {
+                    formData.append('photo_path', photoPaths[0]); // First photo as main photo
+                }
+                
                 // Debug log the form data before submission
+                console.log('Submitting form with photo paths:', photoPaths);
                 console.log('Submitting form with evaluation data:', document.getElementById('evaluation').value);
+                
+                // Add selected personnel data to form data
+                if (window.selectedPersonnel && Array.isArray(window.selectedPersonnel)) {
+                    console.log('Adding selected personnel to form submission:', window.selectedPersonnel);
+                    formData.append('selected_personnel', JSON.stringify(window.selectedPersonnel));
+                } else {
+                    console.log('No personnel selected');
+                    formData.append('selected_personnel', JSON.stringify([]));
+                }
                 
                 // Send AJAX request
                 $.ajax({
@@ -3135,8 +3619,8 @@ if($isCentral):
                                 }
                             }
                             
-                            // Reload narratives list
-                            loadNarratives();
+                            // Refresh the whole page
+                            window.location.reload();
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -3177,16 +3661,17 @@ if($isCentral):
                             }
                         } catch (e) {
                             // If JSON parsing fails, use the default message
-                            console.log('Could not parse error response as JSON');
+                            console.error('Error parsing response:', e);
                         }
                         
                         Swal.fire({
                             icon: 'error',
-                            title: 'Server Error',
+                            title: 'Error',
                             text: errorMessage,
-                            position: 'center', // Changed from toast for better visibility of important errors
-                            showConfirmButton: true,
-                            timer: 10000
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 5000
                         });
                     }
                 });
@@ -3378,6 +3863,136 @@ if($isCentral):
                                     document.getElementById('evaluation').value = narrative.evaluation || '';
                                     document.getElementById('photoCaption').value = narrative.photo_caption || '';
                                     document.getElementById('genderIssue').value = narrative.gender_issue || '';
+                                    
+                                    // Load personnel data from the database for this narrative
+                                    console.log('Loading personnel data for narrative ID:', narrativeId);
+                                    
+                                    try {
+                                        // First, load personnel data from narrative_personnel table
+                                        $.ajax({
+                                            url: 'get_narrative_personnel.php',
+                                            type: 'GET',
+                                            data: { narrative_id: narrativeId },
+                                            dataType: 'json',
+                                            success: function(response) {
+                                                if (response.status === 'success') {
+                                                    console.log('Successfully loaded personnel data:', response);
+                                                    
+                                                    // Clear any existing selections
+                                                    window.selectedPersonnel = [];
+                                                    
+                                                    // Set PPAS PS if available
+                                                    if (response.ppas_ps !== undefined) {
+                                                        window.ppasPS = parseFloat(response.ppas_ps) || 0;
+                                                        console.log('Set PPAS PS from response:', window.ppasPS);
+                                                        
+                                                        // If PS attribution value from PPAS form exists, use it
+                                                        if (window.ppasPS > 0) {
+                                                            document.getElementById('psAttribution').value = window.ppasPS.toFixed(2);
+                                                            console.log('Using PS attribution from PPAS form:', window.ppasPS.toFixed(2));
+                                                        }
+                                                    }
+                                                    
+                                                    // Check if we have personnel data
+                                                    if (response.data && response.data.length > 0) {
+                                                        // Process personnel data from database
+                                                        response.data.forEach(person => {
+                                                            if (person && person.personnel_id) {
+                                                                console.log('Adding personnel from DB:', person);
+                                                                window.selectedPersonnel.push({
+                                                                    id: person.personnel_id,
+                                                                    name: person.name || 'Unknown',
+                                                                    rank: person.academic_rank || 'N/A',
+                                                                    hourlyRate: parseFloat(person.hourly_rate) || 0,
+                                                                    duration: parseFloat(person.duration) || 0,
+                                                                    ps: parseFloat(person.ps_attribution) || 0
+                                                                });
+                                                            }
+                                                        });
+                                                        
+                                                        // Mark personnel as selected in the dropdown
+                                                        setTimeout(() => {
+                                                            window.selectedPersonnel.forEach(person => {
+                                                                const option = $(`#personnelName option[value="${person.id}"]`);
+                                                                if (option.length) {
+                                                                    // Mark it visually but don't select it (to avoid duplication)
+                                                                    option.attr('data-selected', 'true');
+                                                                    option.css('background-color', '#e9ecef');
+                                                                    option.css('color', '#495057');
+                                                                    option.prop('disabled', true); // Prevent duplicate selection
+                                                                }
+                                                            });
+                                                        }, 1000); // Longer delay to ensure dropdown is populated
+                                                        
+                                                        // Update UI after loading personnel
+                                                        window.updatePersonnelList();
+                                                    } else {
+                                                        console.log('No personnel data found in response');
+                                                    }
+                                                    
+                                                    // Always calculate total PS
+                                                    window.calculateTotalPS();
+                                                } else if (response.status === 'error') {
+                                                    console.warn('Server returned error:', response.message);
+                                                }
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error('Error loading personnel data:', error);
+                                                console.log('Status code:', xhr.status);
+                                                console.log('Response text:', xhr.responseText);
+                                                
+                                                // Continue with other operations even if this fails
+                                                window.calculateTotalPS();
+                                            }
+                                        });
+                                    } catch (e) {
+                                        console.error('Exception in personnel loading code:', e);
+                                        // Continue with other operations even if this fails
+                                    }
+                                    
+                                    // Now fetch the PPAS form data to get the correct total duration
+                                    if (narrative.ppas_form_id) {
+                                        console.log('Fetching PPAS form data for ID:', narrative.ppas_form_id);
+                                        $.ajax({
+                                            url: 'get_ppas_duration.php',
+                                            type: 'GET',
+                                            data: { activity_id: narrative.ppas_form_id },
+                                            dataType: 'json',
+                                            success: function(ppasData) {
+                                                console.log('PPAS data loaded:', ppasData);
+                                                if (ppasData.status === 'success') {
+                                                    // Set the total duration from PPAS form
+                                                    const duration = parseFloat(ppasData.total_duration) || 0;
+                                                    $('#totalDuration').val(duration.toFixed(2));
+                                                    console.log('Setting total duration from PPAS:', duration);
+                                                    
+                                                    // Set global PPAS PS attribution
+                                                    const ppasPS = parseFloat(ppasData.ps_attribution) || 0;
+                                                    window.ppasPS = ppasPS;
+                                                    console.log('Setting PPAS PS to:', ppasPS);
+                                                    
+                                                    // Set stored duration for other uses
+                                                    window.storedDuration = duration;
+                                                    
+                                                    // Apply this duration to any loaded personnel
+                                                    if (window.selectedPersonnel && window.selectedPersonnel.length > 0) {
+                                                        window.selectedPersonnel.forEach(person => {
+                                                            person.duration = duration;
+                                                            // Recalculate PS
+                                                            person.ps = duration * parseFloat(person.hourlyRate || 0);
+                                                        });
+                                                        
+                                                        // Update the UI
+                                                        window.updatePersonnelList();
+                                                        window.calculateTotalPS();
+                                                    }
+                                                }
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error('Error loading PPAS data:', error);
+                                            }
+                                        });
+                                    }
                                     
                                     // Scroll to top of form
                                     document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3719,6 +4334,11 @@ if($isCentral):
                 // Store the current action in a global variable for reference
                 window.currentListAction = action;
                 
+                // Initialize pagination variables
+                window.currentPage = 1;
+                window.itemsPerPage = 10;
+                window.totalPages = Math.ceil(narrativeData.length / window.itemsPerPage);
+                
                 // Set title based on action
                 let title = 'Narrative Entries';
                 
@@ -3748,6 +4368,30 @@ if($isCentral):
                     `;
                 }
                 
+                // Add search and year filter in a row
+                html += `
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="narrativeSearchInput" class="form-control" placeholder="Search narratives...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                <select id="narrativeYearFilter" class="form-select">
+                                    <option value="">All Years</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                
                 html += `
                 <div class="table-responsive">
                     <table class="table table-hover table-striped">
@@ -3762,7 +4406,13 @@ if($isCentral):
                         <tbody>
                 `;
                 
-                narrativeData.forEach(narrative => {
+                // Calculate pagination
+                const startIndex = (window.currentPage - 1) * window.itemsPerPage;
+                const endIndex = Math.min(startIndex + window.itemsPerPage, narrativeData.length);
+                const paginatedData = narrativeData.slice(startIndex, endIndex);
+                
+                // Display only the current page of narratives
+                paginatedData.forEach(narrative => {
                     const date = new Date(narrative.created_at).toLocaleDateString();
                     html += `
                         <tr class="narrative-row" data-id="${narrative.id}" data-action="${action}" style="cursor: pointer;">
@@ -3778,13 +4428,57 @@ if($isCentral):
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Pagination Controls -->
+                <div class="pagination-container mt-3 d-flex justify-content-between align-items-center">
+                    <div class="pagination-info">
+                        Showing ${startIndex + 1} to ${endIndex} of ${narrativeData.length} entries
+                    </div>
+                    <nav aria-label="Narrative pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item ${window.currentPage === 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="prev" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                `;
+                
+                // Generate page number buttons
+                for (let i = 1; i <= window.totalPages; i++) {
+                    html += `
+                            <li class="page-item ${window.currentPage === i ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>
+                    `;
+                }
+                
+                html += `
+                            <li class="page-item ${window.currentPage === window.totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="next" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
                 `;
                 
                 // Update the modal body with the HTML content
                 document.getElementById('narrativeListModalBody').innerHTML = html;
                 
-                // Show the Bootstrap modal
-                const listModal = new bootstrap.Modal(document.getElementById('narrativeListModal'));
+                // Show the Bootstrap modal with accessibility modifications
+                const modalEl = document.getElementById('narrativeListModal');
+                
+                // Remove any existing aria-hidden before initializing
+                modalEl.removeAttribute('aria-hidden');
+                
+                // Create modal with specific options
+                const listModal = new bootstrap.Modal(modalEl, {
+                    focus: false,  // Prevent auto-focus behavior
+                    backdrop: true
+                });
+                
+                // Show the modal
                 listModal.show();
                 
                 // Add click event listeners to rows after the modal is shown
@@ -3820,6 +4514,102 @@ if($isCentral):
                             }
                         });
                     }
+                    
+                    // Populate year dropdown from available narratives
+                    const yearSelect = document.getElementById('narrativeYearFilter');
+                    if (yearSelect) {
+                        // Create a set of unique years from narrative data
+                        const years = new Set();
+                        narrativeData.forEach(narrative => {
+                            if (narrative.year && narrative.year.trim() !== '') {
+                                years.add(narrative.year);
+                            }
+                        });
+                        
+                        // Sort years in descending order (newest first)
+                        const sortedYears = Array.from(years).sort((a, b) => b - a);
+                        
+                        // Add the years to the select element
+                        sortedYears.forEach(year => {
+                            const option = document.createElement('option');
+                            option.value = year;
+                            option.textContent = year;
+                            yearSelect.appendChild(option);
+                        });
+                        
+                        // Add change event to filter narratives
+                        yearSelect.addEventListener('change', function() {
+                            filterNarrativesByYear();
+                        });
+                    }
+                    
+                    // Setup search functionality
+                    // Setup combined filtering function
+                    function applyFilters() {
+                        const searchText = document.getElementById('narrativeSearchInput').value.toLowerCase();
+                        const selectedYear = document.getElementById('narrativeYearFilter').value;
+                        
+                        // Filter the data based on both search and year filter
+                        let filteredData = narrativeData;
+                        
+                        // Apply search filter if there's search text
+                        if (searchText.length > 0) {
+                            filteredData = filteredData.filter(narrative => {
+                                return (narrative.title || '').toLowerCase().includes(searchText) || 
+                                       (narrative.campus || '').toLowerCase().includes(searchText) || 
+                                       (narrative.year || '').toLowerCase().includes(searchText);
+                            });
+                        }
+                        
+                        // Apply year filter if a year is selected
+                        if (selectedYear) {
+                            filteredData = filteredData.filter(narrative => {
+                                return narrative.year === selectedYear;
+                            });
+                        }
+                        
+                        // Update pagination for filtered results
+                        window.filteredNarrativeData = filteredData;
+                        window.currentPage = 1;
+                        window.totalPages = Math.ceil(filteredData.length / window.itemsPerPage);
+                        
+                        // Redraw the table with filtered data
+                        updateNarrativeTableWithPagination(window.currentListAction, filteredData);
+                    }
+                    
+                    // Add function to filter narratives by year
+                    window.filterNarrativesByYear = function() {
+                        applyFilters();
+                    };
+                    
+                    // Setup search filter
+                    const searchInput = document.getElementById('narrativeSearchInput');
+                    if (searchInput) {
+                        searchInput.addEventListener('keyup', function() {
+                            applyFilters();
+                        });
+                    }
+                    
+                    // Setup pagination event handlers
+                    document.querySelectorAll('#narrativeListModal .pagination .page-link').forEach(pageLink => {
+                        pageLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            const page = this.getAttribute('data-page');
+                            const currentData = window.filteredNarrativeData || narrativeData;
+                            
+                            if (page === 'prev' && window.currentPage > 1) {
+                                window.currentPage--;
+                            } else if (page === 'next' && window.currentPage < window.totalPages) {
+                                window.currentPage++;
+                            } else if (!isNaN(page)) {
+                                window.currentPage = parseInt(page);
+                            }
+                            
+                            // Update table with pagination
+                            updateNarrativeTableWithPagination(window.currentListAction, currentData);
+                        });
+                    });
                     
                     // Attach click event listeners to rows
                     attachRowClickListeners();
@@ -3936,7 +4726,7 @@ if($isCentral):
                                                     Background/Rationale
                                                 </h5>
                                                 <div class="content-box bg-white p-3 rounded-3 mt-2">
-                                                    <p class="mb-0">${narrative.background || 'N/A'}</p>
+                                                    <p class="mb-0 text-dark">${narrative.background || 'N/A'}</p>
                                                 </div>
                                             </div>
                                             
@@ -3948,7 +4738,7 @@ if($isCentral):
                                                     Description of Participants
                                                 </h5>
                                                 <div class="content-box bg-white p-3 rounded-3 mt-2">
-                                                    <p class="mb-0">${narrative.participants || 'N/A'}</p>
+                                                    <p class="mb-0 text-dark">${narrative.participants || 'N/A'}</p>
                                                 </div>
                                             </div>
                                             
@@ -3960,7 +4750,7 @@ if($isCentral):
                                                     Topics Discussed
                                                 </h5>
                                                 <div class="content-box bg-white p-3 rounded-3 mt-2">
-                                                    <p class="mb-0">${narrative.topics || 'N/A'}</p>
+                                                    <p class="mb-0 text-dark">${narrative.topics || 'N/A'}</p>
                                                 </div>
                                             </div>
                                             
@@ -3972,7 +4762,7 @@ if($isCentral):
                                                     Results
                                                 </h5>
                                                 <div class="content-box bg-white p-3 rounded-3 mt-2">
-                                                    <p class="mb-0">${narrative.results || 'N/A'}</p>
+                                                    <p class="mb-0 text-dark">${narrative.results || 'N/A'}</p>
                                                 </div>
                                             </div>
                                             
@@ -3984,11 +4774,57 @@ if($isCentral):
                                                     Lessons Learned
                                                 </h5>
                                                 <div class="content-box bg-white p-3 rounded-3 mt-2">
-                                                    <p class="mb-0">${narrative.lessons || 'N/A'}</p>
+                                                    <p class="mb-0 text-dark">${narrative.lessons || 'N/A'}</p>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                
+                                                            // Add Additional Information Section
+                                html += `
+                                    <div class="mb-4 narrative-section">
+                                        <h5 class="border-bottom pb-2 text-purple d-flex align-items-center">
+                                            <span class="section-icon rounded-circle bg-purple-light text-white me-2">
+                                                <i class="fas fa-info-circle"></i>
+                                            </span>
+                                            Additional Information
+                                        </h5>
+                                        <div class="content-box bg-white p-3 rounded-3 mt-2">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="fw-bold text-dark">PS Attribution:</div>
+                                                    <div class="text-dark">${narrative.ps_attribution || 'N/A'}</div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="fw-bold text-dark">Gender Issue:</div>
+                                                    <div class="text-dark">${narrative.gender_issue || 'N/A'}</div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <div class="fw-bold text-dark">Other Internal Participants:</div>
+                                                    <div class="text-dark">
+                                                        ${(() => {
+                                                            try {
+                                                                // Check if it's a JSON string and parse it
+                                                                if (narrative.other_internal_personnel && narrative.other_internal_personnel.includes('[')) {
+                                                                    const participants = JSON.parse(narrative.other_internal_personnel);
+                                                                    if (Array.isArray(participants)) {
+                                                                        return participants.join(', ');
+                                                                    }
+                                                                }
+                                                                return narrative.other_internal_personnel || 'N/A';
+                                                            } catch (e) {
+                                                                return narrative.other_internal_personnel || 'N/A';
+                                                            }
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 `;
-                                
+
                                 // Add photos if available
                                 // Ensure photoArray is an array by converting from string if needed
                                 let photoArray = [];
@@ -4007,93 +4843,126 @@ if($isCentral):
                                 if (narrative.photo_path && !photoArray.includes(narrative.photo_path)) {
                                     photoArray.push(narrative.photo_path);
                                 }
+                            
+                            if (photoArray.length > 0) {
+                                html += `
+                                    <div class="mb-4 narrative-section">
+                                        <h5 class="border-bottom pb-2 text-purple d-flex align-items-center">
+                                            <span class="section-icon rounded-circle bg-purple-light text-white me-2">
+                                                <i class="fas fa-camera"></i>
+                                            </span>
+                                            Photo Documentation
+                                        </h5>
+                                        <div class="row g-3 mt-2">
+                                `;
                                 
-                                if (photoArray.length > 0) {
-                                    html += `
-                                        <div class="mb-4 narrative-section">
-                                            <h5 class="border-bottom pb-2 text-purple d-flex align-items-center">
-                                                <span class="section-icon rounded-circle bg-purple-light text-white me-2">
-                                                    <i class="fas fa-camera"></i>
-                                                </span>
-                                                Photo Documentation
-                                            </h5>
-                                            <div class="row g-3 mt-2">
-                                    `;
-                                    
-                                    photoArray.forEach(photo => {
-                                        // Fix image path handling for display
-                                        let displayPath = photo;
-                                        if (!photo.includes('/') && !photo.includes('\\')) {
-                                            displayPath = '../photos/' + photo;
-                                        } else if (photo.includes('narrative_')) {
-                                            // If it contains narrative_ prefix and already has photos/ prefix, don't add another photos/
-                                            if (photo.startsWith('photos/')) {
-                                                displayPath = '../' + photo;
-                                            } else {
-                                                displayPath = '../photos/' + photo.replace('photos/', '');
-                                            }
+                                photoArray.forEach(photo => {
+                                    // Fix image path handling for display
+                                    let displayPath = photo;
+                                    if (!photo.includes('/') && !photo.includes('\\')) {
+                                        displayPath = '../photos/' + photo;
+                                    } else if (photo.includes('narrative_')) {
+                                        // If it contains narrative_ prefix and already has photos/ prefix, don't add another photos/
+                                        if (photo.startsWith('photos/')) {
+                                            displayPath = '../' + photo;
+                                        } else {
+                                            displayPath = '../photos/' + photo.replace('photos/', '');
                                         }
-                                        
-                                        console.log("View mode - Image path:", photo);
-                                        console.log("View mode - Display path:", displayPath);
-                                        
-                                        html += `
-                                            <div class="col-md-4 mb-3">
-                                                <div class="photo-card h-100 shadow-sm border border-purple-light border-opacity-25 rounded-3 overflow-hidden bg-white">
-                                                    <div class="position-relative">
-                                                        <img src="${displayPath}" alt="Photo documentation" class="img-fluid w-100 photo-img" 
-                                                            style="height: 200px; object-fit: cover;" onerror="this.onerror=null;this.src='../photos/${photo.includes('/') ? photo.split('/').pop() : photo}';
-                                                            if(this.src.includes('undefined')) this.src='https://via.placeholder.com/200x150?text=Image+Not+Found';">
-                                                        <div class="photo-overlay">
-                                                            <button class="btn btn-sm btn-light" onclick="window.open('${displayPath}', '_blank')">
-                                                                <i class="fas fa-search-plus"></i> View Full
-                                                            </button>
-                                                        </div>
+                                    }
+                                    
+                                    console.log("View mode - Image path:", photo);
+                                    console.log("View mode - Display path:", displayPath);
+                                    
+                                    html += `
+                                        <div class="col-md-4 mb-3">
+                                            <div class="photo-card h-100 shadow-sm border border-purple-light border-opacity-25 rounded-3 overflow-hidden bg-white">
+                                                <div class="position-relative">
+                                                    <img src="${displayPath}" alt="Photo documentation" class="img-fluid w-100 photo-img" 
+                                                        style="height: 200px; object-fit: cover;" onerror="this.onerror=null;this.src='../photos/${photo.includes('/') ? photo.split('/').pop() : photo}';
+                                                        if(this.src.includes('undefined')) this.src='https://via.placeholder.com/200x150?text=Image+Not+Found';">
+                                                    <div class="photo-overlay">
+                                                        <button class="btn btn-sm btn-light" onclick="window.open('${displayPath}', '_blank')">
+                                                            <i class="fas fa-search-plus"></i> View Full
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                        `;
-                                    });
-                                    
-                                    html += `
-                                            </div>
-                                            <p class="mt-3 fst-italic text-center text-muted">${narrative.photo_caption || 'No caption provided.'}</p>
                                         </div>
                                     `;
-                                }
-                                
-                                html += `</div></div></div>`;
-                                
-                                document.getElementById('narrativeDetailsModalBody').innerHTML = html;
-                                
-                                // Show the modal
-                                const detailsModal = new bootstrap.Modal(document.getElementById('narrativeDetailsModal'));
-                                detailsModal.show();
-                            } else {
-                                saveStatus.innerHTML = '<span class="text-danger">Error loading details</span>';
-                                setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
-                                
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: response.message || 'Failed to load narrative details'
                                 });
+                                
+                                html += `
+                                        </div>
+                                        <p class="mt-3 fst-italic text-center text-muted">${narrative.photo_caption || 'No caption provided.'}</p>
+                                    </div>
+                                `;
                             }
-                        },
-                        error: function(xhr) {
-                            saveStatus.innerHTML = '<span class="text-danger">Server error</span>';
-                            setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
                             
-                            console.error("AJAX Error:", xhr.responseText);
+                            html += `</div></div></div>`;
+                            
+                            document.getElementById('narrativeDetailsModalBody').innerHTML = html;
+                            
+                            // Show the modal
+                            // Add search functionality for details modal
+                            document.getElementById('narrativeDetailsModal').addEventListener('shown.bs.modal', function() {
+                                // Check if search bar already exists
+                                if (!document.getElementById('detailsSearchInput')) {
+                                  
+                                    document.getElementById('narrativeDetailsModalBody').prepend(searchBar);
+                                    
+                                    // Add search event listener
+                                    document.getElementById('detailsSearchInput').addEventListener('keyup', function() {
+                                        const searchText = this.value.toLowerCase();
+                                        const content = document.querySelector('#narrativeDetailsModalBody .narrative-details');
+                                        
+                                        // Get all text content from the modal
+                                        const allText = content.innerText.toLowerCase();
+                                        
+                                        // Highlight matching text
+                                        if (searchText.length > 2) {
+                                            // Remove any existing highlights
+                                            content.querySelectorAll('.highlight').forEach(el => {
+                                                const text = el.textContent;
+                                                const textNode = document.createTextNode(text);
+                                                el.parentNode.replaceChild(textNode, el);
+                                            });
+                                            
+                                            // Highlight text 
+                                            if (allText.includes(searchText)) {
+                                                highlightText(content, searchText);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                            
+                            const detailsModal = new bootstrap.Modal(document.getElementById('narrativeDetailsModal'));
+                            detailsModal.show();
+                        } else {
+                            saveStatus.innerHTML = '<span class="text-danger">Error loading details</span>';
+                            setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
                             
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Server Error',
-                                text: 'Failed to connect to the server. Please try again later.'
+                                title: 'Error',
+                                text: response.message || 'Failed to load narrative details'
                             });
                         }
-                    });
-                }
+                    },
+                    error: function(xhr) {
+                        saveStatus.innerHTML = '<span class="text-danger">Server error</span>';
+                        setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
+                        
+                        console.error("AJAX Error:", xhr.responseText);
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: 'Failed to connect to the server. Please try again later.'
+                        });
+                    }
+                });
+            }
 
             // Function to delete narrative
             function deleteNarrative() {
@@ -4189,8 +5058,8 @@ if($isCentral):
                                                 timer: 3000
                                             });
                                             
-                                            // Reload narratives list
-                                            loadNarratives();
+                                            // Refresh the whole page
+                                            window.location.reload();
                                         } else {
                                             saveStatus.innerHTML = '<span class="text-danger">Delete failed</span>';
                                             setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
@@ -4224,6 +5093,46 @@ if($isCentral):
                                     }
                                 });
                             };
+                            
+                            // Add search functionality to the delete modal
+                            document.getElementById('deleteNarrativeModal').addEventListener('shown.bs.modal', function() {
+                                // Check if search bar already exists
+                                if (!document.getElementById('deleteSearchInput')) {
+                                    // Add search bar to the top of modal body
+                                    const searchBar = document.createElement('div');
+                                    searchBar.className = 'form-group mb-3';
+                                    searchBar.innerHTML = `
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                            <input type="text" id="deleteSearchInput" class="form-control" placeholder="Search in confirmation...">
+                                        </div>
+                                    `;
+                                    
+                                    // Find first child of modal body and insert before it
+                                    const modalBody = document.getElementById('deleteNarrativeModalBody');
+                                    if (modalBody.firstChild) {
+                                        modalBody.insertBefore(searchBar, modalBody.firstChild);
+                                    } else {
+                                        modalBody.appendChild(searchBar);
+                                    }
+                                    
+                                    // Add search event listener
+                                    document.getElementById('deleteSearchInput').addEventListener('keyup', function() {
+                                        const searchText = this.value.toLowerCase();
+                                        if (searchText.length > 2) {
+                                            // Remove any existing highlights
+                                            modalBody.querySelectorAll('.highlight').forEach(el => {
+                                                const text = el.textContent;
+                                                const textNode = document.createTextNode(text);
+                                                el.parentNode.replaceChild(textNode, el);
+                                            });
+                                            
+                                            // Highlight text
+                                            highlightText(modalBody, searchText);
+                                        }
+                                    });
+                                }
+                            });
                             
                             // Show the modal
                             const deleteModal = new bootstrap.Modal(document.getElementById('deleteNarrativeModal'));
@@ -4384,8 +5293,9 @@ if($isCentral):
                                 const option = document.createElement('option');
                                 // Check if activity is an object (new format) or string (old format)
                                 if (typeof activity === 'object' && activity !== null) {
-                                    option.value = activity.title;
+                                    option.value = activity.id;  // Use the ID as the value
                                     option.textContent = activity.title;
+                                    option.dataset.title = activity.title;  // Store the title in a data attribute
                                     
                                     // Add red color to activities that already have narratives
                                     if (activity.has_narrative) {
@@ -4394,8 +5304,9 @@ if($isCentral):
                                     }
                                 } else {
                                     // Handle legacy format (string)
-                                    option.value = activity;
+                                    option.value = '';  // No ID available
                                     option.textContent = activity;
+                                    option.dataset.title = activity;
                                 }
                                 
                                 titleSelect.appendChild(option);
@@ -4600,8 +5511,9 @@ if($isCentral):
                                 const option = document.createElement('option');
                                 // Check if activity is an object (new format) or string (old format)
                                 if (typeof activity === 'object' && activity !== null) {
-                                    option.value = activity.title;
+                                    option.value = activity.id;  // Use the ID as the value
                                     option.textContent = activity.title;
+                                    option.dataset.title = activity.title;  // Store the title in a data attribute
                                     
                                     // Add red color to activities that already have narratives
                                     if (activity.has_narrative) {
@@ -4610,8 +5522,9 @@ if($isCentral):
                                     }
                                 } else {
                                     // Handle legacy format (string)
-                                    option.value = activity;
+                                    option.value = '';  // No ID available
                                     option.textContent = activity;
+                                    option.dataset.title = activity;
                                 }
                                 
                                 titleSelect.appendChild(option);
@@ -4649,1412 +5562,2221 @@ if($isCentral):
             
             // Function to load PS attribution and gender issue based on selected activity
             function loadActivityDetails() {
-                const activity = document.getElementById('title').value;
+                const titleSelect = document.getElementById('title');
+                const activity = titleSelect.value;
+                const year = document.getElementById('year').value;
                 
-                if (!activity) {
+                if (!activity || !year) {
                     return;
                 }
+                
+                // Show loading indicator
+                const genderIssueField = document.getElementById('genderIssue');
+                const psAttributionField = document.getElementById('psAttribution');
+                genderIssueField.value = 'Loading...';
+                psAttributionField.value = 'Loading...';
+                
+                console.log('Loading activity details:', { activity, year });
                 
                 $.ajax({
                     url: 'narrative_handler.php',
                     type: 'POST',
                     data: { 
                         action: 'get_activity_details',
-                        activity: activity
+                        activity: activity,
+                        year: year
                     },
                     dataType: 'json',
                     success: function(response) {
+                        console.log('Activity details response:', response);
+                        
                         if (response.success) {
-                            // Populate PS attribution, gender issue, and ppas_form_id fields
-                            document.getElementById('psAttribution').value = response.data.ps_attribution || '';
-                            document.getElementById('genderIssue').value = response.data.gender_issue || '';
-                            document.getElementById('ppas_form_id').value = response.data.ppas_form_id || '';
+                            // Populate PS attribution field
+                            psAttributionField.value = response.data.ps_attribution || '';
                             
-                            // If this was a fallback response (empty values), show a gentle notification
-                            if (response.status === 'fallback') {
-                                console.log("Activity details not found, using empty values");
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'No Activity Details',
-                                    text: 'No details found for this activity. Please fill in the PS Attribution and Gender Issue fields manually.',
-                                    toast: true,
-                                    position: 'top-end',
-                                    showConfirmButton: false,
-                                    timer: 5000
-                                });
+                            // Update gender issue field
+                            updateGenderIssueField(response.data.gender_issue);
+                            
+                            // Store ppas_form_id if available
+                            if (response.data.ppas_form_id) {
+                                document.getElementById('ppas_form_id').value = response.data.ppas_form_id;
                             }
-                        } else {
-                            console.error("Error loading activity details: " + response.message);
                             
-                            // Show a helpful error message to the user
+                            // Debug log
+                            console.log('Activity details loaded:', {
+                                activity: activity,
+                                year: year,
+                                gender_issue: response.data.gender_issue,
+                                ps_attribution: response.data.ps_attribution,
+                                ppas_form_id: response.data.ppas_form_id,
+                                gender_issue_id: response.data.gender_issue_id
+                            });
+                        } else {
+                            // Clear fields on error
+                            genderIssueField.value = '';
+                            psAttributionField.value = '';
+                            document.getElementById('ppas_form_id').value = '';
+                            
+                            console.error('Failed to load activity details:', response.message);
+                            
+                            // Show error in a small notification
                             Swal.fire({
                                 icon: 'warning',
-                                title: 'Activity Details Not Found',
-                                text: 'Could not find details for this activity. You can still continue with the narrative entry, but some fields may need to be filled in manually.',
+                                title: 'Warning',
+                                text: response.message || 'Could not load activity details',
                                 toast: true,
                                 position: 'top-end',
                                 showConfirmButton: false,
-                                timer: 5000
+                                timer: 3000
                             });
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error("AJAX Error (activity details): " + status + " - " + error);
-                        console.log("Response Text: " + xhr.responseText);
+                        // Clear fields on error
+                        genderIssueField.value = '';
+                        psAttributionField.value = '';
+                        document.getElementById('ppas_form_id').value = '';
                         
-                        // Show a general error message
+                        console.error('AJAX Error:', {
+                            status: status,
+                            error: error,
+                            response: xhr.responseText
+                        });
+                        
+                        // Show error notification
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Failed to load activity details due to a server error. Please try again later.',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 5000
-                        });
-                    }
-                });
-        }
-
-        // Add this function for evaluation table calculations
-        function setupEvaluationTableCalculations() {
-            // Get all rating inputs
-            const ratingInputs = document.querySelectorAll('.activity-rating');
-            const timelinessInputs = document.querySelectorAll('.timeliness-rating');
-            
-            // Add event listeners to all rating inputs
-            ratingInputs.forEach(input => {
-                input.addEventListener('input', calculateTotals);
-            });
-            
-            // Add event listeners to all timeliness inputs
-            timelinessInputs.forEach(input => {
-                input.addEventListener('input', calculateTimelinessTotal);
-            });
-            
-            // Calculate initial totals
-            calculateTotals();
-            calculateTimelinessTotal();
-        }
-        
-        function calculateTotals() {
-            // Calculate row totals (horizontally)
-            const rows = ['excellent', 'very', 'satisfactory', 'fair', 'poor'];
-            
-            rows.forEach(row => {
-                const batstateuInput = document.querySelector(`.activity-rating[data-row="${row}"][data-col="batstateu"]`);
-                const othersInput = document.querySelector(`.activity-rating[data-row="${row}"][data-col="others"]`);
-                const totalInput = document.querySelector(`.activity-total[data-row="${row}"]`);
-                
-                const batstateuValue = parseInt(batstateuInput.value) || 0;
-                const othersValue = parseInt(othersInput.value) || 0;
-                
-                totalInput.value = batstateuValue + othersValue;
-            });
-            
-            // Calculate column totals (vertically)
-            const cols = ['batstateu', 'others'];
-            
-            cols.forEach(col => {
-                let colTotal = 0;
-                
-                rows.forEach(row => {
-                    const input = document.querySelector(`.activity-rating[data-row="${row}"][data-col="${col}"]`);
-                    colTotal += parseInt(input.value) || 0;
-                });
-                
-                document.querySelector(`.activity-col-total[data-col="${col}"]`).value = colTotal;
-            });
-            
-            // Calculate grand total
-            let grandTotal = 0;
-            document.querySelectorAll('.activity-total').forEach(input => {
-                grandTotal += parseInt(input.value) || 0;
-            });
-            
-            document.querySelector('.activity-grand-total').value = grandTotal;
-            
-            // Update hidden evaluation field with JSON data
-            updateEvaluationData();
-        }
-
-        // Add function to calculate timeliness totals
-        function calculateTimelinessTotal() {
-            // Calculate row totals (horizontally)
-            const rows = ['excellent', 'very', 'satisfactory', 'fair', 'poor'];
-            
-            rows.forEach(row => {
-                const batstateuInput = document.querySelector(`.timeliness-rating[data-row="${row}"][data-col="batstateu"]`);
-                const othersInput = document.querySelector(`.timeliness-rating[data-row="${row}"][data-col="others"]`);
-                const totalInput = document.querySelector(`.timeliness-total[data-row="${row}"]`);
-                
-                const batstateuValue = parseInt(batstateuInput.value) || 0;
-                const othersValue = parseInt(othersInput.value) || 0;
-                
-                totalInput.value = batstateuValue + othersValue;
-            });
-            
-            // Calculate column totals (vertically)
-            const cols = ['batstateu', 'others'];
-            
-            cols.forEach(col => {
-                let colTotal = 0;
-                
-                rows.forEach(row => {
-                    const input = document.querySelector(`.timeliness-rating[data-row="${row}"][data-col="${col}"]`);
-                    colTotal += parseInt(input.value) || 0;
-                });
-                
-                document.querySelector(`.timeliness-col-total[data-col="${col}"]`).value = colTotal;
-            });
-            
-            // Calculate grand total
-            let grandTotal = 0;
-            document.querySelectorAll('.timeliness-total').forEach(input => {
-                grandTotal += parseInt(input.value) || 0;
-            });
-            
-            document.querySelector('.timeliness-grand-total').value = grandTotal;
-            
-            // Update hidden evaluation field with JSON data
-            updateEvaluationData();
-        }
-        
-        // Update function to format evaluation data for submission
-        function updateEvaluationData() {
-            // Activity ratings
-            const activityData = {
-                "Excellent": {
-                    "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value) || 0
-                },
-                "Very Satisfactory": {
-                    "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value) || 0
-                },
-                "Satisfactory": {
-                    "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value) || 0
-                },
-                "Fair": {
-                    "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value) || 0
-                },
-                "Poor": {
-                    "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value) || 0
-                }
-            };
-            
-            // Timeliness ratings
-            const timelinessData = {
-                "Excellent": {
-                    "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="excellent"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.timeliness-rating[data-row="excellent"][data-col="others"]').value) || 0
-                },
-                "Very Satisfactory": {
-                    "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="very"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.timeliness-rating[data-row="very"][data-col="others"]').value) || 0
-                },
-                "Satisfactory": {
-                    "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="others"]').value) || 0
-                },
-                "Fair": {
-                    "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="fair"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.timeliness-rating[data-row="fair"][data-col="others"]').value) || 0
-                },
-                "Poor": {
-                    "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="poor"][data-col="batstateu"]').value) || 0,
-                    "Others": parseInt(document.querySelector('.timeliness-rating[data-row="poor"][data-col="others"]').value) || 0
-                }
-            };
-            
-            // Store activity ratings in a hidden field
-            if (!document.getElementById('activity_ratings')) {
-                const activityField = document.createElement('input');
-                activityField.type = 'hidden';
-                activityField.id = 'activity_ratings';
-                activityField.name = 'activity_ratings';
-                document.getElementById('narrativeForm').appendChild(activityField);
-            }
-            document.getElementById('activity_ratings').value = JSON.stringify(activityData);
-            
-            // Store timeliness ratings in a hidden field
-            if (!document.getElementById('timeliness_ratings')) {
-                const timelinessField = document.createElement('input');
-                timelinessField.type = 'hidden';
-                timelinessField.id = 'timeliness_ratings';
-                timelinessField.name = 'timeliness_ratings';
-                document.getElementById('narrativeForm').appendChild(timelinessField);
-            }
-            document.getElementById('timeliness_ratings').value = JSON.stringify(timelinessData);
-            
-            // For backward compatibility, still keep the combined evaluation field
-            const evalData = {
-                activity: activityData,
-                timeliness: timelinessData
-            };
-            document.getElementById('evaluation').value = JSON.stringify(evalData);
-        }
-        
-        // Modify the setupPhotoUploads function to add year and activity constraints
-        function setupPhotoUploads() {
-            const photoInput = document.getElementById('photoUpload');
-            const uploadLabel = document.querySelector('.custom-file-upload label');
-            
-            if (photoInput && uploadLabel) {
-                // Initially disable the upload button
-                updatePhotoUploadState();
-                
-                // Add event listener to the photo upload input
-                photoInput.addEventListener('change', function(e) {
-                    // First check if year and activity are selected
-                    if (!validateYearAndActivity()) {
-                        e.preventDefault();
-                        resetFileInput(this);
-                        return;
-                    }
-                    
-                    // Auto-upload images when selected
-                    if (this.files && this.files.length > 0) {
-                        // Clear existing images first when new ones are selected
-                        if (!window.currentNarrativeId || window.currentNarrativeId === '0') {
-                            const previewContainer = document.getElementById('photoPreviewContainer');
-                            previewContainer.innerHTML = '';
-                        }
-                        
-                        uploadImages(this.files);
-                    }
-                });
-                
-                // Add event listeners to year and activity dropdowns to update upload state
-                const yearSelect = document.getElementById('year');
-                const titleSelect = document.getElementById('title');
-                
-                if (yearSelect) {
-                    yearSelect.addEventListener('change', updatePhotoUploadState);
-                }
-                
-                if (titleSelect) {
-                    titleSelect.addEventListener('change', updatePhotoUploadState);
-                }
-                
-                // Initialize uploadedImagePaths array
-                window.uploadedImagePaths = window.uploadedImagePaths || [];
-            }
-        }
-        
-        // Function to validate year and activity selection
-        function validateYearAndActivity() {
-            const yearSelect = document.getElementById('year');
-            const titleSelect = document.getElementById('title');
-            
-            if (!yearSelect.value || yearSelect.value === '') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Year Required',
-                    text: 'Please select a year before uploading images',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return false;
-            }
-            
-            if (!titleSelect.value || titleSelect.value === '') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Activity Required',
-                    text: 'Please select an activity before uploading images',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return false;
-            }
-            
-            return true;
-        }
-        
-        // Function to update photo upload button state based on selections
-        function updatePhotoUploadState() {
-            const yearSelect = document.getElementById('year');
-            const titleSelect = document.getElementById('title');
-            const uploadLabel = document.querySelector('.custom-file-upload label');
-            const photoInput = document.getElementById('photoUpload');
-            const uploadContainer = document.querySelector('.custom-file-upload');
-            
-            if (yearSelect && titleSelect && uploadLabel && photoInput && uploadContainer) {
-                if (!yearSelect.value || !titleSelect.value) {
-                    // Disable upload
-                    photoInput.disabled = true;
-                    uploadContainer.classList.add('disabled');
-                    uploadLabel.title = 'Please select year and activity first';
-                } else {
-                    // Enable upload
-                    photoInput.disabled = false;
-                    uploadContainer.classList.remove('disabled');
-                    uploadLabel.title = 'Upload images';
-                }
-            }
-        }
-        
-        // Helper function to reset file input
-        function resetFileInput(input) {
-            input.value = '';
-        }
-        
-        // Update loadNarrativeForEdit function to handle the new evaluation data format
-        function loadNarrativeForEdit(narrativeId) {
-            // Show loading indicator
-            const saveStatus = document.getElementById('save-status');
-            saveStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"><span class="visually-hidden">Loading...</span></div><span>Loading narrative data...</span></div>';
-            
-            // Add loading overlay to form
-            const formContainer = document.querySelector('.card-body');
-            const overlay = document.createElement('div');
-            overlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.1)';
-            overlay.style.zIndex = '10';
-            overlay.style.borderRadius = 'inherit';
-            overlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
-            overlay.id = 'form-loading-overlay';
-            formContainer.style.position = 'relative';
-            formContainer.appendChild(overlay);
-            
-            $.ajax({
-                url: 'narrative_handler.php',
-                type: 'POST',
-                data: { 
-                    action: 'get_single',
-                    id: narrativeId
-                },
-                dataType: 'json',
-                success: function(response) {
-                    // Remove loading overlay
-                    const overlay = document.getElementById('form-loading-overlay');
-                    if (overlay) {
-                        overlay.remove();
-                    }
-                    
-                    // Clear status message
-                    saveStatus.innerHTML = '';
-                    
-                    if (response.success) {
-                        const narrative = response.data;
-                        console.log("Loaded narrative data:", narrative);
-                        
-                        // First populate the campus dropdown
-                        const campusSelect = document.getElementById('campus');
-                        campusSelect.value = narrative.campus;
-                        
-                        // Store the narrative ID globally
-                        window.currentNarrativeId = narrativeId;
-                        document.getElementById('narrative_id').value = narrativeId;
-                        
-                        // Then load years for this campus
-                        loadYearsForCampus(narrative.campus, function() {
-                            // Once years are loaded, set the year
-                            document.getElementById('year').value = narrative.year;
-                            
-                            // Then load activities for this campus and year
-                            loadActivitiesForCampusAndYear(function() {
-                                // Once activities are loaded, set the title
-                                const titleSelect = document.getElementById('title');
-                                // Handle case where title might be an object
-                                titleSelect.value = narrative.title;
-                                // Make the title field read-only in edit mode
-                                titleSelect.setAttribute('readonly', 'readonly');
-                                titleSelect.classList.add('bg-light');
-                                titleSelect.style.opacity = '0.8';
-                                titleSelect.style.color = '#333'; // Darker color that works in both light and dark mode
-                                titleSelect.style.borderColor = '#6c757d'; // Grey border to indicate read-only
-                                // Add a visual indicator that it's read-only
-                                titleSelect.style.cursor = 'not-allowed';
-                                // Add a note about read-only status
-                                const titleFormGroup = titleSelect.closest('.form-group') || titleSelect.closest('.mb-3') || titleSelect.parentElement;
-                                // Only add the note if the parent element exists
-                                if (titleFormGroup) {
-                                    // Only add the note if it doesn't already exist
-                                    if (!titleFormGroup.querySelector('.form-text.text-muted')) {
-                                        const readOnlyNote = document.createElement('small');
-                                        readOnlyNote.className = 'form-text text-muted';
-                                        readOnlyNote.textContent = 'Activity cannot be changed in edit mode';
-                                        titleFormGroup.appendChild(readOnlyNote);
-                                    }
-                                }
-                                
-                                // Populate the rest of the form fields
-                                document.getElementById('background').value = narrative.background || '';
-                                document.getElementById('participants').value = narrative.participants || '';
-                                document.getElementById('topics').value = narrative.topics || '';
-                                document.getElementById('results').value = narrative.results || '';
-                                document.getElementById('lessons').value = narrative.lessons || '';
-                                document.getElementById('whatWorked').value = narrative.what_worked || '';
-                                document.getElementById('issues').value = narrative.issues || '';
-                                document.getElementById('recommendations').value = narrative.recommendations || '';
-                                document.getElementById('psAttribution').value = narrative.ps_attribution || '';
-                                document.getElementById('evaluation').value = narrative.evaluation || '';
-                                document.getElementById('photoCaption').value = narrative.photo_caption || '';
-                                document.getElementById('genderIssue').value = narrative.gender_issue || '';
-                                
-                                // Scroll to top of form
-                                document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                
-                                // Clear existing photo previews
-                                const previewContainer = document.getElementById('photoPreviewContainer');
-                                previewContainer.innerHTML = '';
-                                
-                                // Show existing photo previews if available
-                                // Ensure photoArray is an array by converting from string if needed
-                                let photoArray = [];
-                                if (typeof narrative.photo_paths === 'string' && narrative.photo_paths) {
-                                    try {
-                                        photoArray = JSON.parse(narrative.photo_paths);
-                                    } catch (e) {
-                                        console.warn('Failed to parse photo_paths as JSON:', e);
-                                        photoArray = [];
-                                    }
-                                } else if (Array.isArray(narrative.photo_paths)) {
-                                    photoArray = narrative.photo_paths;
-                                }
-                                
-                                // Add the main photo path if it's not already included
-                                if (narrative.photo_path && !photoArray.includes(narrative.photo_path)) {
-                                    photoArray.push(narrative.photo_path);
-                                }
-                                
-                                console.log("Photo paths:", photoArray);
-                                
-                                if (photoArray.length > 0) {
-                                    previewUploadedImages(photoArray);
-                                }
-                                
-                                // Process evaluation data
-                                try {
-                                    if (narrative.evaluation) {
-                                        const evalData = JSON.parse(narrative.evaluation);
-                                        console.log("Evaluation data:", evalData);
-                                        
-                                        // Check for new format (activity and timeliness properties)
-                                        if (evalData.activity) {
-                                            // Handle new format
-                                            
-                                            // Populate activity ratings
-                                            if (evalData.activity["Excellent"]) {
-                                                document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value = 
-                                                    evalData.activity["Excellent"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value = 
-                                                    evalData.activity["Excellent"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData.activity["Very Satisfactory"]) {
-                                                document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value = 
-                                                    evalData.activity["Very Satisfactory"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value = 
-                                                    evalData.activity["Very Satisfactory"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData.activity["Satisfactory"]) {
-                                                document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
-                                                    evalData.activity["Satisfactory"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value = 
-                                                    evalData.activity["Satisfactory"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData.activity["Fair"]) {
-                                                document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value = 
-                                                    evalData.activity["Fair"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value = 
-                                                    evalData.activity["Fair"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData.activity["Poor"]) {
-                                                document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value = 
-                                                    evalData.activity["Poor"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value = 
-                                                    evalData.activity["Poor"]["Others"] || 0;
-                                            }
-                                            
-                                            // Populate timeliness ratings if available
-                                            if (evalData.timeliness) {
-                                                if (evalData.timeliness["Excellent"]) {
-                                                    document.querySelector('.timeliness-rating[data-row="excellent"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness["Excellent"]["BatStateU"] || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="excellent"][data-col="others"]').value = 
-                                                        evalData.timeliness["Excellent"]["Others"] || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness["Very Satisfactory"]) {
-                                                    document.querySelector('.timeliness-rating[data-row="very"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness["Very Satisfactory"]["BatStateU"] || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="very"][data-col="others"]').value = 
-                                                        evalData.timeliness["Very Satisfactory"]["Others"] || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness["Satisfactory"]) {
-                                                    document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness["Satisfactory"]["BatStateU"] || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="others"]').value = 
-                                                        evalData.timeliness["Satisfactory"]["Others"] || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness["Fair"]) {
-                                                    document.querySelector('.timeliness-rating[data-row="fair"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness["Fair"]["BatStateU"] || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="fair"][data-col="others"]').value = 
-                                                        evalData.timeliness["Fair"]["Others"] || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness["Poor"]) {
-                                                    document.querySelector('.timeliness-rating[data-row="poor"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness["Poor"]["BatStateU"] || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="poor"][data-col="others"]').value = 
-                                                        evalData.timeliness["Poor"]["Others"] || 0;
-                                                }
-                                            }
-                                        } 
-                                        // Handle old format (ratings and timeliness properties)
-                                        else if (evalData.ratings) {
-                                            // Populate activity ratings
-                                            if (evalData.ratings.excellent) {
-                                                document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value = 
-                                                    evalData.ratings.excellent.batstateu || 0;
-                                                document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value = 
-                                                    evalData.ratings.excellent.others || 0;
-                                            }
-                                            
-                                            if (evalData.ratings.very_satisfactory) {
-                                                document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value = 
-                                                    evalData.ratings.very_satisfactory.batstateu || 0;
-                                                document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value = 
-                                                    evalData.ratings.very_satisfactory.others || 0;
-                                            }
-                                            
-                                            if (evalData.ratings.satisfactory) {
-                                                document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
-                                                    evalData.ratings.satisfactory.batstateu || 0;
-                                                document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value = 
-                                                    evalData.ratings.satisfactory.others || 0;
-                                            }
-                                            
-                                            if (evalData.ratings.fair) {
-                                                document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value = 
-                                                    evalData.ratings.fair.batstateu || 0;
-                                                document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value = 
-                                                    evalData.ratings.fair.others || 0;
-                                            }
-                                            
-                                            if (evalData.ratings.poor) {
-                                                document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value = 
-                                                    evalData.ratings.poor.batstateu || 0;
-                                                document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value = 
-                                                    evalData.ratings.poor.others || 0;
-                                            }
-                                            
-                                            // Populate timeliness ratings if available
-                                            if (evalData.timeliness) {
-                                                if (evalData.timeliness.excellent) {
-                                                    document.querySelector('.timeliness-rating[data-row="excellent"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness.excellent.batstateu || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="excellent"][data-col="others"]').value = 
-                                                        evalData.timeliness.excellent.others || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness.very_satisfactory) {
-                                                    document.querySelector('.timeliness-rating[data-row="very"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness.very_satisfactory.batstateu || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="very"][data-col="others"]').value = 
-                                                        evalData.timeliness.very_satisfactory.others || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness.satisfactory) {
-                                                    document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness.satisfactory.batstateu || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="others"]').value = 
-                                                        evalData.timeliness.satisfactory.others || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness.fair) {
-                                                    document.querySelector('.timeliness-rating[data-row="fair"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness.fair.batstateu || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="fair"][data-col="others"]').value = 
-                                                        evalData.timeliness.fair.others || 0;
-                                                }
-                                                
-                                                if (evalData.timeliness.poor) {
-                                                    document.querySelector('.timeliness-rating[data-row="poor"][data-col="batstateu"]').value = 
-                                                        evalData.timeliness.poor.batstateu || 0;
-                                                    document.querySelector('.timeliness-rating[data-row="poor"][data-col="others"]').value = 
-                                                        evalData.timeliness.poor.others || 0;
-                                                }
-                                            }
-                                        }
-                                        // Handle direct object format (Excellent, Very Satisfactory, etc.)
-                                        else if (evalData["Excellent"] || evalData["Fair"] || evalData["Poor"] || evalData["Satisfactory"] || evalData["Very Satisfactory"]) {
-                                            // This is the simplest format with just the ratings
-                                            if (evalData["Excellent"]) {
-                                                document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value = 
-                                                    evalData["Excellent"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value = 
-                                                    evalData["Excellent"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData["Very Satisfactory"]) {
-                                                document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value = 
-                                                    evalData["Very Satisfactory"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value = 
-                                                    evalData["Very Satisfactory"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData["Satisfactory"]) {
-                                                document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
-                                                    evalData["Satisfactory"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value = 
-                                                    evalData["Satisfactory"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData["Fair"]) {
-                                                document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value = 
-                                                    evalData["Fair"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value = 
-                                                    evalData["Fair"]["Others"] || 0;
-                                            }
-                                            
-                                            if (evalData["Poor"]) {
-                                                document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value = 
-                                                    evalData["Poor"]["BatStateU"] || 0;
-                                                document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value = 
-                                                    evalData["Poor"]["Others"] || 0;
-                                            }
-                                        }
-                                        
-                                        // Recalculate totals
-                                        calculateTotals();
-                                        calculateTimelinessTotal();
-                                    }
-                                } catch (e) {
-                                    console.error("Error parsing evaluation data:", e);
-                                    // If there's an error, just set the raw value to the hidden field
-                                    document.getElementById('evaluation').value = narrative.evaluation || '';
-                                }
-                                
-                                // After populating data, enable photo upload if both year and activity are set
-                                updatePhotoUploadState();
-                            });
-                        });
-                    } else {
-                        saveStatus.innerHTML = '<span class="badge bg-danger">Error: Failed to load data</span>';
-                        setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
-                        
-                        console.error("Error loading narrative:", response.message);
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to load narrative data',
+                            text: 'Failed to load activity details. Please try again.',
                             toast: true,
                             position: 'top-end',
                             showConfirmButton: false,
                             timer: 3000
                         });
                     }
-                },
-                error: function(xhr) {
-                    // Remove loading overlay
-                    const overlay = document.getElementById('form-loading-overlay');
-                    if (overlay) {
-                        overlay.remove();
+                });
+            }
+
+            // Add this function for evaluation table calculations
+            function setupEvaluationTableCalculations() {
+                // Get all rating inputs
+                const ratingInputs = document.querySelectorAll('.activity-rating');
+                const timelinessInputs = document.querySelectorAll('.timeliness-rating');
+                
+                // Add event listeners to all rating inputs
+                ratingInputs.forEach(input => {
+                    input.addEventListener('input', calculateTotals);
+                });
+                
+                // Add event listeners to all timeliness inputs
+                timelinessInputs.forEach(input => {
+                    input.addEventListener('input', calculateTimelinessTotal);
+                });
+                
+                // Calculate initial totals
+                calculateTotals();
+                calculateTimelinessTotal();
+            }
+            
+            function calculateTotals() {
+                // Calculate row totals (horizontally)
+                const rows = ['excellent', 'very', 'satisfactory', 'fair', 'poor'];
+                
+                rows.forEach(row => {
+                    const batstateuInput = document.querySelector(`.activity-rating[data-row="${row}"][data-col="batstateu"]`);
+                    const othersInput = document.querySelector(`.activity-rating[data-row="${row}"][data-col="others"]`);
+                    const totalInput = document.querySelector(`.activity-total[data-row="${row}"]`);
+                    
+                    const batstateuValue = parseInt(batstateuInput.value) || 0;
+                    const othersValue = parseInt(othersInput.value) || 0;
+                    
+                    totalInput.value = batstateuValue + othersValue;
+                });
+                
+                // Calculate column totals (vertically)
+                const cols = ['batstateu', 'others'];
+                
+                cols.forEach(col => {
+                    let colTotal = 0;
+                    
+                    rows.forEach(row => {
+                        const input = document.querySelector(`.activity-rating[data-row="${row}"][data-col="${col}"]`);
+                        colTotal += parseInt(input.value) || 0;
+                    });
+                    
+                    document.querySelector(`.activity-col-total[data-col="${col}"]`).value = colTotal;
+                });
+                
+                // Calculate grand total
+                let grandTotal = 0;
+                document.querySelectorAll('.activity-total').forEach(input => {
+                    grandTotal += parseInt(input.value) || 0;
+                });
+                
+                document.querySelector('.activity-grand-total').value = grandTotal;
+                
+                // Update hidden evaluation field with JSON data
+                updateEvaluationData();
+            }
+
+            // Add function to calculate timeliness totals
+            function calculateTimelinessTotal() {
+                // Calculate row totals (horizontally)
+                const rows = ['excellent', 'very', 'satisfactory', 'fair', 'poor'];
+                
+                rows.forEach(row => {
+                    const batstateuInput = document.querySelector(`.timeliness-rating[data-row="${row}"][data-col="batstateu"]`);
+                    const othersInput = document.querySelector(`.timeliness-rating[data-row="${row}"][data-col="others"]`);
+                    const totalInput = document.querySelector(`.timeliness-total[data-row="${row}"]`);
+                    
+                    const batstateuValue = parseInt(batstateuInput.value) || 0;
+                    const othersValue = parseInt(othersInput.value) || 0;
+                    
+                    totalInput.value = batstateuValue + othersValue;
+                });
+                
+                // Calculate column totals (vertically)
+                const cols = ['batstateu', 'others'];
+                
+                cols.forEach(col => {
+                    let colTotal = 0;
+                    
+                    rows.forEach(row => {
+                        const input = document.querySelector(`.timeliness-rating[data-row="${row}"][data-col="${col}"]`);
+                        colTotal += parseInt(input.value) || 0;
+                    });
+                    
+                    document.querySelector(`.timeliness-col-total[data-col="${col}"]`).value = colTotal;
+                });
+                
+                // Calculate grand total
+                let grandTotal = 0;
+                document.querySelectorAll('.timeliness-total').forEach(input => {
+                    grandTotal += parseInt(input.value) || 0;
+                });
+                
+                document.querySelector('.timeliness-grand-total').value = grandTotal;
+                
+                // Update hidden evaluation field with JSON data
+                updateEvaluationData();
+            }
+            
+            // Update function to format evaluation data for submission
+            function updateEvaluationData() {
+                // Activity ratings
+                const activityData = {
+                    "Excellent": {
+                        "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value) || 0
+                    },
+                    "Very Satisfactory": {
+                        "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value) || 0
+                    },
+                    "Satisfactory": {
+                        "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value) || 0
+                    },
+                    "Fair": {
+                        "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value) || 0
+                    },
+                    "Poor": {
+                        "BatStateU": parseInt(document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value) || 0
+                    }
+                };
+                
+                // Timeliness ratings
+                const timelinessData = {
+                    "Excellent": {
+                        "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="excellent"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.timeliness-rating[data-row="excellent"][data-col="others"]').value) || 0
+                    },
+                    "Very Satisfactory": {
+                        "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="very"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.timeliness-rating[data-row="very"][data-col="others"]').value) || 0
+                    },
+                    "Satisfactory": {
+                        "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="others"]').value) || 0
+                    },
+                    "Fair": {
+                        "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="fair"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.timeliness-rating[data-row="fair"][data-col="others"]').value) || 0
+                    },
+                    "Poor": {
+                        "BatStateU": parseInt(document.querySelector('.timeliness-rating[data-row="poor"][data-col="batstateu"]').value) || 0,
+                        "Others": parseInt(document.querySelector('.timeliness-rating[data-row="poor"][data-col="others"]').value) || 0
+                    }
+                };
+                
+                // Store activity ratings in a hidden field
+                if (!document.getElementById('activity_ratings')) {
+                    const activityField = document.createElement('input');
+                    activityField.type = 'hidden';
+                    activityField.id = 'activity_ratings';
+                    activityField.name = 'activity_ratings';
+                    document.getElementById('narrativeForm').appendChild(activityField);
+                }
+                document.getElementById('activity_ratings').value = JSON.stringify(activityData);
+                
+                // Store timeliness ratings in a hidden field
+                if (!document.getElementById('timeliness_ratings')) {
+                    const timelinessField = document.createElement('input');
+                    timelinessField.type = 'hidden';
+                    timelinessField.id = 'timeliness_ratings';
+                    timelinessField.name = 'timeliness_ratings';
+                    document.getElementById('narrativeForm').appendChild(timelinessField);
+                }
+                document.getElementById('timeliness_ratings').value = JSON.stringify(timelinessData);
+                
+                // For backward compatibility, still keep the combined evaluation field
+                const evalData = {
+                    activity: activityData,
+                    timeliness: timelinessData
+                };
+                document.getElementById('evaluation').value = JSON.stringify(evalData);
+            }
+            
+            // Modify the setupPhotoUploads function to add year and activity constraints
+            function setupPhotoUploads() {
+                const photoInput = document.getElementById('photoUpload');
+                const uploadLabel = document.querySelector('.custom-file-upload label');
+                
+                if (photoInput && uploadLabel) {
+                    // Initially disable the upload button
+                    updatePhotoUploadState();
+                    
+                    // Add event listener to the photo upload input
+                    photoInput.addEventListener('change', function(e) {
+                        // First check if year and activity are selected
+                        if (!validateYearAndActivity()) {
+                            e.preventDefault();
+                            resetFileInput(this);
+                            return;
+                        }
+                        
+                        // Auto-upload images when selected
+                        if (this.files && this.files.length > 0) {
+                            // Clear existing images first when new ones are selected
+                            if (!window.currentNarrativeId || window.currentNarrativeId === '0') {
+                                const previewContainer = document.getElementById('photoPreviewContainer');
+                                previewContainer.innerHTML = '';
+                            }
+                            
+                            uploadImages(this.files);
+                        }
+                    });
+                    
+                    // Add event listeners to year and activity dropdowns to update upload state
+                    const yearSelect = document.getElementById('year');
+                    const titleSelect = document.getElementById('title');
+                    
+                    if (yearSelect) {
+                        yearSelect.addEventListener('change', updatePhotoUploadState);
                     }
                     
-                    // Show error message
-                    saveStatus.innerHTML = '<span class="badge bg-danger">Server error</span>';
-                    setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
+                    if (titleSelect) {
+                        titleSelect.addEventListener('change', updatePhotoUploadState);
+                    }
                     
-                    console.error("AJAX Error:", xhr.responseText);
-                    
+                    // Initialize uploadedImagePaths array
+                    window.uploadedImagePaths = window.uploadedImagePaths || [];
+                }
+            }
+            
+            // Function to validate year and activity selection
+            function validateYearAndActivity() {
+                const yearSelect = document.getElementById('year');
+                const titleSelect = document.getElementById('title');
+                
+                if (!yearSelect.value || yearSelect.value === '') {
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Server error while loading narrative data',
+                        icon: 'warning',
+                        title: 'Year Required',
+                        text: 'Please select a year before uploading images',
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
                         timer: 3000
                     });
+                    return false;
                 }
-            });
-        }
-        
-        // Update showNarrativeDetails to display the new evaluation table format
-        function showNarrativeDetails(narrativeId) {
-            // Existing code...
+                
+                if (!titleSelect.value || titleSelect.value === '') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Activity Required',
+                        text: 'Please select an activity before uploading images',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                    return false;
+                }
+                
+                return true;
+            }
             
-            // Inside the success callback, modify the HTML generation for evaluation display
-            if (response.success) {
-                // Existing HTML generation...
+            // Function to update photo upload button state based on selections
+            function updatePhotoUploadState() {
+                const yearSelect = document.getElementById('year');
+                const titleSelect = document.getElementById('title');
+                const uploadLabel = document.querySelector('.custom-file-upload label');
+                const photoInput = document.getElementById('photoUpload');
+                const uploadContainer = document.querySelector('.custom-file-upload');
                 
-                html += `<div class="mt-3"><h6>Evaluation Results:</h6>`;
+                if (yearSelect && titleSelect && uploadLabel && photoInput && uploadContainer) {
+                    if (!yearSelect.value || !titleSelect.value) {
+                        // Disable upload
+                        photoInput.disabled = true;
+                        uploadContainer.classList.add('disabled');
+                        uploadLabel.title = 'Please select year and activity first';
+                    } else {
+                        // Enable upload
+                        photoInput.disabled = false;
+                        uploadContainer.classList.remove('disabled');
+                        uploadLabel.title = 'Upload images';
+                    }
+                }
+            }
+            
+            // Helper function to reset file input
+            function resetFileInput(input) {
+                input.value = '';
+            }
+            
+            // Update loadNarrativeForEdit function to handle the new evaluation data format
+            function loadNarrativeForEdit(narrativeId) {
+                // Show loading indicator
+                const saveStatus = document.getElementById('save-status');
+                saveStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"><span class="visually-hidden">Loading...</span></div><span>Loading narrative data...</span></div>';
                 
-                // Check if evaluation data exists and is in JSON format
-                try {
-                    if (narrative.evaluation) {
-                        const evalData = JSON.parse(narrative.evaluation);
+                // Add loading overlay to form
+                const formContainer = document.querySelector('.card-body');
+                const overlay = document.createElement('div');
+                overlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.1)';
+                overlay.style.zIndex = '10';
+                overlay.style.borderRadius = 'inherit';
+                overlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
+                overlay.id = 'form-loading-overlay';
+                formContainer.style.position = 'relative';
+                formContainer.appendChild(overlay);
+                
+                $.ajax({
+                    url: 'narrative_handler.php',
+                    type: 'POST',
+                    data: { 
+                        action: 'get_single',
+                        id: narrativeId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        // Remove loading overlay
+                        const overlay = document.getElementById('form-loading-overlay');
+                        if (overlay) {
+                            overlay.remove();
+                        }
                         
-                        // Check for new format (activity property)
-                        if (evalData.activity) {
-                            // Display activity ratings table
-                            html += `
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" style="width: 25%">Scale</th>
-                                            <th scope="col">BatStateU Participants</th>
-                                            <th scope="col">Participants from other Institutions</th>
-                                            <th scope="col" style="width: 15%">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <th scope="row">Excellent</th>
-                                            <td>${evalData.activity["Excellent"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData.activity["Excellent"]?.["Others"] || 0}</td>
-                                            <td>${(evalData.activity["Excellent"]?.["BatStateU"] || 0) + (evalData.activity["Excellent"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Very Satisfactory</th>
-                                            <td>${evalData.activity["Very Satisfactory"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData.activity["Very Satisfactory"]?.["Others"] || 0}</td>
-                                            <td>${(evalData.activity["Very Satisfactory"]?.["BatStateU"] || 0) + (evalData.activity["Very Satisfactory"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Satisfactory</th>
-                                            <td>${evalData.activity["Satisfactory"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData.activity["Satisfactory"]?.["Others"] || 0}</td>
-                                            <td>${(evalData.activity["Satisfactory"]?.["BatStateU"] || 0) + (evalData.activity["Satisfactory"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Fair</th>
-                                            <td>${evalData.activity["Fair"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData.activity["Fair"]?.["Others"] || 0}</td>
-                                            <td>${(evalData.activity["Fair"]?.["BatStateU"] || 0) + (evalData.activity["Fair"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Poor</th>
-                                            <td>${evalData.activity["Poor"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData.activity["Poor"]?.["Others"] || 0}</td>
-                                            <td>${(evalData.activity["Poor"]?.["BatStateU"] || 0) + (evalData.activity["Poor"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            `;
+                        // Clear status message
+                        saveStatus.innerHTML = '';
+                        
+                        if (response.success) {
+                            const narrative = response.data;
+                            console.log("Loaded narrative data:", narrative);
                             
-                            // Display timeliness ratings table if available
-                            if (evalData.timeliness) {
-                                html += `
-                                <div class="mt-4">
-                                    <label class="form-label">Number of Beneficiaries who rated The Timeliness of the activity as:</label>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col" style="width: 25%">Scale</th>
-                                                    <th scope="col">BatStateU Participants</th>
-                                                    <th scope="col">Participants from other Institutions</th>
-                                                    <th scope="col" style="width: 15%">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">Excellent</th>
-                                                    <td>${evalData.timeliness["Excellent"]?.["BatStateU"] || 0}</td>
-                                                    <td>${evalData.timeliness["Excellent"]?.["Others"] || 0}</td>
-                                                    <td>${(evalData.timeliness["Excellent"]?.["BatStateU"] || 0) + (evalData.timeliness["Excellent"]?.["Others"] || 0)}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Very Satisfactory</th>
-                                                    <td>${evalData.timeliness["Very Satisfactory"]?.["BatStateU"] || 0}</td>
-                                                    <td>${evalData.timeliness["Very Satisfactory"]?.["Others"] || 0}</td>
-                                                    <td>${(evalData.timeliness["Very Satisfactory"]?.["BatStateU"] || 0) + (evalData.timeliness["Very Satisfactory"]?.["Others"] || 0)}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Satisfactory</th>
-                                                    <td>${evalData.timeliness["Satisfactory"]?.["BatStateU"] || 0}</td>
-                                                    <td>${evalData.timeliness["Satisfactory"]?.["Others"] || 0}</td>
-                                                    <td>${(evalData.timeliness["Satisfactory"]?.["BatStateU"] || 0) + (evalData.timeliness["Satisfactory"]?.["Others"] || 0)}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Fair</th>
-                                                    <td>${evalData.timeliness["Fair"]?.["BatStateU"] || 0}</td>
-                                                    <td>${evalData.timeliness["Fair"]?.["Others"] || 0}</td>
-                                                    <td>${(evalData.timeliness["Fair"]?.["BatStateU"] || 0) + (evalData.timeliness["Fair"]?.["Others"] || 0)}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Poor</th>
-                                                    <td>${evalData.timeliness["Poor"]?.["BatStateU"] || 0}</td>
-                                                    <td>${evalData.timeliness["Poor"]?.["Others"] || 0}</td>
-                                                    <td>${(evalData.timeliness["Poor"]?.["BatStateU"] || 0) + (evalData.timeliness["Poor"]?.["Others"] || 0)}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            // First populate the campus dropdown
+                            const campusSelect = document.getElementById('campus');
+                            campusSelect.value = narrative.campus;
+                            
+                            // Store the narrative ID globally
+                            window.currentNarrativeId = narrativeId;
+                            document.getElementById('narrative_id').value = narrativeId;
+                            
+                            // Then load years for this campus
+                            loadYearsForCampus(narrative.campus, function() {
+                                // Once years are loaded, set the year
+                                document.getElementById('year').value = narrative.year;
+                                
+                                // Then load activities for this campus and year
+                                loadActivitiesForCampusAndYear(function() {
+                                    // Once activities are loaded, set the title
+                                    const titleSelect = document.getElementById('title');
+                                    // Handle case where title might be an object
+                                    titleSelect.value = narrative.title;
+                                    // Make the title field read-only in edit mode
+                                    titleSelect.setAttribute('readonly', 'readonly');
+                                    titleSelect.classList.add('bg-light');
+                                    titleSelect.style.opacity = '0.8';
+                                    titleSelect.style.color = '#333'; // Darker color that works in both light and dark mode
+                                    titleSelect.style.borderColor = '#6c757d'; // Grey border to indicate read-only
+                                    // Add a visual indicator that it's read-only
+                                    titleSelect.style.cursor = 'not-allowed';
+                                    // Add a note about read-only status
+                                    const titleFormGroup = titleSelect.closest('.form-group') || titleSelect.closest('.mb-3') || titleSelect.parentElement;
+                                    // Only add the note if the parent element exists
+                                    if (titleFormGroup) {
+                                        // Only add the note if it doesn't already exist
+                                        if (!titleFormGroup.querySelector('.form-text.text-muted')) {
+                                            const readOnlyNote = document.createElement('small');
+                                            readOnlyNote.className = 'form-text text-muted';
+                                            readOnlyNote.textContent = 'Activity cannot be changed in edit mode';
+                                            titleFormGroup.appendChild(readOnlyNote);
+                                        }
+                                    }
+                                    
+                                    // Populate the rest of the form fields
+                                    document.getElementById('background').value = narrative.background || '';
+                                    document.getElementById('participants').value = narrative.participants || '';
+                                    document.getElementById('topics').value = narrative.topics || '';
+                                    document.getElementById('results').value = narrative.results || '';
+                                    document.getElementById('lessons').value = narrative.lessons || '';
+                                    document.getElementById('whatWorked').value = narrative.what_worked || '';
+                                    document.getElementById('issues').value = narrative.issues || '';
+                                    document.getElementById('recommendations').value = narrative.recommendations || '';
+                                    document.getElementById('psAttribution').value = narrative.ps_attribution || '';
+                                    document.getElementById('evaluation').value = narrative.evaluation || '';
+                                    document.getElementById('photoCaption').value = narrative.photo_caption || '';
+                                    document.getElementById('genderIssue').value = narrative.gender_issue || '';
+                                    
+                                    // Scroll to top of form
+                                    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    
+                                    // Clear existing photo previews
+                                    const previewContainer = document.getElementById('photoPreviewContainer');
+                                    previewContainer.innerHTML = '';
+                                    
+                                    // Show existing photo previews if available
+                                    // Ensure photoArray is an array by converting from string if needed
+                                    let photoArray = [];
+                                    if (typeof narrative.photo_paths === 'string' && narrative.photo_paths) {
+                                        try {
+                                            photoArray = JSON.parse(narrative.photo_paths);
+                                        } catch (e) {
+                                            console.warn('Failed to parse photo_paths as JSON:', e);
+                                            photoArray = [];
+                                        }
+                                    } else if (Array.isArray(narrative.photo_paths)) {
+                                        photoArray = narrative.photo_paths;
+                                    }
+                                    
+                                    // Add the main photo path if it's not already included
+                                    if (narrative.photo_path && !photoArray.includes(narrative.photo_path)) {
+                                        photoArray.push(narrative.photo_path);
+                                    }
+                                    
+                                    console.log("Photo paths:", photoArray);
+                                    
+                                    if (photoArray.length > 0) {
+                                        previewUploadedImages(photoArray);
+                                    }
+                                    
+                                    // Process evaluation data
+                                    try {
+                                        if (narrative.evaluation) {
+                                            const evalData = JSON.parse(narrative.evaluation);
+                                            console.log("Evaluation data:", evalData);
+                                            
+                                            // Check for new format (activity and timeliness properties)
+                                            if (evalData.activity) {
+                                                // Handle new format
+                                                
+                                                // Populate activity ratings
+                                                if (evalData.activity["Excellent"]) {
+                                                    document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value = 
+                                                        evalData.activity["Excellent"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value = 
+                                                        evalData.activity["Excellent"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData.activity["Very Satisfactory"]) {
+                                                    document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value = 
+                                                        evalData.activity["Very Satisfactory"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value = 
+                                                        evalData.activity["Very Satisfactory"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData.activity["Satisfactory"]) {
+                                                    document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
+                                                        evalData.activity["Satisfactory"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value = 
+                                                        evalData.activity["Satisfactory"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData.activity["Fair"]) {
+                                                    document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value = 
+                                                        evalData.activity["Fair"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value = 
+                                                        evalData.activity["Fair"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData.activity["Poor"]) {
+                                                    document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value = 
+                                                        evalData.activity["Poor"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value = 
+                                                        evalData.activity["Poor"]["Others"] || 0;
+                                                }
+                                                
+                                                // Populate timeliness ratings if available
+                                                if (evalData.timeliness) {
+                                                    if (evalData.timeliness["Excellent"]) {
+                                                        document.querySelector('.timeliness-rating[data-row="excellent"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness["Excellent"]["BatStateU"] || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="excellent"][data-col="others"]').value = 
+                                                            evalData.timeliness["Excellent"]["Others"] || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness["Very Satisfactory"]) {
+                                                        document.querySelector('.timeliness-rating[data-row="very"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness["Very Satisfactory"]["BatStateU"] || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="very"][data-col="others"]').value = 
+                                                            evalData.timeliness["Very Satisfactory"]["Others"] || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness["Satisfactory"]) {
+                                                        document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness["Satisfactory"]["BatStateU"] || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="others"]').value = 
+                                                            evalData.timeliness["Satisfactory"]["Others"] || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness["Fair"]) {
+                                                        document.querySelector('.timeliness-rating[data-row="fair"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness["Fair"]["BatStateU"] || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="fair"][data-col="others"]').value = 
+                                                            evalData.timeliness["Fair"]["Others"] || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness["Poor"]) {
+                                                        document.querySelector('.timeliness-rating[data-row="poor"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness["Poor"]["BatStateU"] || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="poor"][data-col="others"]').value = 
+                                                            evalData.timeliness["Poor"]["Others"] || 0;
+                                                    }
+                                                }
+                                            } 
+                                            // Handle old format (ratings and timeliness properties)
+                                            else if (evalData.ratings) {
+                                                // Populate activity ratings
+                                                if (evalData.ratings.excellent) {
+                                                    document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value = 
+                                                        evalData.ratings.excellent.batstateu || 0;
+                                                    document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value = 
+                                                        evalData.ratings.excellent.others || 0;
+                                                }
+                                                
+                                                if (evalData.ratings.very_satisfactory) {
+                                                    document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value = 
+                                                        evalData.ratings.very_satisfactory.batstateu || 0;
+                                                    document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value = 
+                                                        evalData.ratings.very_satisfactory.others || 0;
+                                                }
+                                                
+                                                if (evalData.ratings.satisfactory) {
+                                                    document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
+                                                        evalData.ratings.satisfactory.batstateu || 0;
+                                                    document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value = 
+                                                        evalData.ratings.satisfactory.others || 0;
+                                                }
+                                                
+                                                if (evalData.ratings.fair) {
+                                                    document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value = 
+                                                        evalData.ratings.fair.batstateu || 0;
+                                                    document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value = 
+                                                        evalData.ratings.fair.others || 0;
+                                                }
+                                                
+                                                if (evalData.ratings.poor) {
+                                                    document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value = 
+                                                        evalData.ratings.poor.batstateu || 0;
+                                                    document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value = 
+                                                        evalData.ratings.poor.others || 0;
+                                                }
+                                                
+                                                // Populate timeliness ratings if available
+                                                if (evalData.timeliness) {
+                                                    if (evalData.timeliness.excellent) {
+                                                        document.querySelector('.timeliness-rating[data-row="excellent"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness.excellent.batstateu || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="excellent"][data-col="others"]').value = 
+                                                            evalData.timeliness.excellent.others || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness.very_satisfactory) {
+                                                        document.querySelector('.timeliness-rating[data-row="very"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness.very_satisfactory.batstateu || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="very"][data-col="others"]').value = 
+                                                            evalData.timeliness.very_satisfactory.others || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness.satisfactory) {
+                                                        document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness.satisfactory.batstateu || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="satisfactory"][data-col="others"]').value = 
+                                                            evalData.timeliness.satisfactory.others || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness.fair) {
+                                                        document.querySelector('.timeliness-rating[data-row="fair"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness.fair.batstateu || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="fair"][data-col="others"]').value = 
+                                                            evalData.timeliness.fair.others || 0;
+                                                    }
+                                                    
+                                                    if (evalData.timeliness.poor) {
+                                                        document.querySelector('.timeliness-rating[data-row="poor"][data-col="batstateu"]').value = 
+                                                            evalData.timeliness.poor.batstateu || 0;
+                                                        document.querySelector('.timeliness-rating[data-row="poor"][data-col="others"]').value = 
+                                                            evalData.timeliness.poor.others || 0;
+                                                    }
+                                                }
+                                            }
+                                            // Handle direct object format (Excellent, Very Satisfactory, etc.)
+                                            else if (evalData["Excellent"] || evalData["Fair"] || evalData["Poor"] || evalData["Satisfactory"] || evalData["Very Satisfactory"]) {
+                                                // This is the simplest format with just the ratings
+                                                if (evalData["Excellent"]) {
+                                                    document.querySelector('.activity-rating[data-row="excellent"][data-col="batstateu"]').value = 
+                                                        evalData["Excellent"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="excellent"][data-col="others"]').value = 
+                                                        evalData["Excellent"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData["Very Satisfactory"]) {
+                                                    document.querySelector('.activity-rating[data-row="very"][data-col="batstateu"]').value = 
+                                                        evalData["Very Satisfactory"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="very"][data-col="others"]').value = 
+                                                        evalData["Very Satisfactory"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData["Satisfactory"]) {
+                                                    document.querySelector('.activity-rating[data-row="satisfactory"][data-col="batstateu"]').value = 
+                                                        evalData["Satisfactory"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="satisfactory"][data-col="others"]').value = 
+                                                        evalData["Satisfactory"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData["Fair"]) {
+                                                    document.querySelector('.activity-rating[data-row="fair"][data-col="batstateu"]').value = 
+                                                        evalData["Fair"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="fair"][data-col="others"]').value = 
+                                                        evalData["Fair"]["Others"] || 0;
+                                                }
+                                                
+                                                if (evalData["Poor"]) {
+                                                    document.querySelector('.activity-rating[data-row="poor"][data-col="batstateu"]').value = 
+                                                        evalData["Poor"]["BatStateU"] || 0;
+                                                    document.querySelector('.activity-rating[data-row="poor"][data-col="others"]').value = 
+                                                        evalData["Poor"]["Others"] || 0;
+                                                }
+                                            }
+                                            
+                                            // Recalculate totals
+                                            calculateTotals();
+                                            calculateTimelinessTotal();
+                                        }
+                                    } catch (e) {
+                                        console.error("Error parsing evaluation data:", e);
+                                        // If there's an error, just set the raw value to the hidden field
+                                        document.getElementById('evaluation').value = narrative.evaluation || '';
+                                    }
+                                    
+                                    // After populating data, enable photo upload if both year and activity are set
+                                    updatePhotoUploadState();
+                                });
+                            });
+                        } else {
+                            saveStatus.innerHTML = '<span class="badge bg-danger">Error: Failed to load data</span>';
+                            setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
+                            
+                            console.error("Error loading narrative:", response.message);
+                            
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                                text: 'Failed to load narrative data',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Remove loading overlay
+                        const overlay = document.getElementById('form-loading-overlay');
+                        if (overlay) {
+                            overlay.remove();
+                        }
+                        
+                        // Show error message
+                        saveStatus.innerHTML = '<span class="badge bg-danger">Server error</span>';
+                        setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
+                        
+                        console.error("AJAX Error:", xhr.responseText);
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Server error while loading narrative data',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                });
+            }
+            
+            // Update showNarrativeDetails to display the new evaluation table format
+            function showNarrativeDetails(narrativeId) {
+                // Existing code...
+                
+                // Inside the success callback, modify the HTML generation for evaluation display
+                if (response.success) {
+                    // Existing HTML generation...
+                    
+                    html += `<div class="mt-3"><h6>Evaluation Results:</h6>`;
+                    
+                    // Check if evaluation data exists and is in JSON format
+                    try {
+                        if (narrative.evaluation) {
+                            const evalData = JSON.parse(narrative.evaluation);
+                            
+                            // Check for new format (activity property)
+                            if (evalData.activity) {
+                                // Display activity ratings table
+                html += `
+                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" style="width: 25%">Scale</th>
+                                                <th scope="col">BatStateU Participants</th>
+                                                <th scope="col">Participants from other Institutions</th>
+                                                <th scope="col" style="width: 15%">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">Excellent</th>
+                                                <td>${evalData.activity["Excellent"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData.activity["Excellent"]?.["Others"] || 0}</td>
+                                                <td>${(evalData.activity["Excellent"]?.["BatStateU"] || 0) + (evalData.activity["Excellent"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Very Satisfactory</th>
+                                                <td>${evalData.activity["Very Satisfactory"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData.activity["Very Satisfactory"]?.["Others"] || 0}</td>
+                                                <td>${(evalData.activity["Very Satisfactory"]?.["BatStateU"] || 0) + (evalData.activity["Very Satisfactory"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Satisfactory</th>
+                                                <td>${evalData.activity["Satisfactory"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData.activity["Satisfactory"]?.["Others"] || 0}</td>
+                                                <td>${(evalData.activity["Satisfactory"]?.["BatStateU"] || 0) + (evalData.activity["Satisfactory"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Fair</th>
+                                                <td>${evalData.activity["Fair"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData.activity["Fair"]?.["Others"] || 0}</td>
+                                                <td>${(evalData.activity["Fair"]?.["BatStateU"] || 0) + (evalData.activity["Fair"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Poor</th>
+                                                <td>${evalData.activity["Poor"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData.activity["Poor"]?.["Others"] || 0}</td>
+                                                <td>${(evalData.activity["Poor"]?.["BatStateU"] || 0) + (evalData.activity["Poor"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 `;
-                            }
-                        }
-                        // Handle old format with ratings property
-                        else if (evalData.ratings) {
-                            html += `
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" style="width: 25%">Scale</th>
-                                            <th scope="col">BatStateU Participants</th>
-                                            <th scope="col">Participants from other Institutions</th>
-                                            <th scope="col" style="width: 15%">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <th scope="row">Excellent</th>
-                                            <td>${evalData.ratings.excellent?.batstateu || 0}</td>
-                                            <td>${evalData.ratings.excellent?.others || 0}</td>
-                                            <td>${evalData.ratings.excellent?.total || 0}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Very Satisfactory</th>
-                                            <td>${evalData.ratings.very_satisfactory?.batstateu || 0}</td>
-                                            <td>${evalData.ratings.very_satisfactory?.others || 0}</td>
-                                            <td>${evalData.ratings.very_satisfactory?.total || 0}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Satisfactory</th>
-                                            <td>${evalData.ratings.satisfactory?.batstateu || 0}</td>
-                                            <td>${evalData.ratings.satisfactory?.others || 0}</td>
-                                            <td>${evalData.ratings.satisfactory?.total || 0}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Fair</th>
-                                            <td>${evalData.ratings.fair?.batstateu || 0}</td>
-                                            <td>${evalData.ratings.fair?.others || 0}</td>
-                                            <td>${evalData.ratings.fair?.total || 0}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Poor</th>
-                                            <td>${evalData.ratings.poor?.batstateu || 0}</td>
-                                            <td>${evalData.ratings.poor?.others || 0}</td>
-                                            <td>${evalData.ratings.poor?.total || 0}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Total</th>
-                                            <td>${evalData.totals?.batstateu || 0}</td>
-                                            <td>${evalData.totals?.others || 0}</td>
-                                            <td>${evalData.totals?.grand_total || 0}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            `;
-                            
-                            // Add timeliness table if available
-                            if (evalData.timeliness) {
-                                html += `
-                                <div class="mt-4">
-                                    <label class="form-label">Number of Beneficiaries who rated The Timeliness of the activity as:</label>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col" style="width: 25%">Scale</th>
-                                                    <th scope="col">BatStateU Participants</th>
-                                                    <th scope="col">Participants from other Institutions</th>
-                                                    <th scope="col" style="width: 15%">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">Excellent</th>
-                                                    <td>${evalData.timeliness.excellent?.batstateu || 0}</td>
-                                                    <td>${evalData.timeliness.excellent?.others || 0}</td>
-                                                    <td>${evalData.timeliness.excellent?.total || 0}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Very Satisfactory</th>
-                                                    <td>${evalData.timeliness.very_satisfactory?.batstateu || 0}</td>
-                                                    <td>${evalData.timeliness.very_satisfactory?.others || 0}</td>
-                                                    <td>${evalData.timeliness.very_satisfactory?.total || 0}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Satisfactory</th>
-                                                    <td>${evalData.timeliness.satisfactory?.batstateu || 0}</td>
-                                                    <td>${evalData.timeliness.satisfactory?.others || 0}</td>
-                                                    <td>${evalData.timeliness.satisfactory?.total || 0}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Fair</th>
-                                                    <td>${evalData.timeliness.fair?.batstateu || 0}</td>
-                                                    <td>${evalData.timeliness.fair?.others || 0}</td>
-                                                    <td>${evalData.timeliness.fair?.total || 0}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Poor</th>
-                                                    <td>${evalData.timeliness.poor?.batstateu || 0}</td>
-                                                    <td>${evalData.timeliness.poor?.others || 0}</td>
-                                                    <td>${evalData.timeliness.poor?.total || 0}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Total</th>
-                                                    <td>${evalData.timeliness_totals?.batstateu || 0}</td>
-                                                    <td>${evalData.timeliness_totals?.others || 0}</td>
-                                                    <td>${evalData.timeliness_totals?.grand_total || 0}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                
+                                // Display timeliness ratings table if available
+                                if (evalData.timeliness) {
+                                    html += `
+                                    <div class="mt-4">
+                                        <label class="form-label">Number of Beneficiaries who rated The Timeliness of the activity as:</label>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" style="width: 25%">Scale</th>
+                                                        <th scope="col">BatStateU Participants</th>
+                                                        <th scope="col">Participants from other Institutions</th>
+                                                        <th scope="col" style="width: 15%">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">Excellent</th>
+                                                        <td>${evalData.timeliness["Excellent"]?.["BatStateU"] || 0}</td>
+                                                        <td>${evalData.timeliness["Excellent"]?.["Others"] || 0}</td>
+                                                        <td>${(evalData.timeliness["Excellent"]?.["BatStateU"] || 0) + (evalData.timeliness["Excellent"]?.["Others"] || 0)}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Very Satisfactory</th>
+                                                        <td>${evalData.timeliness["Very Satisfactory"]?.["BatStateU"] || 0}</td>
+                                                        <td>${evalData.timeliness["Very Satisfactory"]?.["Others"] || 0}</td>
+                                                        <td>${(evalData.timeliness["Very Satisfactory"]?.["BatStateU"] || 0) + (evalData.timeliness["Very Satisfactory"]?.["Others"] || 0)}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Satisfactory</th>
+                                                        <td>${evalData.timeliness["Satisfactory"]?.["BatStateU"] || 0}</td>
+                                                        <td>${evalData.timeliness["Satisfactory"]?.["Others"] || 0}</td>
+                                                        <td>${(evalData.timeliness["Satisfactory"]?.["BatStateU"] || 0) + (evalData.timeliness["Satisfactory"]?.["Others"] || 0)}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Fair</th>
+                                                        <td>${evalData.timeliness["Fair"]?.["BatStateU"] || 0}</td>
+                                                        <td>${evalData.timeliness["Fair"]?.["Others"] || 0}</td>
+                                                        <td>${(evalData.timeliness["Fair"]?.["BatStateU"] || 0) + (evalData.timeliness["Fair"]?.["Others"] || 0)}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Poor</th>
+                                                        <td>${evalData.timeliness["Poor"]?.["BatStateU"] || 0}</td>
+                                                        <td>${evalData.timeliness["Poor"]?.["Others"] || 0}</td>
+                                                        <td>${(evalData.timeliness["Poor"]?.["BatStateU"] || 0) + (evalData.timeliness["Poor"]?.["Others"] || 0)}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
+                                    `;
+                                }
+                            }
+                            // Handle old format with ratings property
+                            else if (evalData.ratings) {
+                                html += `
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" style="width: 25%">Scale</th>
+                                                <th scope="col">BatStateU Participants</th>
+                                                <th scope="col">Participants from other Institutions</th>
+                                                <th scope="col" style="width: 15%">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">Excellent</th>
+                                                <td>${evalData.ratings.excellent?.batstateu || 0}</td>
+                                                <td>${evalData.ratings.excellent?.others || 0}</td>
+                                                <td>${evalData.ratings.excellent?.total || 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Very Satisfactory</th>
+                                                <td>${evalData.ratings.very_satisfactory?.batstateu || 0}</td>
+                                                <td>${evalData.ratings.very_satisfactory?.others || 0}</td>
+                                                <td>${evalData.ratings.very_satisfactory?.total || 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Satisfactory</th>
+                                                <td>${evalData.ratings.satisfactory?.batstateu || 0}</td>
+                                                <td>${evalData.ratings.satisfactory?.others || 0}</td>
+                                                <td>${evalData.ratings.satisfactory?.total || 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Fair</th>
+                                                <td>${evalData.ratings.fair?.batstateu || 0}</td>
+                                                <td>${evalData.ratings.fair?.others || 0}</td>
+                                                <td>${evalData.ratings.fair?.total || 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Poor</th>
+                                                <td>${evalData.ratings.poor?.batstateu || 0}</td>
+                                                <td>${evalData.ratings.poor?.others || 0}</td>
+                                                <td>${evalData.ratings.poor?.total || 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Total</th>
+                                                <td>${evalData.totals?.batstateu || 0}</td>
+                                                <td>${evalData.totals?.others || 0}</td>
+                                                <td>${evalData.totals?.grand_total || 0}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 `;
+                                
+                                // Add timeliness table if available
+                                if (evalData.timeliness) {
+                                    html += `
+                                    <div class="mt-4">
+                                        <label class="form-label">Number of Beneficiaries who rated The Timeliness of the activity as:</label>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" style="width: 25%">Scale</th>
+                                                        <th scope="col">BatStateU Participants</th>
+                                                        <th scope="col">Participants from other Institutions</th>
+                                                        <th scope="col" style="width: 15%">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">Excellent</th>
+                                                        <td>${evalData.timeliness.excellent?.batstateu || 0}</td>
+                                                        <td>${evalData.timeliness.excellent?.others || 0}</td>
+                                                        <td>${evalData.timeliness.excellent?.total || 0}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Very Satisfactory</th>
+                                                        <td>${evalData.timeliness.very_satisfactory?.batstateu || 0}</td>
+                                                        <td>${evalData.timeliness.very_satisfactory?.others || 0}</td>
+                                                        <td>${evalData.timeliness.very_satisfactory?.total || 0}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Satisfactory</th>
+                                                        <td>${evalData.timeliness.satisfactory?.batstateu || 0}</td>
+                                                        <td>${evalData.timeliness.satisfactory?.others || 0}</td>
+                                                        <td>${evalData.timeliness.satisfactory?.total || 0}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Fair</th>
+                                                        <td>${evalData.timeliness.fair?.batstateu || 0}</td>
+                                                        <td>${evalData.timeliness.fair?.others || 0}</td>
+                                                        <td>${evalData.timeliness.fair?.total || 0}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Poor</th>
+                                                        <td>${evalData.timeliness.poor?.batstateu || 0}</td>
+                                                        <td>${evalData.timeliness.poor?.others || 0}</td>
+                                                        <td>${evalData.timeliness.poor?.total || 0}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Total</th>
+                                                        <td>${evalData.timeliness_totals?.batstateu || 0}</td>
+                                                        <td>${evalData.timeliness_totals?.others || 0}</td>
+                                                        <td>${evalData.timeliness_totals?.grand_total || 0}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    `;
+                                }
                             }
-                        }
-                        // Handle direct object format (Excellent, Very Satisfactory, etc.)
-                        else if (evalData["Excellent"] || evalData["Fair"] || evalData["Poor"] || evalData["Satisfactory"] || evalData["Very Satisfactory"]) {
-                            html += `
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" style="width: 25%">Scale</th>
-                                            <th scope="col">BatStateU Participants</th>
-                                            <th scope="col">Participants from other Institutions</th>
-                                            <th scope="col" style="width: 15%">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <th scope="row">Excellent</th>
-                                            <td>${evalData["Excellent"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData["Excellent"]?.["Others"] || 0}</td>
-                                            <td>${(evalData["Excellent"]?.["BatStateU"] || 0) + (evalData["Excellent"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Very Satisfactory</th>
-                                            <td>${evalData["Very Satisfactory"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData["Very Satisfactory"]?.["Others"] || 0}</td>
-                                            <td>${(evalData["Very Satisfactory"]?.["BatStateU"] || 0) + (evalData["Very Satisfactory"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Satisfactory</th>
-                                            <td>${evalData["Satisfactory"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData["Satisfactory"]?.["Others"] || 0}</td>
-                                            <td>${(evalData["Satisfactory"]?.["BatStateU"] || 0) + (evalData["Satisfactory"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Fair</th>
-                                            <td>${evalData["Fair"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData["Fair"]?.["Others"] || 0}</td>
-                                            <td>${(evalData["Fair"]?.["BatStateU"] || 0) + (evalData["Fair"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Poor</th>
-                                            <td>${evalData["Poor"]?.["BatStateU"] || 0}</td>
-                                            <td>${evalData["Poor"]?.["Others"] || 0}</td>
-                                            <td>${(evalData["Poor"]?.["BatStateU"] || 0) + (evalData["Poor"]?.["Others"] || 0)}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            `;
+                            // Handle direct object format (Excellent, Very Satisfactory, etc.)
+                            else if (evalData["Excellent"] || evalData["Fair"] || evalData["Poor"] || evalData["Satisfactory"] || evalData["Very Satisfactory"]) {
+                                html += `
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" style="width: 25%">Scale</th>
+                                                <th scope="col">BatStateU Participants</th>
+                                                <th scope="col">Participants from other Institutions</th>
+                                                <th scope="col" style="width: 15%">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">Excellent</th>
+                                                <td>${evalData["Excellent"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData["Excellent"]?.["Others"] || 0}</td>
+                                                <td>${(evalData["Excellent"]?.["BatStateU"] || 0) + (evalData["Excellent"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Very Satisfactory</th>
+                                                <td>${evalData["Very Satisfactory"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData["Very Satisfactory"]?.["Others"] || 0}</td>
+                                                <td>${(evalData["Very Satisfactory"]?.["BatStateU"] || 0) + (evalData["Very Satisfactory"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Satisfactory</th>
+                                                <td>${evalData["Satisfactory"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData["Satisfactory"]?.["Others"] || 0}</td>
+                                                <td>${(evalData["Satisfactory"]?.["BatStateU"] || 0) + (evalData["Satisfactory"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Fair</th>
+                                                <td>${evalData["Fair"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData["Fair"]?.["Others"] || 0}</td>
+                                                <td>${(evalData["Fair"]?.["BatStateU"] || 0) + (evalData["Fair"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Poor</th>
+                                                <td>${evalData["Poor"]?.["BatStateU"] || 0}</td>
+                                                <td>${evalData["Poor"]?.["Others"] || 0}</td>
+                                                <td>${(evalData["Poor"]?.["BatStateU"] || 0) + (evalData["Poor"]?.["Others"] || 0)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                `;
+                            } else {
+                                html += `<p>No evaluation data available</p>`;
+                            }
                         } else {
                             html += `<p>No evaluation data available</p>`;
                         }
-                    } else {
-                        html += `<p>No evaluation data available</p>`;
+                    } catch (e) {
+                        // If not JSON, display as plain text
+                        html += `<p>${narrative.evaluation || 'No evaluation data available'}</p>`;
                     }
-                } catch (e) {
-                    // If not JSON, display as plain text
-                    html += `<p>${narrative.evaluation || 'No evaluation data available'}</p>`;
+                    
+                    html += `</div>`;
+                }
+            }
+            
+            // Add this to the DOMContentLoaded event
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize evaluation table calculations
+                setupEvaluationTableCalculations();
+                
+                // Other initialization code...
+            });
+
+            // Function to clear temporary image uploads
+            function clearTemporaryUploads() {
+                console.log("Clearing temporary uploads");
+                
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('clear_temp', 'true');
+                
+                // Send AJAX request to clear temporary uploads
+                $.ajax({
+                    url: 'image_upload_handler.php',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log("Temporary uploads cleared:", response);
+                        
+                        // Clear the preview container
+                        const previewContainer = document.getElementById('photoPreviewContainer');
+                        previewContainer.innerHTML = '';
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error clearing temporary uploads:", error);
+                    }
+                });
+            }
+            
+            // Function to reset the form
+            function resetForm() {
+                form.reset();
+                currentNarrativeId = null;
+                window.currentNarrativeId = null;
+                document.getElementById('narrative_id').value = '0';
+                
+                // Reset buttons
+                editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+                editBtn.classList.remove('editing');
+                
+                addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                addBtn.classList.remove('btn-update');
+                
+                // Keep delete button enabled
+                deleteBtn.classList.remove('btn-disabled');
+                
+                // Clear photo previews completely
+                const previewContainer = document.getElementById('photoPreviewContainer');
+                if (previewContainer) {
+                    previewContainer.innerHTML = '';
                 }
                 
-                html += `</div>`;
-            }
-        }
-        
-        // Add this to the DOMContentLoaded event
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize evaluation table calculations
-            setupEvaluationTableCalculations();
-            
-            // Other initialization code...
-        });
-
-        // Function to clear temporary image uploads
-        function clearTemporaryUploads() {
-            console.log("Clearing temporary uploads");
-            
-            // Create FormData object
-            const formData = new FormData();
-            formData.append('clear_temp', 'true');
-            
-            // Send AJAX request to clear temporary uploads
-            $.ajax({
-                url: 'image_upload_handler.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                dataType: 'json',
-                success: function(response) {
-                    console.log("Temporary uploads cleared:", response);
+                // Clear the file input
+                const photoInput = document.getElementById('photoUpload');
+                if (photoInput) {
+                    photoInput.value = '';
+                }
+                
+                // Clear any stored image data or cached paths
+                window.uploadedImagePaths = [];
+                
+                // Clear session storage for uploaded images
+                if (window.sessionStorage) {
+                    sessionStorage.removeItem('uploadedImages');
+                }
+                
+                // Reset the title field - remove readonly attribute and the explanatory note
+                const titleSelect = document.getElementById('title');
+                if (titleSelect) {
+                    titleSelect.removeAttribute('readonly');
+                    titleSelect.classList.remove('bg-light');
                     
-                    // Clear the preview container
-                    const previewContainer = document.getElementById('photoPreviewContainer');
-                    previewContainer.innerHTML = '';
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error clearing temporary uploads:", error);
+                    // Remove the explanatory note if it exists
+                    const titleFormGroup = titleSelect.closest('.form-group');
+                    if (titleFormGroup) {
+                        const readOnlyNote = titleFormGroup.querySelector('.form-text.text-muted');
+                        if (readOnlyNote) {
+                            readOnlyNote.remove();
+                        }
+                    }
+                }
+                
+                // For non-central users, restore their campus
+                if (!isCentral && document.getElementById('campus_override')) {
+                    const campusValue = document.getElementById('campus_override').value;
+                    document.getElementById('campus').value = campusValue;
+                    
+                    // Reload years based on campus
+                    loadYearsForCampus(campusValue);
+                } else {
+                    // For central users, just reset the dropdowns
+                    const campusSelect = document.getElementById('campus');
+                    if (campusSelect && campusSelect.options.length > 0) {
+                        campusSelect.selectedIndex = 0;
+                    }
+                    
+                    const yearSelect = document.getElementById('year');
+                    if (yearSelect && yearSelect.options.length > 0) {
+                        yearSelect.selectedIndex = 0;
+                    }
+                    
+                    // Title select already handled above
+                    if (titleSelect && titleSelect.options.length > 0) {
+                        titleSelect.selectedIndex = 0;
+                    }
+                }
+                
+                // Clear any status messages
+                const saveStatus = document.getElementById('save-status');
+                if (saveStatus) {
+                    saveStatus.innerHTML = '';
+                }
+                
+                // Update photo upload state (should disable it since year/activity are reset)
+                updatePhotoUploadState();
+            }
+
+            // Highlight search text helper function
+            function highlightText(element, searchText) {
+                if (!element || !searchText) return;
+                
+                // Don't process script or style elements
+                if (element.tagName === 'SCRIPT' || element.tagName === 'STYLE') return;
+                
+                // Process text nodes
+                for (let i = 0; i < element.childNodes.length; i++) {
+                    const node = element.childNodes[i];
+                    
+                    if (node.nodeType === 3) { // Text node
+                        const text = node.nodeValue;
+                        const lowerText = text.toLowerCase();
+                        const index = lowerText.indexOf(searchText.toLowerCase());
+                        
+                        if (index >= 0) {
+                            // Create highlight element
+                            const highlightEl = document.createElement('span');
+                            highlightEl.className = 'highlight';
+                            highlightEl.style.backgroundColor = 'yellow';
+                            
+                            // Split text into parts
+                            const before = text.substring(0, index);
+                            const match = text.substring(index, index + searchText.length);
+                            const after = text.substring(index + searchText.length);
+                            
+                            // Create text nodes for before and after
+                            const beforeNode = document.createTextNode(before);
+                            const afterNode = document.createTextNode(after);
+                            
+                            // Set highlighted text
+                            highlightEl.textContent = match;
+                            
+                            // Replace the original node
+                            if (before) element.insertBefore(beforeNode, node);
+                            element.insertBefore(highlightEl, node);
+                            if (after) element.insertBefore(afterNode, node);
+                            
+                            element.removeChild(node);
+                            i += 2; // Adjust for the new nodes
+                        }
+                    } else if (node.nodeType === 1) { // Element node
+                        // Recursively process child elements
+                        highlightText(node, searchText);
+                    }
+                }
+            }
+            
+            // Document ready function
+            $(document).ready(function() {
+                // Fix the title form group issue
+                fixTitleFormGroupIssue();
+                
+                // Clear any old temporary uploads when the page loads
+                clearTemporaryUploads();
+                
+                // Setup photo uploads
+                setupPhotoUploads();
+                
+                // Initialize evaluation table calculations
+                setupEvaluationTableCalculations();
+                
+                // Add global event listener to prevent selecting options with narratives
+                const titleSelect = document.getElementById('title');
+                if (titleSelect) {
+                    titleSelect.addEventListener('change', preventNarrativeSelection, true);
                 }
             });
-        }
-        
-        // Function to reset the form
-        function resetForm() {
-            form.reset();
-            currentNarrativeId = null;
-            window.currentNarrativeId = null;
-            document.getElementById('narrative_id').value = '0';
-            
-            // Reset buttons
-            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-            editBtn.classList.remove('editing');
-            
-            addBtn.innerHTML = '<i class="fas fa-plus"></i>';
-            addBtn.classList.remove('btn-update');
-            
-            // Keep delete button enabled
-            deleteBtn.classList.remove('btn-disabled');
-            
-            // Clear photo previews completely
-            const previewContainer = document.getElementById('photoPreviewContainer');
-            if (previewContainer) {
-                previewContainer.innerHTML = '';
-            }
-            
-            // Clear the file input
-            const photoInput = document.getElementById('photoUpload');
-            if (photoInput) {
-                photoInput.value = '';
-            }
-            
-            // Clear any stored image data or cached paths
-            window.uploadedImagePaths = [];
-            
-            // Clear session storage for uploaded images
-            if (window.sessionStorage) {
-                sessionStorage.removeItem('uploadedImages');
-            }
-            
-            // Reset the title field - remove readonly attribute and the explanatory note
-            const titleSelect = document.getElementById('title');
-            if (titleSelect) {
-                titleSelect.removeAttribute('readonly');
-                titleSelect.classList.remove('bg-light');
-                // Reset all the style properties that were set in edit mode
-                titleSelect.style.opacity = '';
-                titleSelect.style.color = '';
-                titleSelect.style.borderColor = '';
-                titleSelect.style.cursor = '';
-                
-                // Remove the explanatory note if it exists
-                const titleFormGroup = titleSelect.closest('.form-group') || titleSelect.closest('.mb-3') || titleSelect.parentElement;
-                if (titleFormGroup) {
-                    const readOnlyNote = titleFormGroup.querySelector('.form-text.text-muted');
-                    if (readOnlyNote) {
-                        readOnlyNote.remove();
-                    }
-                }
-            }
-            
-            // For non-central users, restore their campus
-            if (!isCentral && document.getElementById('campus_override')) {
-                const campusValue = document.getElementById('campus_override').value;
-                document.getElementById('campus').value = campusValue;
-                
-                // Reload years based on campus
-                loadYearsForCampus(campusValue);
-            } else {
-                // For central users, just reset the dropdowns
-                const campusSelect = document.getElementById('campus');
-                if (campusSelect && campusSelect.options.length > 0) {
-                    campusSelect.selectedIndex = 0;
-                }
-                
-                const yearSelect = document.getElementById('year');
-                if (yearSelect && yearSelect.options.length > 0) {
-                    yearSelect.selectedIndex = 0;
-                }
-                
-                // Title select already handled above
-                if (titleSelect && titleSelect.options.length > 0) {
-                    titleSelect.selectedIndex = 0;
-                }
-            }
-            
-            // Clear any status messages
-            const saveStatus = document.getElementById('save-status');
-            if (saveStatus) {
-                saveStatus.innerHTML = '';
-            }
-            
-            // Update photo upload state (should disable it since year/activity are reset)
-            updatePhotoUploadState();
-        }
 
-        // Document ready function
-        $(document).ready(function() {
-            // Fix the title form group issue
-            fixTitleFormGroupIssue();
-            
-            // Clear any old temporary uploads when the page loads
-            clearTemporaryUploads();
-            
-            // Setup photo uploads
-            setupPhotoUploads();
-            
-            // Initialize evaluation table calculations
-            setupEvaluationTableCalculations();
-            
-            // Add global event listener to prevent selecting options with narratives
-            const titleSelect = document.getElementById('title');
-            if (titleSelect) {
-                titleSelect.addEventListener('change', preventNarrativeSelection, true);
-            }
-        });
-
-        // Function to filter narratives by campus
-        function filterNarrativesByCampus(campus, action) {
-            console.log(`Filtering narratives by campus: ${campus}, action: ${action}`);
-            
-            // Store the action for later use
-            window.currentListAction = action || window.currentListAction || 'view';
-            
-            if (!campus) {
-                // If no campus selected, show all narratives
-                loadNarrativesAndShowList('', window.currentListAction);
-                return;
-            }
-            
-            // Show loading indicator
-            const tableBody = document.querySelector('#narrativeListModal .table tbody');
-            if (tableBody) {
-                tableBody.innerHTML = '<tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
-            }
-            
-            // Filter the narratives by campus
-            $.ajax({
-                url: 'narrative_handler.php',
-                type: 'POST',
-                data: { 
-                    action: 'read',
-                    campus: campus
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        narrativeData = response.data || [];
-                        
-                        // Check if we have data
-                        if (narrativeData.length === 0) {
-                            if (tableBody) {
-                                tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No narratives found for this campus</td></tr>';
+            // Function to filter narratives by campus
+            function filterNarrativesByCampus(campus, action) {
+                console.log(`Filtering narratives by campus: ${campus}, action: ${action}`);
+                
+                // Store the action for later use
+                window.currentListAction = action || window.currentListAction || 'view';
+                
+                if (!campus) {
+                    // If no campus selected, show all narratives
+                    loadNarrativesAndShowList('', window.currentListAction);
+                    return;
+                }
+                
+                // Show loading indicator
+                const tableBody = document.querySelector('#narrativeListModal .table tbody');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
+                }
+                
+                // Filter the narratives by campus
+                $.ajax({
+                    url: 'narrative_handler.php',
+                    type: 'POST',
+                    data: { 
+                        action: 'read',
+                        campus: campus
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            narrativeData = response.data || [];
+                            
+                            // Check if we have data
+                            if (narrativeData.length === 0) {
+                                if (tableBody) {
+                                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No narratives found for this campus</td></tr>';
+                                }
+                            } else {
+                                // Reset pagination for new data set
+                                window.currentPage = 1;
+                                window.totalPages = Math.ceil(narrativeData.length / window.itemsPerPage);
+                                window.filteredNarrativeData = null;
+                                
+                                // Clear any existing filters
+                                const yearFilter = document.getElementById('narrativeYearFilter');
+                                const searchInput = document.getElementById('narrativeSearchInput');
+                                
+                                // Clear year filter
+                                if (yearFilter) {
+                                    // Save current options
+                                    const currentOptions = Array.from(yearFilter.options);
+                                    
+                                    // Clear dropdown
+                                    yearFilter.innerHTML = '';
+                                    
+                                    // Add "All Years" option
+                                    const allOption = document.createElement('option');
+                                    allOption.value = '';
+                                    allOption.textContent = 'All Years';
+                                    yearFilter.appendChild(allOption);
+                                    
+                                    // Repopulate with years from the new filtered data
+                                    const years = new Set();
+                                    narrativeData.forEach(narrative => {
+                                        if (narrative.year && narrative.year.trim() !== '') {
+                                            years.add(narrative.year);
+                                        }
+                                    });
+                                    
+                                    // Sort years in descending order (newest first)
+                                    const sortedYears = Array.from(years).sort((a, b) => b - a);
+                                    
+                                    // Add the years to the select element
+                                    sortedYears.forEach(year => {
+                                        const option = document.createElement('option');
+                                        option.value = year;
+                                        option.textContent = year;
+                                        yearFilter.appendChild(option);
+                                    });
+                                }
+                                
+                                // Clear search input
+                                if (searchInput) {
+                                    searchInput.value = '';
+                                }
+                                
+                                // Update the table body with pagination
+                                updateNarrativeTableWithPagination(window.currentListAction);
                             }
                         } else {
-                            // Update the table body with filtered data
-                            updateNarrativeTableBody(window.currentListAction);
+                            console.error("Error loading narratives:", response.message);
+                            narrativeData = [];
+                            if (tableBody) {
+                                tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading narratives</td></tr>';
+                            }
                         }
-                    } else {
-                        console.error("Error loading narratives:", response.message);
+                    },
+                    error: function(xhr) {
+                        console.error("AJAX Error:", xhr.responseText);
                         narrativeData = [];
                         if (tableBody) {
-                            tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error loading narratives</td></tr>';
+                            tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Server error</td></tr>';
                         }
                     }
-                },
-                error: function(xhr) {
-                    console.error("AJAX Error:", xhr.responseText);
-                    narrativeData = [];
-                    if (tableBody) {
-                        tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Server error</td></tr>';
-                    }
-                }
-            });
-        }
-        
-        // Function to update the narrative table body with current data
-        function updateNarrativeTableBody(action) {
-            console.log("Updating narrative table with action:", action);
-            const tableBody = document.querySelector('#narrativeListModal .table tbody');
-            if (!tableBody) return;
+                });
+            }
             
-            // Use the provided action or fall back to the stored global action
-            const currentAction = action || window.currentListAction || 'view';
-            
-            let html = '';
-            
-            // Create rows for each narrative
-            narrativeData.forEach(narrative => {
-                html += `
-                    <tr class="narrative-row" data-id="${narrative.id}" data-action="${currentAction}">
-                        <td>${narrative.title || 'Untitled'}</td>
-                        <td>${narrative.campus || 'N/A'}</td>
-                        <td>${narrative.year || 'N/A'}</td>
-                        <td>${narrative.created_at || 'N/A'}</td>
-                    </tr>
-                `;
-            });
-            
-            // Update the table body
-            tableBody.innerHTML = html;
-            
-            // Re-add click event listeners to rows
-            attachRowClickListeners();
-        }
-        
-        // Function to attach click event listeners to narrative rows
-        function attachRowClickListeners() {
-            console.log("Attaching click listeners to rows");
-            const rows = document.querySelectorAll('.narrative-row');
-            console.log(`Found ${rows.length} rows to attach listeners to`);
-            
-            rows.forEach(row => {
-                // Remove any existing click listeners to prevent duplicates
-                row.replaceWith(row.cloneNode(true));
-            });
-            
-            // Get the fresh nodes after cloning
-            document.querySelectorAll('.narrative-row').forEach(row => {
-                const narrativeId = row.getAttribute('data-id');
-                const actionType = row.getAttribute('data-action');
-                console.log(`Attaching listener to row with ID: ${narrativeId}, action: ${actionType}`);
+            // Function to update the narrative table with pagination
+            function updateNarrativeTableWithPagination(action, dataSet = null) {
+                console.log("Updating narrative table with pagination, action:", action);
+                const tableBody = document.querySelector('#narrativeListModal .table tbody');
+                const paginationContainer = document.querySelector('#narrativeListModal .pagination');
+                const paginationInfo = document.querySelector('#narrativeListModal .pagination-info');
                 
-                row.addEventListener('click', function(e) {
-                    console.log(`Row clicked! ID: ${narrativeId}, Action: ${actionType}`);
-                    
-                    // Close the list modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('narrativeListModal'));
-                    modal.hide();
-                    
-                    // Set current narrative ID
-                    currentNarrativeId = narrativeId;
-                    document.getElementById('narrative_id').value = narrativeId;
-                    window.currentNarrativeId = narrativeId;
-                    
-                    // Handle different actions
-                    if (actionType === 'view') {
-                        showNarrativeDetails(narrativeId);
-                    } else if (actionType === 'edit') {
-                        // Enter edit mode
-                        isEditing = true;
-                        window.isEditing = true;
-                        
-                        // Get fresh button references
-                        let editBtn = document.getElementById('editBtn');
-                        let addBtn = document.getElementById('addBtn');
-                        let deleteBtn = document.getElementById('deleteBtn');
-                        
-                        editBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        editBtn.classList.add('editing');
-                        editBtn.title = 'Cancel editing';
-                        
-                        // Update add button to show it's for saving now
-                        addBtn.innerHTML = '<i class="fas fa-save"></i>';
-                        addBtn.title = 'Save changes';
-                        addBtn.classList.add('btn-update');
-                        
-                        // Disable delete button while in edit mode
-                        deleteBtn.classList.add('btn-disabled');
-                        deleteBtn.title = 'Cannot delete while editing';
-                        
-                        // Load narrative data into form
-                        loadNarrativeForEdit(narrativeId);
-                    } else if (actionType === 'delete') {
-                        // Call the function to show the delete confirmation
-                        deleteNarrative();
-                    }
+                if (!tableBody) return;
+                
+                // Use provided data or fall back to narrativeData
+                const data = dataSet || narrativeData;
+                
+                // Use the provided action or fall back to the stored global action
+                const currentAction = action || window.currentListAction || 'view';
+                
+                // Calculate pagination
+                const startIndex = (window.currentPage - 1) * window.itemsPerPage;
+                const endIndex = Math.min(startIndex + window.itemsPerPage, data.length);
+                const paginatedData = data.slice(startIndex, endIndex);
+                
+                // Create rows for each narrative on current page
+                let html = '';
+                paginatedData.forEach(narrative => {
+                    const date = new Date(narrative.created_at).toLocaleDateString();
+                    html += `
+                        <tr class="narrative-row" data-id="${narrative.id}" data-action="${currentAction}">
+                            <td>${narrative.title || 'Untitled'}</td>
+                            <td>${narrative.campus || 'N/A'}</td>
+                            <td>${narrative.year || 'N/A'}</td>
+                            <td>${date}</td>
+                        </tr>
+                    `;
                 });
                 
-                // Make the row look clickable with a pointer cursor
-                row.style.cursor = 'pointer';
-            });
-        }
+                // Update the table body
+                tableBody.innerHTML = html;
+                
+                // Update pagination info text
+                if (paginationInfo) {
+                    paginationInfo.textContent = `Showing ${data.length === 0 ? 0 : startIndex + 1} to ${endIndex} of ${data.length} entries`;
+                }
+                
+                // Update pagination links
+                if (paginationContainer) {
+                    const totalPages = Math.ceil(data.length / window.itemsPerPage);
+                    let paginationHtml = `
+                        <li class="page-item ${window.currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="prev" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    `;
+                    
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHtml += `
+                            <li class="page-item ${window.currentPage === i ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>
+                        `;
+                    }
+                    
+                    paginationHtml += `
+                        <li class="page-item ${window.currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="next" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    `;
+                    
+                    paginationContainer.innerHTML = paginationHtml;
+                    
+                    // Re-attach pagination event listeners
+                    document.querySelectorAll('#narrativeListModal .pagination .page-link').forEach(pageLink => {
+                        pageLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            const page = this.getAttribute('data-page');
+                            const currentData = window.filteredNarrativeData || narrativeData;
+                            
+                            if (page === 'prev' && window.currentPage > 1) {
+                                window.currentPage--;
+                            } else if (page === 'next' && window.currentPage < totalPages) {
+                                window.currentPage++;
+                            } else if (!isNaN(page)) {
+                                window.currentPage = parseInt(page);
+                            }
+                            
+                            // Update table with pagination
+                            updateNarrativeTableWithPagination(currentAction, currentData);
+                        });
+                    });
+                }
+                
+                // Re-add click event listeners to rows
+                attachRowClickListeners();
+            }
+            
+            // Legacy function kept for backwards compatibility
+            function updateNarrativeTableBody(action) {
+                updateNarrativeTableWithPagination(action);
+            }
+            
+            // Function to attach click event listeners to narrative rows
+            function attachRowClickListeners() {
+                console.log("Attaching click listeners to rows");
+                const rows = document.querySelectorAll('.narrative-row');
+                console.log(`Found ${rows.length} rows to attach listeners to`);
+                
+                rows.forEach(row => {
+                    // Remove any existing click listeners to prevent duplicates
+                    row.replaceWith(row.cloneNode(true));
+                });
+                
+                // Get the fresh nodes after cloning
+                document.querySelectorAll('.narrative-row').forEach(row => {
+                    const narrativeId = row.getAttribute('data-id');
+                    const actionType = row.getAttribute('data-action');
+                    console.log(`Attaching listener to row with ID: ${narrativeId}, action: ${actionType}`);
+                    
+                    row.addEventListener('click', function(e) {
+                        console.log(`Row clicked! ID: ${narrativeId}, Action: ${actionType}`);
+                        
+                        // Close the list modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('narrativeListModal'));
+                        modal.hide();
+                        
+                        // Set current narrative ID
+                        currentNarrativeId = narrativeId;
+                        document.getElementById('narrative_id').value = narrativeId;
+                        window.currentNarrativeId = narrativeId;
+                        
+                        // Handle different actions
+                        if (actionType === 'view') {
+                            showNarrativeDetails(narrativeId);
+                        } else if (actionType === 'edit') {
+                            // Enter edit mode
+                            isEditing = true;
+                            window.isEditing = true;
+                            
+                            // Get fresh button references
+                            let editBtn = document.getElementById('editBtn');
+                            let addBtn = document.getElementById('addBtn');
+                            let deleteBtn = document.getElementById('deleteBtn');
+                            
+                            editBtn.innerHTML = '<i class="fas fa-times"></i>';
+                            editBtn.classList.add('editing');
+                            editBtn.title = 'Cancel editing';
+                            
+                            // Update add button to show it's for saving now
+                            addBtn.innerHTML = '<i class="fas fa-save"></i>';
+                            addBtn.title = 'Save changes';
+                            addBtn.classList.add('btn-update');
+                            
+                            // Disable delete button while in edit mode
+                            deleteBtn.classList.add('btn-disabled');
+                            deleteBtn.title = 'Cannot delete while editing';
+                            
+                            // Load narrative data into form
+                            loadNarrativeForEdit(narrativeId);
+                        } else if (actionType === 'delete') {
+                            // Call the function to show the delete confirmation
+                            deleteNarrative();
+                        }
+                    });
+                    
+                    // Make the row look clickable with a pointer cursor
+                    row.style.cursor = 'pointer';
+                });
+            }
 
-        // Fix for the title form group issue
-        function fixTitleFormGroupIssue() {
-            // Fix for the Cannot read properties of null error
-            const titleSelect = document.getElementById('title');
-            if (titleSelect) {
-                // Add a parent div with form-group class if it doesn't exist
-                if (!titleSelect.closest('.form-group') && !titleSelect.closest('.mb-3')) {
-                    const parent = titleSelect.parentElement;
-                    if (parent) {
-                        parent.classList.add('form-group');
+            // Fix for the title form group issue
+            function fixTitleFormGroupIssue() {
+                // Fix for the Cannot read properties of null error
+                const titleSelect = document.getElementById('title');
+                if (titleSelect) {
+                    // Add a parent div with form-group class if it doesn't exist
+                    if (!titleSelect.closest('.form-group') && !titleSelect.closest('.mb-3')) {
+                        const parent = titleSelect.parentElement;
+                        if (parent) {
+                            parent.classList.add('form-group');
+                        }
                     }
                 }
             }
-        }
 
-        // Function to prevent selection of options with narratives
-        function preventNarrativeSelection(e) {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.getAttribute('data-has-narrative') === 'true') {
-                // Prevent selection and show a message
-                e.preventDefault();
-                this.value = ''; // Reset to default option
-                
-                // Show a notification
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Selection Not Allowed',
-                    text: 'This activity already has a narrative and cannot be selected.',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return false;
-            }
-        }
-
-        // Function to style All Campuses elements
-        function styleAllCampusesElements() {
-            // Find all possible All Campuses elements
-            const allElements = document.querySelectorAll('div, span, button, a, li, option');
-            const theme = document.documentElement.getAttribute('data-bs-theme');
-            
-            allElements.forEach(el => {
-                if (el.textContent.trim() === 'All Campuses') {
-                    // Add our custom class
-                    el.classList.add('all-campuses-filter');
+            // Function to prevent selection of options with narratives
+            function preventNarrativeSelection(e) {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.getAttribute('data-has-narrative') === 'true') {
+                    // Prevent selection and show a message
+                    e.preventDefault();
+                    this.value = ''; // Reset to default option
                     
-                    // Add direct styling for light mode
-                    if (theme === 'light') {
-                        el.style.backgroundColor = '#ffffff';
-                        el.style.color = '#212529';
-                        if (el.tagName !== 'OPTION') {
-                            el.style.border = '1px solid #ced4da';
+                    // Show a notification
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Selection Not Allowed',
+                        text: 'This activity already has a narrative and cannot be selected.',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                    return false;
+                }
+            }
+
+            // Function to style All Campuses elements
+            function styleAllCampusesElements() {
+                // Find all possible All Campuses elements
+                const allElements = document.querySelectorAll('div, span, button, a, li, option');
+                const theme = document.documentElement.getAttribute('data-bs-theme');
+                
+                allElements.forEach(el => {
+                    if (el.textContent.trim() === 'All Campuses') {
+                        // Add our custom class
+                        el.classList.add('all-campuses-filter');
+                        
+                        // Add direct styling for light mode
+                        if (theme === 'light') {
+                            el.style.backgroundColor = '#ffffff';
+                            el.style.color = '#212529';
+                            if (el.tagName !== 'OPTION') {
+                                el.style.border = '1px solid #ced4da';
+                            }
                         }
                     }
+                });
+            }
+
+            $(document).ready(function() {
+                // Existing document ready code...
+                
+                // Load personnel names for the dropdown based on selected activity
+                async function loadPersonnel(activityId = null) {
+                    try {
+                        const dropdown = document.getElementById('personnelName');
+                        dropdown.innerHTML = '<option value="">Select Personnel</option>'; // Clear existing options
+                        
+                        let url = 'get_personnel.php';
+                        if (activityId) {
+                            url += `?activity_id=${activityId}`;
+                        }
+                        
+                        const response = await fetch(url);
+                        const result = await response.json();
+                        
+                        if (result.status === 'success') {
+                            if (result.data && result.data.length > 0) {
+                                // Filter out already selected personnel
+                                const availablePersonnel = result.data.filter(person => 
+                                    !window.selectedPersonnel.some(selected => 
+                                        selected.name === person.name || selected.id === person.id
+                                    )
+                                );
+
+                                if (availablePersonnel.length > 0) {
+                                    availablePersonnel.forEach(person => {
+                                        const option = document.createElement('option');
+                                        option.value = person.id;
+                                        option.textContent = person.name;
+                                        option.dataset.academicRank = person.academic_rank;
+                                        dropdown.appendChild(option);
+                                    });
+                                } else {
+                                    const option = document.createElement('option');
+                                    option.value = "";
+                                    option.textContent = "No available personnel";
+                                    option.disabled = true;
+                                    dropdown.appendChild(option);
+                                }
+                            } else {
+                                const option = document.createElement('option');
+                                option.value = "";
+                                option.textContent = "No available personnel";
+                                option.disabled = true;
+                                dropdown.appendChild(option);
+                            }
+                        } else {
+                            console.error('Failed to load personnel:', result.message);
+                        }
+                    } catch (error) {
+                        console.error('Error loading personnel:', error);
+                    }
+                }
+
+                // Initial load of personnel
+                loadPersonnel();
+
+                // Reload personnel when activity changes
+                $('#title').on('change', async function() {
+                    const activityId = this.value;
+                    const activityTitle = $(this).find('option:selected').data('title');
+                    console.log('Title/Activity changed to:', activityTitle);
+                    console.log('Activity ID:', activityId);
+                    console.log('Current title element:', this);
+                    
+                    // Don't clear fields until we know we need to
+                    if (!activityId) {
+                        console.log('No activity selected, clearing fields');
+                        $('#totalDuration').val('0.00');
+                        $('#storedDuration').val('0.00');
+                        $('#psAttribution').val('0.00');
+                        $('#personnelName').val('').trigger('change');
+                        return;
+                    }
+                    
+                    try {
+                        console.log('Fetching duration for activity ID:', activityId);
+                        const response = await fetch(`get_ppas_duration.php?activity_id=${activityId}`);
+                        const responseText = await response.text();
+                        console.log('Raw response from get_ppas_duration:', responseText);
+                        
+                        const data = JSON.parse(responseText);
+                        console.log('Parsed duration data:', data);
+                        
+                        if (data.status === 'success') {
+                            console.log('Raw total_duration from response:', data.total_duration);
+                            
+                            // Store duration in both visible and hidden fields
+                            $('#totalDuration').val(data.total_duration);
+                            $('#storedDuration').val(data.total_duration);
+                            
+                            // Store the existing PS attribution
+                            if (data.ps_attribution) {
+                                console.log('Existing PS attribution from activity:', data.ps_attribution);
+                                $('#psAttribution').val(data.ps_attribution);
+                            }
+                            
+                            console.log('Duration values after storage:');
+                            console.log('- totalDuration field:', $('#totalDuration').val());
+                            console.log('- storedDuration field:', $('#storedDuration').val());
+                            console.log('- psAttribution field:', $('#psAttribution').val());
+                            
+                            // If there's already a personnel selected with hourly rate, update PS
+                            const hourlyRate = parseFloat($('#hourlyRate').val());
+                            if (!isNaN(hourlyRate) && hourlyRate > 0) {
+                                console.log('Existing hourly rate found, updating PS');
+                                updatePSAttribution(hourlyRate);
+                            }
+                        } else {
+                            console.error('Failed to fetch duration:', data.message);
+                            $('#totalDuration').val('0.00');
+                            $('#storedDuration').val('0.00');
+                            $('#psAttribution').val('0.00');
+                        }
+                    } catch (error) {
+                        console.error('Error in duration fetch:', error);
+                        $('#totalDuration').val('0.00');
+                        $('#storedDuration').val('0.00');
+                        $('#psAttribution').val('0.00');
+                    }
+                    
+                    // Load personnel after duration is handled
+                    await loadPersonnel(activityId);
+                });
+
+                // Handle personnel selection change
+                $('#personnelName').off('change').on('change', async function() {
+                    const option = $(this).find('option:selected');
+                    const id = option.val();
+                    const name = option.text();
+                    const rank = option.data('academicRank');
+
+                    console.log('Personnel selection changed:', { id, name });
+
+                    if (!id || name === 'Select Personnel') {
+                        console.log('Invalid selection, resetting dropdown');
+                        $(this).val('');
+                        return;
+                    }
+
+                    // Check for duplicates
+                    if (window.isPersonnelAlreadySelected(id)) {
+                        console.log('Duplicate personnel detected, ignoring');
+                        $(this).val('');
+                        return;
+                    }
+
+                    try {
+                        console.log('Fetching personnel details for ID:', id);
+                            const response = await $.get('get_personnel_details.php', { personnel_id: id });
+                        
+                        if (response.status === 'success') {
+                                const details = response.data;
+                                const duration = parseFloat($('#totalDuration').val()) || 0;
+                                
+                            const newPersonnel = {
+                                    id,
+                                    name,
+                                    rank: details.academic_rank,
+                                hourlyRate: parseFloat(details.hourly_rate) || 0,
+                                duration: duration
+                            };
+                            
+                            // Calculate PS based on duration and hourly rate
+                            newPersonnel.ps = newPersonnel.duration * newPersonnel.hourlyRate;
+                            
+                            console.log('Adding new personnel:', newPersonnel);
+                            window.selectedPersonnel.push(newPersonnel);
+                            window.updatePersonnelList();
+                            
+                            // Calculate total PS
+                            window.calculateTotalPS();
+                        }
+                    } catch (error) {
+                            console.error('Error fetching personnel details:', error);
+                    }
+                    
+                    $(this).val(''); // Reset dropdown
+                });
+
+                function updatePSAttribution(hourlyRate) {
+                    console.log('Updating PS Attribution');
+                    console.log('Hourly rate:', hourlyRate);
+                    
+                    const totalDuration = parseFloat($('#totalDuration').val()) || 0;
+                    console.log('Total duration:', totalDuration);
+                    
+                    if (totalDuration <= 0) {
+                        console.log('Invalid duration (<=0), skipping calculation');
+                        $('#psAttribution').val('0.00');
+                        return;
+                    }
+                    
+                    if (!hourlyRate || hourlyRate <= 0) {
+                        console.log('Invalid hourly rate (<=0), skipping calculation');
+                        $('#psAttribution').val('0.00');
+                        return;
+                    }
+                    
+                    // Get current PS value
+                    const currentPS = parseFloat($('#psAttribution').val()) || 0;
+                    console.log('Current PS:', currentPS);
+                    
+                    // Calculate new PS attribution
+                    const fetchedPS = hourlyRate * totalDuration;
+                    console.log('Fetched PS:', fetchedPS);
+                    
+                    // Add current PS to fetched PS
+                    const newPS = currentPS + fetchedPS;
+                    console.log('New PS Attribution (Current + Fetched):', newPS);
+                    
+                    // Update PS Attribution field with 2 decimal places
+                    $('#psAttribution').val(newPS.toFixed(2));
+            }
+
+                // Handle total duration changes
+                $('#totalDuration').on('input', function() {
+                    const newDuration = parseFloat($(this).val()) || 0;
+                    // Update duration for all personnel
+                    selectedPersonnel.forEach(person => {
+                        person.duration = newDuration;
+                    });
+                    updatePersonnelList();
+                    calculateTotalPS();
+                });
+
+                // Remove the old duration input handler since fields are readonly
+                $(document).off('input', '.personnel-duration');
+            });
+
+            // Add event listener for title changes
+            document.getElementById('title').addEventListener('change', function() {
+                loadActivityDetails();
+            });
+
+            // Add event listener for year changes
+            document.getElementById('year').addEventListener('change', function() {
+                const title = document.getElementById('title').value;
+                if (title) {
+                    loadActivityDetails();
                 }
             });
-        }
-    </script>
-    <script src="../js/approval-badge.js"></script>
-    
-    
-   
-</body>
+
+            // Function to update gender issue field
+            function updateGenderIssueField(genderIssue) {
+                const genderIssueField = document.getElementById('genderIssue');
+                if (!genderIssueField) return;
+
+                if (genderIssue) {
+                    genderIssueField.value = genderIssue;
+                    genderIssueField.classList.remove('bg-light');
+                    console.log('Gender issue updated:', genderIssue);
+                } else {
+                    genderIssueField.value = 'No gender issue found for this activity';
+                    genderIssueField.classList.add('bg-light');
+                    console.log('No gender issue found');
+                }
+            }
+        </script>
+        <script src="../js/approval-badge.js"></script>
+        <script>
+            // Initialize global variables and functions
+            window.selectedPersonnel = [];
+            window.ppasPS = 0;
+
+            // Helper function to check for duplicates
+            window.isPersonnelAlreadySelected = function(id) {
+                const isDuplicate = window.selectedPersonnel.some(p => p.id === id);
+                console.log('Checking duplicate for ID:', id, 'Result:', isDuplicate);
+                console.log('Current personnel:', window.selectedPersonnel);
+                return isDuplicate;
+            };
+
+            window.updatePersonnelList = function() {
+                console.log('Updating personnel list. Current count:', window.selectedPersonnel.length);
+                const list = $('#selectedPersonnelList ul');
+                list.empty();
+                
+                // Remove any duplicates that might have slipped through
+                const uniquePersonnel = [];
+                const seen = new Set();
+                
+                window.selectedPersonnel.forEach(person => {
+                    if (!seen.has(person.id)) {
+                        seen.add(person.id);
+                        uniquePersonnel.push(person);
+                    } else {
+                        console.log('Removing duplicate personnel:', person);
+                    }
+                });
+                
+                window.selectedPersonnel = uniquePersonnel;
+                console.log('After duplicate removal. Count:', window.selectedPersonnel.length);
+                
+                // Get PPAS duration if available
+                const ppasDuration = parseFloat($('#totalDuration').val()) || 0;
+                console.log('Current PPAS Duration:', ppasDuration);
+                
+                if (window.ppasPS > 0) {
+                    list.append(`
+                        <li class="list-group-item theme-bg">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="theme-text">PPAS Form PS Attribution</strong>
+                                    <div class="small theme-text-muted">
+                                        PS: ₱${window.ppasPS.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    `);
+                }
+                
+                window.selectedPersonnel.forEach((person, index) => {
+                    // Ensure duration is set to PPAS duration if available
+                    if (ppasDuration > 0) {
+                        person.duration = ppasDuration;
+                    }
+                    
+                    // Calculate PS if not already set
+                    person.ps = person.ps || (person.duration || 0) * (parseFloat(person.hourlyRate) || 0);
+                    
+                    list.append(`
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${person.name || 'Unknown'}</strong> - ${person.rank || 'N/A'}
+                                    <div class="small text-muted">
+                                        Hourly Rate: ₱${parseFloat(person.hourlyRate || 0).toFixed(2)}
+                                        <br>
+                                        Duration: ${parseFloat(person.duration || 0).toFixed(2)} hours
+                                        <br>
+                                        PS: ₱${person.ps.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <input type="number" 
+                                           class="form-control form-control-sm personnel-duration me-2" 
+                                           style="width: 100px;"
+                                           placeholder="Hours"
+                                           step="0.01" 
+                                           min="0"
+                                           data-index="${index}"
+                                           value="${parseFloat(person.duration || 0).toFixed(2)}"
+                                           readonly
+                                    >
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removePersonnel(${index})">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    `);
+                });
+                window.calculateTotalPS();
+            };
+
+            window.calculateTotalPS = function() {
+                // Calculate PS from personnel first
+                let personnelPS = 0;
+                window.selectedPersonnel.forEach(person => {
+                    // Use the pre-calculated PS value if available, otherwise calculate it
+                    if (person.ps !== undefined) {
+                        personnelPS += parseFloat(person.ps);
+                    } else if (person.duration && person.hourlyRate) {
+                        const ps = parseFloat(person.duration) * parseFloat(person.hourlyRate);
+                        person.ps = ps;
+                        personnelPS += ps;
+                    }
+                });
+                
+                // Get PPAS PS if available
+                const ppasPS = parseFloat(window.ppasPS) || 0;
+                
+                // Add both together for total PS
+                const totalPS = personnelPS + ppasPS;
+                
+                console.log('PS Calculation:', {
+                    ppasPS: ppasPS,
+                    personnelPS: personnelPS,
+                    totalPS: totalPS
+                });
+
+                $('#psAttribution').val(totalPS.toFixed(2));
+            };
+
+            window.removePersonnel = function(index) {
+                window.selectedPersonnel.splice(index, 1);
+                window.updatePersonnelList();
+                // Recalculate total PS
+                window.calculateTotalPS();
+            };
+            
+            // Helper function to check if personnel is already selected
+            window.isPersonnelAlreadySelected = function(id) {
+                return window.selectedPersonnel.some(person => person.id.toString() === id.toString());
+            };
+            
+            // Debug utility to log personnel state
+            window.logPersonnelState = function() {
+                console.log('Current selected personnel:', window.selectedPersonnel.map(p => ({ 
+                    id: p.id, 
+                    name: p.name, 
+                    duration: p.duration,
+                    hourlyRate: p.hourlyRate,
+                    ps: p.ps
+                })));
+                
+                // Log personnel options in the dropdown
+                const options = [];
+                $('#personnelName option').each(function() {
+                    if ($(this).val()) {
+                        options.push({
+                            id: $(this).val(),
+                            name: $(this).text(),
+                            disabled: $(this).prop('disabled'),
+                            selected: $(this).prop('selected'),
+                            dataSelected: $(this).attr('data-selected')
+                        });
+                    }
+                });
+                console.log('Personnel dropdown options:', options);
+            };
+
+            $(document).ready(function() {
+                // When personnel dropdown is populated
+                $('#personnelName').on('DOMSubtreeModified', function() {
+                    // Check if we have selected personnel that need to be marked in the dropdown
+                    if (window.selectedPersonnel && window.selectedPersonnel.length > 0) {
+                        window.selectedPersonnel.forEach(person => {
+                            // Find the option with this ID
+                            const option = $(`#personnelName option[value="${person.id}"]`);
+                            if (option.length && !option.attr('data-selected')) {
+                                // Mark it visually but don't select it (to avoid duplication)
+                                option.attr('data-selected', 'true');
+                                option.css('background-color', '#e9ecef');
+                                option.css('color', '#495057');
+                                option.prop('disabled', true); // Prevent duplicate selection
+                            }
+                        });
+                    }
+                });
+                
+                // Handle activity/title change
+                $('#title').on('change', async function() {
+                    const activityId = this.value;
+                    console.log('Title/Activity changed:', activityId);
+
+                    // Reset selected personnel array
+                    window.selectedPersonnel = [];
+                    window.updatePersonnelList();
+
+                    if (!activityId) {
+                        window.ppasPS = 0;
+                        window.calculateTotalPS();
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`get_ppas_duration.php?activity_id=${activityId}`);
+                        const data = await response.json();
+                        console.log('PPAS data:', data);
+
+                        if (data.status === 'success') {
+                            // Set PPAS PS
+                            window.ppasPS = parseFloat(data.ps_attribution) || 0;
+                            console.log('PPAS PS loaded:', window.ppasPS);
+                            
+                            // Set total duration
+                            const duration = parseFloat(data.total_duration) || 0;
+                            $('#totalDuration').val(duration.toFixed(2));
+                            console.log('PPAS duration loaded:', duration);
+                            
+                            // Update duration for all personnel
+                            window.selectedPersonnel.forEach(person => {
+                                person.duration = duration;
+                                person.ps = duration * parseFloat(person.hourlyRate || 0);
+                            });
+                            
+                            // Update UI and recalculate PS
+                            window.updatePersonnelList();
+                            window.calculateTotalPS();
+                        }
+                    } catch (error) {
+                        console.error('Error fetching PPAS data:', error);
+                        window.ppasPS = 0;
+                    }
+                });
+
+                // Handle personnel selection change
+                $('#personnelName').off('change').on('change', async function() {
+                    const option = $(this).find('option:selected');
+                    const id = option.val();
+                    const name = option.text();
+
+                    console.log('Personnel selection changed:', { id, name });
+
+                    if (!id || name === 'Select Personnel') {
+                        console.log('Invalid selection, resetting dropdown');
+                        $(this).val('');
+                        return;
+                    }
+
+                    // Check for duplicates
+                    if (window.isPersonnelAlreadySelected(id)) {
+                        console.log('Duplicate personnel detected, ignoring');
+                        $(this).val('');
+                        return;
+                    }
+
+                    try {
+                        console.log('Fetching personnel details for ID:', id);
+                        const response = await $.get('get_personnel_details.php', { personnel_id: id });
+                        
+                        if (response.status === 'success') {
+                            const details = response.data;
+                            const duration = parseFloat($('#totalDuration').val()) || 0;
+                            
+                            const newPersonnel = {
+                                id,
+                                name,
+                                rank: details.academic_rank,
+                                hourlyRate: parseFloat(details.hourly_rate) || 0,
+                                duration: duration
+                            };
+                            
+                            // Calculate PS based on duration and hourly rate
+                            newPersonnel.ps = newPersonnel.duration * newPersonnel.hourlyRate;
+                            
+                            console.log('Adding new personnel:', newPersonnel);
+                            window.selectedPersonnel.push(newPersonnel);
+                            window.updatePersonnelList();
+                            
+                            // Calculate total PS
+                            window.calculateTotalPS();
+                        }
+                    } catch (error) {
+                        console.error('Error fetching personnel details:', error);
+                    }
+                    
+                    $(this).val('');
+                });
+
+                // Handle total duration changes
+                $('#totalDuration').on('input', function() {
+                    const newDuration = parseFloat($(this).val()) || 0;
+                    window.selectedPersonnel.forEach(person => {
+                        person.duration = newDuration;
+                    });
+                    window.updatePersonnelList();
+                });
+
+                // Add to form submission
+                $('form').on('submit', function(e) {
+                    if (window.selectedPersonnel.length === 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Please select at least one personnel',
+                            position: 'center'
+                        });
+                        return false;
+                    }
+
+                    // Remove any existing hidden inputs
+                    $(this).find('input[name^="selected_personnel"]').remove();
+                    $(this).find('input[name="ppas_ps"]').remove();
+                    $(this).find('input[name="total_ps"]').remove();
+                    
+                    // Add PPAS PS
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'ppas_ps',
+                        value: window.ppasPS
+                    }).appendTo(this);
+
+                    // Add current selected personnel to form
+                    window.selectedPersonnel.forEach((person, index) => {
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: `selected_personnel[${index}][id]`,
+                            value: person.id
+                        }).appendTo(this);
+                        
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: `selected_personnel[${index}][duration]`,
+                            value: person.duration || 0
+                        }).appendTo(this);
+
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: `selected_personnel[${index}][ps]`,
+                            value: (person.duration || 0) * person.hourlyRate
+                        }).appendTo(this);
+                    });
+
+                    // Add total PS
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'total_ps',
+                        value: $('#psAttribution').val()
+                    }).appendTo(this);
+                });
+                
+                // Fix ARIA accessibility issues with modals
+                $('#narrativeListModal').on('shown.bs.modal', function() {
+                    // Manually set inert instead of aria-hidden for better accessibility
+                    $(this).attr('inert', null);
+                    $(this).removeAttr('aria-hidden');
+                });
+                
+                $('#narrativeListModal').on('hidden.bs.modal', function() {
+                    // Focus returns to trigger element automatically with Bootstrap
+                    $(this).removeAttr('inert');
+                });
+            });
+        </script>
+    </body>
 </html>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: May 17, 2025 at 10:40 AM
+-- Generation Time: Jun 16, 2025 at 01:01 PM
 -- Server version: 8.3.0
 -- PHP Version: 8.2.18
 
@@ -142,14 +142,7 @@ CREATE TABLE IF NOT EXISTS `gbp_notifications` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `gbp_id` (`gbp_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `gbp_notifications`
---
-
-INSERT INTO `gbp_notifications` (`id`, `gbp_id`, `campus`, `message`, `status`, `is_read`, `created_at`) VALUES
-(9, 122, 'Lipa', 'Your GBP entry addressing \"Test\" has been approved by Central Office.', 'Approved', 1, '2025-05-17 05:17:08');
+) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -181,14 +174,7 @@ CREATE TABLE IF NOT EXISTS `gpb_entries` (
   `feedback` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `reply` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `gpb_entries`
---
-
-INSERT INTO `gpb_entries` (`id`, `category`, `gender_issue`, `cause_of_issue`, `gad_objective`, `relevant_agency`, `generic_activity`, `specific_activities`, `total_activities`, `male_participants`, `female_participants`, `total_participants`, `gad_budget`, `source_of_budget`, `responsible_unit`, `created_at`, `campus`, `year`, `status`, `feedback`, `reply`) VALUES
-(122, 'Client-Focused', 'Test', 'Test', 'Test', '[\"Technical Advisory\",\"Extension Services\",\"General Administration & Support\"]', '[\"Test\"]', '[[\"Test\"]]', 1, 11, 11, 22, 1111.00, '[\"GAA\",\"MDS\",\"STF\"]', '[\"BO\",\"CABE\",\"CAS\"]', '2025-05-17 05:17:08', 'Lipa', 2025, 'Approved', '', '');
+) ENGINE=MyISAM AUTO_INCREMENT=125 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -226,9 +212,27 @@ CREATE TABLE IF NOT EXISTS `narrative_entries` (
   `expected_results` text,
   `lessons_learned` text,
   `issues_concerns` text,
+  `other_internal_personnel` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_ppas_form_id` (`ppas_form_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `narrative_personnel`
+--
+
+DROP TABLE IF EXISTS `narrative_personnel`;
+CREATE TABLE IF NOT EXISTS `narrative_personnel` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `activity_id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_activity_personnel` (`activity_id`,`personnel_id`),
+  KEY `personnel_id` (`personnel_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -248,13 +252,14 @@ CREATE TABLE IF NOT EXISTS `personnel` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_academic_rank` (`academic_rank`)
-) ENGINE=MyISAM AUTO_INCREMENT=163 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=164 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `personnel`
 --
 
 INSERT INTO `personnel` (`id`, `name`, `category`, `status`, `gender`, `academic_rank`, `campus`, `created_at`) VALUES
+(163, 'Test 5', 'Teaching', 'Guest Lecturer', 'female', 'Assistant Professor I', 'Lipa', '2025-05-30 10:34:08'),
 (162, 'Test 4', 'Teaching', 'Guest Lecturer', 'male', 'Admin Aide 5', 'Lipa', '2025-05-17 05:19:03'),
 (161, 'Test 3', 'Teaching', 'Guest Lecturer', 'male', 'Admin Aide 2', 'Lipa', '2025-05-17 05:18:55'),
 (160, 'Test 2', 'Non-teaching', 'Part-timer', 'female', 'Admin Aide 1', 'Lipa', '2025-05-17 05:18:49'),
@@ -337,14 +342,7 @@ CREATE TABLE IF NOT EXISTS `ppas_forms` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `ppas_forms`
---
-
-INSERT INTO `ppas_forms` (`id`, `campus`, `year`, `quarter`, `gender_issue_id`, `program`, `project`, `activity`, `location`, `start_date`, `end_date`, `start_time`, `end_time`, `lunch_break`, `total_duration`, `mode_of_delivery`, `agenda`, `sdg`, `office_college_organization`, `program_list`, `project_leader`, `project_leader_responsibilities`, `assistant_project_leader`, `assistant_project_leader_responsibilities`, `project_staff_coordinator`, `project_staff_coordinator_responsibilities`, `internal_type`, `internal_male`, `internal_female`, `internal_total`, `external_type`, `external_male`, `external_female`, `external_total`, `grand_total_male`, `grand_total_female`, `grand_total`, `rationale`, `general_objectives`, `specific_objectives`, `description`, `strategy`, `expected_output`, `functional_requirements`, `sustainability_plan`, `specific_plan`, `workplan_activity`, `workplan_date`, `financial_plan`, `financial_plan_items`, `financial_plan_quantity`, `financial_plan_unit`, `financial_plan_unit_cost`, `financial_total_cost`, `source_of_fund`, `financial_note`, `approved_budget`, `ps_attribution`, `monitoring_objectives`, `monitoring_baseline_data`, `monitoring_data_source`, `monitoring_frequency_data_collection`, `monitoring_performance_indicators`, `monitoring_performance_target`, `monitoring_collection_method`, `monitoring_office_persons_involved`, `created_at`, `updated_at`) VALUES
-(62, 'Lipa', '2025', 'Q4', 122, 'Program', 'Project', 'Activity', 'Location', '12/16/2030', '12/17/2030', '15:16', '21:16', 0, '12.00', 'Face-to-Face', 'BatStateU Inclusive Social Innovation for Regional Growth (BISIG) Program', '[\"SDG 1\", \"SDG 2\", \"SDG 3\"]', '[\"Office\"]', '[\"Program\"]', '[\"Test 1\"]', '[\"Responsibilities 1\"]', '[\"Test 2\"]', '[\"Responsibilities\"]', '[\"Test 3\"]', '[\"Responsibilities\"]', 'Internal Participants', 1, 1, 2, 'External Participants', 1, 1, 2, 2, 2, 4, 'Rationale', 'General Objectives', '[\"Specific Objectives 1\"]', 'Description', '[\"Strategies\"]', '[\"Expected Output\"]', 'Functional Requirements', 'Sustainability', '[\"Specific Plans\"]', '[\"Workplan Activity 2\", \"Workplan Activity 1\"]', '[\"Dec 16\", \"Dec 16,Dec 17\"]', 0, '[\"none\"]', '[\"none\"]', '[\"none\"]', '[\"none\"]', '0', '[\"GAA\", \"MDS\", \"STF\"]', 'Financial Note', 11, '4159.20', '[\"Objectives\"]', '[\"Baseline Data\"]', '[\"Data Source\"]', '[\"Frequency of Data Collection\"]', '[\"Performance Indicators\"]', '[\"Performance Target\"]', '[\"Collection Method\"]', '[\"Office/Persons Involved\"]', '2025-05-17 07:18:07', '2025-05-17 07:19:39');
+) ENGINE=MyISAM AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -399,14 +397,7 @@ CREATE TABLE IF NOT EXISTS `target` (
   UNIQUE KEY `unique_year_campus` (`year`,`campus`),
   KEY `idx_year` (`year`),
   KEY `idx_campus` (`campus`)
-) ENGINE=InnoDB AUTO_INCREMENT=187 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `target`
---
-
-INSERT INTO `target` (`id`, `year`, `campus`, `total_gaa`, `total_gad_fund`) VALUES
-(186, '2025', 'Lipa', 1000000.00, 50000.00);
+) ENGINE=InnoDB AUTO_INCREMENT=188 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

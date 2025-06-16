@@ -2166,7 +2166,8 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
             border-top-left-radius: 8px;
             border-bottom-left-radius: 8px;
             font-size: 0.9rem;
-            z-index: 1; /* Ensure it's above other elements */
+            z-index: 1;
+            /* Ensure it's above other elements */
         }
 
         /* Add styling for remove buttons to match height */
@@ -2180,13 +2181,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
         .numbered-input {
             padding-left: 46px !important;
         }
-        
+
         /* Fix validation message positioning for numbered inputs */
-        .numbered-input-container + .invalid-feedback,
-        .input-group .numbered-input-container + .invalid-feedback,
+        .numbered-input-container+.invalid-feedback,
+        .input-group .numbered-input-container+.invalid-feedback,
         .input-group-container .invalid-feedback {
             display: block;
-            margin-top: 5px; 
+            margin-top: 5px;
             position: relative;
             z-index: 0;
         }
@@ -3445,11 +3446,11 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                         <div class="row mb-3">
                                             <div class="col-md-4">
                                                 <label for="internal_male" class="form-label">Male</label>
-                                                <input type="number" min="0" class="form-control participant-count" id="internal_male" name="internal_male" required>
+                                                <input type="number" min="0" class="form-control participant-count" id="internal_male" name="internal_male" readonly tabindex="-1" style="background-color: var(--readonly-bg); pointer-events: none;">
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="internal_female" class="form-label">Female</label>
-                                                <input type="number" min="0" class="form-control participant-count" id="internal_female" name="internal_female" required>
+                                                <input type="number" min="0" class="form-control participant-count" id="internal_female" name="internal_female" readonly tabindex="-1" style="background-color: var(--readonly-bg); pointer-events: none;">
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="internal_total" class="form-label">Total</label>
@@ -3982,6 +3983,75 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
             </div>
         </div>
         <script>
+            function updateInternalParticipantsFromProjectTeam() {
+                // Helper to count gender in a container
+                function countGender(containerSelector, genderFieldName) {
+                    let male = 0,
+                        female = 0;
+                    document.querySelectorAll(containerSelector + ' .team-member-card').forEach(card => {
+                        const genderInput = card.querySelector(`input[name="${genderFieldName}[]"]`);
+                        if (genderInput) {
+                            const val = genderInput.value.trim().toLowerCase();
+                            if (val === 'male') male++;
+                            else if (val === 'female') female++;
+                        }
+                    });
+                    return {
+                        male,
+                        female
+                    };
+                }
+                // Count for each role
+                const leaders = countGender('#projectLeadersContainer', 'leader_gender');
+                const asstLeaders = countGender('#assistantLeadersContainer', 'asst_leader_gender');
+                const staff = countGender('#projectStaffContainer', 'staff_gender');
+                // Sum up
+                const totalMale = leaders.male + asstLeaders.male + staff.male;
+                const totalFemale = leaders.female + asstLeaders.female + staff.female;
+                // Set values (default to 0)
+                document.getElementById('internal_male').value = totalMale;
+                document.getElementById('internal_female').value = totalFemale;
+                document.getElementById('internal_total').value = totalMale + totalFemale;
+                // Trigger participant totals update
+                if (typeof calculateParticipantTotals === 'function') calculateParticipantTotals();
+            }
+            // Attach to project team changes
+            function attachProjectTeamGenderListeners() {
+                // Listen for changes in all gender fields in project team
+                const observer = new MutationObserver(updateInternalParticipantsFromProjectTeam);
+                [
+                    '#projectLeadersContainer',
+                    '#assistantLeadersContainer',
+                    '#projectStaffContainer'
+                ].forEach(selector => {
+                    const container = document.querySelector(selector);
+                    if (container) observer.observe(container, {
+                        childList: true,
+                        subtree: true
+                    });
+                });
+                // Listen for input changes on gender fields
+                document.addEventListener('input', function(e) {
+                    if (
+                        e.target.matches('input[name="leader_gender[]"]') ||
+                        e.target.matches('input[name="asst_leader_gender[]"]') ||
+                        e.target.matches('input[name="staff_gender[]"]')
+                    ) {
+                        updateInternalParticipantsFromProjectTeam();
+                    }
+                });
+                // Listen for personnel autocomplete changes (in case gender is filled by JS)
+                document.addEventListener('change', function(e) {
+                    if (e.target.classList.contains('personnel-autocomplete')) {
+                        updateInternalParticipantsFromProjectTeam();
+                    }
+                });
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                attachProjectTeamGenderListeners();
+                updateInternalParticipantsFromProjectTeam();
+            });
+
             // Form validation flag
             let validationTriggered = false;
 
@@ -4024,7 +4094,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         feedback.textContent = errorMessage;
                         currencyWrapper.parentNode.insertBefore(feedback, currencyWrapper.nextSibling);
                     }
-                } 
+                }
                 // Special handling for activity input in workplan
                 else if (input.classList.contains('activity-name')) {
                     const inputGroup = input.closest('.input-group');
@@ -4033,7 +4103,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         if (getComputedStyle(inputGroup).position !== 'relative') {
                             inputGroup.style.position = 'relative';
                         }
-                        
+
                         // Find or create validation container
                         let validationContainer = inputGroup.querySelector('.validation-message-container');
                         if (!validationContainer) {
@@ -4046,7 +4116,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             validationContainer.style.zIndex = '1';
                             inputGroup.appendChild(validationContainer);
                         }
-                        
+
                         // Add feedback if not present
                         if (!validationContainer.querySelector('.invalid-feedback')) {
                             const feedback = document.createElement('div');
@@ -4089,7 +4159,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     if (currencyWrapper.nextElementSibling && currencyWrapper.nextElementSibling.classList.contains('invalid-feedback')) {
                         currencyWrapper.nextElementSibling.remove();
                     }
-                } 
+                }
                 // Special handling for activity input in workplan
                 else if (input.classList.contains('activity-name')) {
                     const inputGroup = input.closest('.input-group');
@@ -4140,24 +4210,24 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     // First try by ID
                     let withFinancialPlanRadio = document.getElementById('withFinancialPlan');
                     let withoutFinancialPlanRadio = document.getElementById('withoutFinancialPlan');
-                    
+
                     // If not found, try by name and value
                     if (!withFinancialPlanRadio || !withoutFinancialPlanRadio) {
                         console.log('Radio buttons not found by ID, trying by name...');
                         const radiosByName = document.querySelectorAll('input[name="hasFinancialPlan"]');
                         console.log('Found radio buttons by name:', radiosByName.length);
-                        
+
                         Array.from(radiosByName).forEach(radio => {
                             console.log(`Radio ${radio.id}, value: ${radio.value}, checked: ${radio.checked}`);
                             if (radio.value === '1') withFinancialPlanRadio = radio;
                             if (radio.value === '0') withoutFinancialPlanRadio = radio;
                         });
                     }
-                    
+
                     // Handle possible null values more gracefully
-                    const hasFinancialPlanSelection = (withFinancialPlanRadio && withFinancialPlanRadio.checked) || 
-                                                     (withoutFinancialPlanRadio && withoutFinancialPlanRadio.checked);
-                    
+                    const hasFinancialPlanSelection = (withFinancialPlanRadio && withFinancialPlanRadio.checked) ||
+                        (withoutFinancialPlanRadio && withoutFinancialPlanRadio.checked);
+
                     console.log('Finance validation - withPlan element exists:', !!withFinancialPlanRadio);
                     console.log('withoutPlan element exists:', !!withoutFinancialPlanRadio);
                     console.log('withPlan checked:', withFinancialPlanRadio?.checked);
@@ -4177,7 +4247,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     }
                     if (!hasFinancialPlanSelection) {
                         isValid = false;
-                        
+
                         if (validationTriggered) {
                             const radioContainer = section.querySelector('.form-group:nth-child(2)');
                             if (radioContainer) {
@@ -4192,7 +4262,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     radioContainer.appendChild(feedback);
                                 }
                             }
-                            
+
                             // Update section title with error
                             const sectionTitle = document.querySelector('#section-10 .section-title');
                             if (sectionTitle) {
@@ -4476,41 +4546,41 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         console.error('SDG section is null!');
                         return false;
                     }
-                    
+
                     // Get all inputs in the section for debugging
                     const allInputs = section.querySelectorAll('input');
                     console.log('All inputs in sdgs-section:', allInputs.length);
-                    
+
                     // Try to find SDG checkboxes by name="sdgs[]"
                     let checkboxes = section.querySelectorAll('input[name="sdgs[]"]');
                     console.log('SDG checkboxes found by name="sdgs[]":', checkboxes.length);
-                    
+
                     // If no checkboxes found, try alternative approaches
                     if (checkboxes.length === 0) {
                         console.log('No SDG checkboxes found by name="sdgs[]", trying alternatives...');
-                        
+
                         // Try by class
                         checkboxes = section.querySelectorAll('input.modern-radio');
                         console.log('SDG checkboxes found by class="modern-radio":', checkboxes.length);
-                        
+
                         // If still no checkboxes, try by id pattern
                         if (checkboxes.length === 0) {
                             checkboxes = section.querySelectorAll('input[id^="sdg-"]');
                             console.log('SDG checkboxes found by id pattern "sdg-":', checkboxes.length);
                         }
-                        
+
                         // If still no checkboxes, try all checkboxes in the section
                         if (checkboxes.length === 0) {
                             checkboxes = section.querySelectorAll('input[type="checkbox"]');
                             console.log('Falling back to all checkboxes in section:', checkboxes.length);
                         }
                     }
-                    
+
                     // List all checkboxes and their checked state
                     Array.from(checkboxes).forEach((cb, i) => {
                         console.log(`SDG checkbox ${i+1} - id: ${cb.id}, value: ${cb.value}, checked: ${cb.checked}`);
                     });
-                    
+
                     const isAnyCheckboxSelected = Array.from(checkboxes).some(checkbox => checkbox.checked);
                     console.log('Any SDG checkbox selected:', isAnyCheckboxSelected);
                     console.log('Validation triggered:', validationTriggered);
@@ -4529,18 +4599,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                         // Add error styling only if validation has been triggered
                         if (validationTriggered) {
-                        // Add error styling to the checkbox container
-                        const container = section.querySelector('.modern-options-container');
-                        if (container) {
-                            container.classList.add('is-invalid');
+                            // Add error styling to the checkbox container
+                            const container = section.querySelector('.modern-options-container');
+                            if (container) {
+                                container.classList.add('is-invalid');
 
-                            // Add feedback message if not already present
-                            if (!container.nextElementSibling || !container.nextElementSibling.classList.contains('invalid-feedback')) {
-                                const feedback = document.createElement('div');
-                                feedback.className = 'invalid-feedback';
-                                feedback.textContent = 'Please select at least one SDG';
+                                // Add feedback message if not already present
+                                if (!container.nextElementSibling || !container.nextElementSibling.classList.contains('invalid-feedback')) {
+                                    const feedback = document.createElement('div');
+                                    feedback.className = 'invalid-feedback';
+                                    feedback.textContent = 'Please select at least one SDG';
                                     feedback.style.display = 'block'; // Ensure visible
-                                container.parentNode.insertBefore(feedback, container.nextSibling);
+                                    container.parentNode.insertBefore(feedback, container.nextSibling);
                                 }
                             }
 
@@ -4939,13 +5009,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     const checkboxes = section.querySelectorAll('input[name="sdgs[]"]');
                     const isAnyCheckboxSelected = Array.from(checkboxes).some(checkbox => checkbox.checked);
                     console.log(`checkAllFieldsFilled for sdgs-section: ${isAnyCheckboxSelected ? 'YES - some SDGs are selected' : 'NO - no SDGs selected'}`);
-                    
+
                     // IMPORTANT: If no SDGs are selected and validation is triggered, ensure it's marked as 'has-error'
                     if (!isAnyCheckboxSelected && validationTriggered) {
                         console.log('⚠️ SDGs section incomplete - calling updateSectionStatus with isValid=false');
                         updateSectionStatus('sdgs-section', false);
                     }
-                    
+
                     return isAnyCheckboxSelected;
                 }
 
@@ -4966,27 +5036,27 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 // Special handling for section-10 (Finance Section)
                 if (sectionId === 'section-10') {
                     console.log('⚡ checkAllFieldsFilled for FINANCE section');
-                    
+
                     // Fix: Check both by ID and also by name to ensure we find the radio buttons
                     // First try by ID
                     let withFinancialPlanRadio = document.getElementById('withFinancialPlan');
                     let withoutFinancialPlanRadio = document.getElementById('withoutFinancialPlan');
-                    
+
                     // If not found, try by name and value
                     if (!withFinancialPlanRadio || !withoutFinancialPlanRadio) {
                         console.log('Radio buttons not found by ID, trying by name...');
                         const radiosByName = document.querySelectorAll('input[name="hasFinancialPlan"]');
                         console.log('Found radio buttons by name:', radiosByName.length);
-                        
+
                         Array.from(radiosByName).forEach(radio => {
                             console.log(`Radio ${radio.id}, value: ${radio.value}, checked: ${radio.checked}`);
                             if (radio.value === '1') withFinancialPlanRadio = radio;
                             if (radio.value === '0') withoutFinancialPlanRadio = radio;
                         });
                     }
-                    
-                    const hasFinancialPlanSelection = (withFinancialPlanRadio && withFinancialPlanRadio.checked) || 
-                                                     (withoutFinancialPlanRadio && withoutFinancialPlanRadio.checked);
+
+                    const hasFinancialPlanSelection = (withFinancialPlanRadio && withFinancialPlanRadio.checked) ||
+                        (withoutFinancialPlanRadio && withoutFinancialPlanRadio.checked);
                     console.log('Has financial plan selection:', hasFinancialPlanSelection);
 
                     // Check source of fund
@@ -5161,7 +5231,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 // Only include sections that actually exist in the form
                 const sections = ['gender-issue', 'basic-info', 'agenda-section', 'sdgs-section', 'office-programs', 'project-team', 'section-6', 'section-7', 'section-8', 'section-9', 'section-10', 'section-11'];
                 let isFormValid = true;
-                
+
                 console.log('==== STARTING DETAILED VALIDATION ====');
 
                 // Debug which sections exist
@@ -5284,22 +5354,22 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     addBtn.addEventListener('click', function() {
                         // Explicitly set validationTriggered to true to ensure all validations run
                         validationTriggered = true;
-                        
+
                         // Trigger validation without showing error modal
                         validateAllSections();
-                        
+
                         // Extra handling for SDG section - ensure error styling is applied
                         const sdgsSection = document.getElementById('sdgs-section');
                         if (sdgsSection) {
                             const checkboxes = sdgsSection.querySelectorAll('input[name="sdgs[]"]');
                             const isAnyCheckboxSelected = Array.from(checkboxes).some(checkbox => checkbox.checked);
-                            
+
                             if (!isAnyCheckboxSelected) {
                                 // Manually add error styling to the checkbox container
                                 const container = sdgsSection.querySelector('.modern-options-container');
                                 if (container) {
                                     container.classList.add('is-invalid');
-                                    
+
                                     // Add feedback message if not already present
                                     if (!container.nextElementSibling || !container.nextElementSibling.classList.contains('invalid-feedback')) {
                                         const feedback = document.createElement('div');
@@ -5311,7 +5381,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 }
                             }
                         }
-                        
+
                         // Extra handling for Finance section - ensure error styling is applied 
                         const financeSection = document.getElementById('section-10');
                         if (financeSection) {
@@ -5319,7 +5389,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             // Handle both possible id formats
                             let withFinancialPlanRadio = document.getElementById('withFinancialPlan');
                             let withoutFinancialPlanRadio = document.getElementById('withoutFinancialPlan');
-                            
+
                             // If not found, try by name
                             if (!withFinancialPlanRadio || !withoutFinancialPlanRadio) {
                                 const radiosByName = document.querySelectorAll('input[name="hasFinancialPlan"]');
@@ -5328,16 +5398,16 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     if (radio.value === '0') withoutFinancialPlanRadio = radio;
                                 });
                             }
-                            
-                            const hasFinancialPlanSelection = (withFinancialPlanRadio && withFinancialPlanRadio.checked) || 
-                                                         (withoutFinancialPlanRadio && withoutFinancialPlanRadio.checked);
-                                                         
+
+                            const hasFinancialPlanSelection = (withFinancialPlanRadio && withFinancialPlanRadio.checked) ||
+                                (withoutFinancialPlanRadio && withoutFinancialPlanRadio.checked);
+
                             if (!hasFinancialPlanSelection) {
                                 // Add error styling to the radio buttons container
                                 const radioContainer = financeSection.querySelector('.form-group:nth-child(2)');
                                 if (radioContainer) {
                                     radioContainer.classList.add('is-invalid');
-                                    
+
                                     // Add feedback message if not already present
                                     if (!radioContainer.querySelector('.invalid-feedback')) {
                                         const feedback = document.createElement('div');
@@ -5348,16 +5418,16 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     }
                                 }
                             }
-                            
+
                             // Check financial plan items if "With Financial Plan" is selected
                             if (withFinancialPlanRadio && withFinancialPlanRadio.checked) {
                                 const financialPlanRows = document.querySelectorAll('#financialPlanTableBody tr');
                                 const financialPlanSection = document.getElementById('financialPlanSection');
-                                
+
                                 if (financialPlanRows.length === 0 && financialPlanSection) {
                                     // No items in the financial plan table
                                     financialPlanSection.classList.add('is-invalid');
-                                    
+
                                     // Add feedback message if not already present
                                     if (!financialPlanSection.querySelector('.invalid-feedback:not(#emptyFinancialPlanMessage)')) {
                                         const feedback = document.createElement('div');
@@ -5368,14 +5438,14 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     }
                                 }
                             }
-                            
+
                             // Check source of fund
                             const sourceOfFund = document.getElementById('sourceOfFund');
                             const sourceFundContainer = document.getElementById('sourceFundContainer');
-                            
+
                             if ((!sourceOfFund || !sourceOfFund.value) && sourceFundContainer) {
                                 sourceFundContainer.classList.add('is-invalid');
-                                
+
                                 // Add feedback message if not already present
                                 if (!sourceFundContainer.nextElementSibling || !sourceFundContainer.nextElementSibling.classList.contains('invalid-feedback')) {
                                     const feedback = document.createElement('div');
@@ -5385,12 +5455,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     sourceFundContainer.parentNode.insertBefore(feedback, sourceFundContainer.nextSibling);
                                 }
                             }
-                            
+
                             // Check approved budget
                             const approvedBudget = document.getElementById('approvedBudget');
                             if (approvedBudget && (!approvedBudget.value || approvedBudget.value === '0.00')) {
                                 approvedBudget.closest('.input-group').classList.add('is-invalid');
-                                
+
                                 // Add feedback message if not already present
                                 const approvedBudgetGroup = approvedBudget.closest('.form-group');
                                 if (approvedBudgetGroup && (!approvedBudgetGroup.querySelector('.invalid-feedback'))) {
@@ -5401,12 +5471,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     approvedBudgetGroup.appendChild(feedback);
                                 }
                             }
-                            
+
                             // Check financial note
                             const financialNote = document.getElementById('financialNote');
                             if (financialNote && !financialNote.value.trim()) {
                                 financialNote.classList.add('is-invalid');
-                                
+
                                 // Add feedback message if not already present
                                 if (!financialNote.nextElementSibling || !financialNote.nextElementSibling.classList.contains('invalid-feedback')) {
                                     const feedback = document.createElement('div');
@@ -5721,7 +5791,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             }
 
                             formData.append('financialNote', document.getElementById('financialNote').value);
-                            
+
                             // Get approved budget and remove commas before sending
                             const approvedBudgetInput = document.getElementById('approvedBudget');
                             if (approvedBudgetInput) {
@@ -5729,7 +5799,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 const approvedBudgetValue = approvedBudgetInput.value.replace(/,/g, '');
                                 formData.append('approvedBudget', approvedBudgetValue);
                             }
-                            
+
                             formData.append('psAttribution', document.getElementById('psAttribution').value);
 
                             // Monitoring
@@ -5763,12 +5833,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                             // Send AJAX request to save or update the form
                             const url = editMode ? 'update_ppas_form.php' : 'save_ppas_form.php';
-                            
+
                             // Add the ID for updates
                             if (editMode) {
                                 formData.append('id', editingEntryId);
                             }
-                            
+
                             fetch(url, {
                                     method: 'POST',
                                     body: formData
@@ -6202,7 +6272,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     if (sectionId === 'office-programs') {
                         updateOfficeProgramsCompletionStatus();
                     }
-                    
+
                     // In edit mode, ensure the gender issue section stays validated during navigation
                     if (editMode && editingEntryId) {
                         markGenderIssueAsValid();
@@ -7900,9 +7970,9 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
             // Function to fetch personnel data by name for edit mode
             function fetchPersonnelDataByName(name, personType, index) {
                 if (!name) return;
-                
+
                 console.log(`Fetching data for ${personType} #${index} with name: ${name}`);
-                
+
                 // Make an AJAX request to get personnel data
                 $.ajax({
                     url: "get_personnel.php",
@@ -7912,17 +7982,17 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     },
                     success: function(data) {
                         console.log(`Personnel data received for ${name}:`, data);
-                        
+
                         if (data.length > 0) {
                             // Look for exact match
-                            const exactMatch = data.find(item => 
+                            const exactMatch = data.find(item =>
                                 item.name.toLowerCase() === name.toLowerCase());
-                            
+
                             if (exactMatch) {
                                 console.log(`Found exact match for ${name}:`, exactMatch);
                                 // Fill the personnel data
                                 fillPersonnelData(personType, exactMatch, index);
-                                
+
                                 // Store personnel ID for future reference
                                 const inputField = document.querySelector(`#${personType}_name_${index}`);
                                 if (inputField) {
@@ -7940,7 +8010,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     }
                 });
             }
-            
+
             // Function to check if a personnel name exists in the database
             function checkPersonnelExists(personnelName, callback) {
                 if (!personnelName.trim()) {
@@ -8305,7 +8375,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         // Only clear validation if validation has been triggered or there's an explicit error
                         if (validationTriggered || nameInput.classList.contains('is-invalid')) {
-                        markAsValid(nameInput);
+                            markAsValid(nameInput);
                         }
                     }
 
@@ -8341,8 +8411,8 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             if (validationContainer) {
                                 validationContainer.appendChild(errorDiv);
                             } else {
-                            const inputGroup = nameInput.closest('.input-group');
-                            if (inputGroup) {
+                                const inputGroup = nameInput.closest('.input-group');
+                                if (inputGroup) {
                                     // Position the input group to contain the absolute-positioned error
                                     inputGroup.style.position = 'relative';
                                     inputGroup.appendChild(errorDiv);
@@ -8357,13 +8427,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         // Only clear validation errors if validation was triggered or there's an explicit error
                         if (validationTriggered || row.classList.contains('is-invalid')) {
-                        // Remove error message
-                        const existingErrors = row.querySelectorAll('.checkbox-error-msg');
-                        existingErrors.forEach(error => error.remove());
+                            // Remove error message
+                            const existingErrors = row.querySelectorAll('.checkbox-error-msg');
+                            existingErrors.forEach(error => error.remove());
 
-                        // Remove invalid class from row only if name is also valid
-                        if (rowNameFilled) {
-                            row.classList.remove('is-invalid');
+                            // Remove invalid class from row only if name is also valid
+                            if (rowNameFilled) {
+                                row.classList.remove('is-invalid');
                             }
                         }
                     }
@@ -8411,7 +8481,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         navItem.classList.remove('is-complete');
                         // IMPORTANT: Do NOT add has-error class here
                         navItem.classList.remove('has-error');
-                        
+
                         // Also ensure section title doesn't have error class
                         const sectionTitle = section.querySelector('.section-title');
                         if (sectionTitle) {
@@ -8443,13 +8513,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.className = 'activity-checkbox';
-                    
+
                     // Store date string in data attribute
                     if (headerRow && headerRow.children[index + 1]) {
                         const dateLabel = headerRow.children[index + 1].textContent.trim();
                         checkbox.setAttribute('data-date', dateLabel);
                     }
-                    
+
                     checkbox.name = `activity_date_${index}[]`;
                     checkbox.value = date ? date.toISOString() : index;
 
@@ -8458,44 +8528,44 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         // Collect all checked dates for this row
                         const checkboxes = row.querySelectorAll('input[type="checkbox"]');
                         const checkedDates = [];
-                        
+
                         checkboxes.forEach(cb => {
                             if (cb.checked && cb.hasAttribute('data-date')) {
                                 checkedDates.push(cb.getAttribute('data-date'));
                             }
                         });
-                        
+
                         // Log the dates for this checkbox
-                        console.log('Checkbox data-date attribute:', checkbox.getAttribute('data-date')); 
+                        console.log('Checkbox data-date attribute:', checkbox.getAttribute('data-date'));
                         console.log('Checkbox checked status:', checkbox.checked);
                         console.log('All checked dates after change:', checkedDates);
-                        
+
                         // Store the checked dates in a hidden input
                         // First, remove any existing hidden inputs for workplanDate to prevent duplicates
                         const existingInputs = row.querySelectorAll('input[name="workplanDate[]"]');
                         existingInputs.forEach(input => input.remove());
-                        
+
                         // Create a new hidden input
                         const hiddenInput = document.createElement('input');
                         hiddenInput.type = 'hidden';
                         hiddenInput.name = 'workplanDate[]';
                         hiddenInput.value = checkedDates.join(',');
                         row.appendChild(hiddenInput);
-                        
+
                         console.log('Created new hidden workplanDate input:', hiddenInput.value);
-                        
+
                         validateWorkPlanSection();
                     });
 
                     cell.appendChild(checkbox);
                     row.appendChild(cell);
                 });
-                
+
                 // Add a hidden input for the dates - ensure no duplicates
                 // First, remove any existing hidden inputs
                 const existingInputs = row.querySelectorAll('input[name="workplanDate[]"]');
                 existingInputs.forEach(input => input.remove());
-                
+
                 // Create a new hidden input
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
@@ -8700,23 +8770,23 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 const activityRows = document.querySelectorAll('#timeline-activities .activity-row');
                 activityRows.forEach(row => {
                     updateRowCheckboxes(row, dates);
-                    
+
                     // If we're in edit mode and have a hidden input with date data, use it to check boxes
                     const hiddenInput = row.querySelector('input[name="workplanDate[]"]');
                     if (hiddenInput && hiddenInput.value) {
                         const savedDates = hiddenInput.value.split(',');
-                        
+
                         if (savedDates.length > 0) {
                             console.log('Found saved dates to restore:', savedDates);
-                            
+
                             // Check the appropriate checkboxes
                             const checkboxes = row.querySelectorAll('input.activity-checkbox');
                             checkboxes.forEach((checkbox, index) => {
                                 if (headerRow.children[index + 1]) {
                                     const headerDate = headerRow.children[index + 1].textContent.trim();
-                                    
+
                                     // Try different matching approaches
-                                    if (savedDates.includes(headerDate) || 
+                                    if (savedDates.includes(headerDate) ||
                                         savedDates.some(date => date.trim() === headerDate) ||
                                         savedDates.some(date => date.trim().toLowerCase() === headerDate.toLowerCase())) {
                                         checkbox.checked = true;
@@ -8735,7 +8805,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                 // Update validation
                 validateWorkPlanSection();
-                
+
                 // If we're in edit mode (with editingEntryId), check if workplan data needs to be restored
                 if (window.editMode && window.editingEntryId) {
                     console.log('In edit mode, checking if workplan data needs restoration');
@@ -8749,7 +8819,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     }
                 }
             }
-            
+
             // Helper function to restore workplan data
             function restoreWorkplanData(activities, dates) {
                 console.log('Attempting to restore workplan data', activities, dates);
@@ -8757,95 +8827,95 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     console.warn('Invalid workplan data to restore');
                     return;
                 }
-                
+
                 // Get all existing rows
                 const rows = document.querySelectorAll('#timeline-activities .activity-row');
                 const headerRow = document.querySelector('#timeline-table thead tr');
-                
+
                 if (!headerRow) {
                     console.warn('Header row not found, cannot restore workplan');
                     return;
                 }
-                
-                                    // If we need more rows, add them
-                    while (rows.length < activities.length) {
-                        addNewActivityRow();
+
+                // If we need more rows, add them
+                while (rows.length < activities.length) {
+                    addNewActivityRow();
+                }
+
+                // Update each row
+                activities.forEach((activity, i) => {
+                    if (i >= rows.length) return;
+
+                    const row = rows[i];
+                    const nameInput = row.querySelector('input.activity-name');
+                    if (nameInput) {
+                        nameInput.value = activity;
                     }
-                    
-                    // Update each row
-                    activities.forEach((activity, i) => {
-                        if (i >= rows.length) return;
-                        
-                        const row = rows[i];
-                        const nameInput = row.querySelector('input.activity-name');
-                        if (nameInput) {
-                            nameInput.value = activity;
-                        }
-                        
-                        if (dates[i]) {
-                            const dateArray = dates[i].split(',');
-                            const checkboxes = row.querySelectorAll('input.activity-checkbox');
-                            
-                            checkboxes.forEach((checkbox, j) => {
-                                if (headerRow.children[j + 1]) {
-                                    const headerDate = headerRow.children[j + 1].textContent.trim();
-                                    
-                                    // Check if this date should be checked
-                                    if (dateArray.includes(headerDate) || 
-                                        dateArray.some(date => date.trim() === headerDate)) {
-                                        checkbox.checked = true;
-                                        console.log(`Restored checked date ${headerDate} for activity ${i+1}`);
-                                    }
+
+                    if (dates[i]) {
+                        const dateArray = dates[i].split(',');
+                        const checkboxes = row.querySelectorAll('input.activity-checkbox');
+
+                        checkboxes.forEach((checkbox, j) => {
+                            if (headerRow.children[j + 1]) {
+                                const headerDate = headerRow.children[j + 1].textContent.trim();
+
+                                // Check if this date should be checked
+                                if (dateArray.includes(headerDate) ||
+                                    dateArray.some(date => date.trim() === headerDate)) {
+                                    checkbox.checked = true;
+                                    console.log(`Restored checked date ${headerDate} for activity ${i+1}`);
                                 }
-                            });
-                            
-                            // Update the hidden input
-                            const hiddenInput = row.querySelector('input[name="workplanDate[]"]');
-                            if (hiddenInput) {
-                                hiddenInput.value = dates[i];
                             }
+                        });
+
+                        // Update the hidden input
+                        const hiddenInput = row.querySelector('input[name="workplanDate[]"]');
+                        if (hiddenInput) {
+                            hiddenInput.value = dates[i];
                         }
-                    });
-                    
-                    // Force validation of the section to update completion status
-                    setTimeout(() => {
-                        validateWorkPlanSection();
-                        
-                        // Directly set the completion status for the section since validation has already happened
-                        const navItem = document.querySelector('.form-nav-item[data-section="section-9"]');
-                        const section = document.getElementById('section-9');
-                        
-                        if (navItem && section) {
-                            // Check each activity row to see if all requirements are met
-                            const activityRows = document.querySelectorAll('#timeline-activities .activity-row');
-                            let allRequirementsMet = true;
-                            
-                            activityRows.forEach(row => {
-                                const nameInput = row.querySelector('.activity-name');
-                                const checkboxes = row.querySelectorAll('.activity-checkbox:checked');
-                                
-                                if (!nameInput || !nameInput.value.trim() || checkboxes.length === 0) {
-                                    allRequirementsMet = false;
-                                }
-                            });
-                            
-                            // If all requirements are met, mark the section as complete
-                            if (allRequirementsMet) {
-                                navItem.classList.add('is-complete');
-                                navItem.classList.remove('has-error');
-                                
-                                // Also update the section title
-                                const sectionTitle = section.querySelector('.section-title');
-                                if (sectionTitle) {
-                                    sectionTitle.classList.remove('has-error');
-                                }
-                                
-                                console.log('✅ Workplan section requirements met - marking as complete');
-                            } else {
-                                console.log('❌ Workplan section requirements not met');
+                    }
+                });
+
+                // Force validation of the section to update completion status
+                setTimeout(() => {
+                    validateWorkPlanSection();
+
+                    // Directly set the completion status for the section since validation has already happened
+                    const navItem = document.querySelector('.form-nav-item[data-section="section-9"]');
+                    const section = document.getElementById('section-9');
+
+                    if (navItem && section) {
+                        // Check each activity row to see if all requirements are met
+                        const activityRows = document.querySelectorAll('#timeline-activities .activity-row');
+                        let allRequirementsMet = true;
+
+                        activityRows.forEach(row => {
+                            const nameInput = row.querySelector('.activity-name');
+                            const checkboxes = row.querySelectorAll('.activity-checkbox:checked');
+
+                            if (!nameInput || !nameInput.value.trim() || checkboxes.length === 0) {
+                                allRequirementsMet = false;
                             }
+                        });
+
+                        // If all requirements are met, mark the section as complete
+                        if (allRequirementsMet) {
+                            navItem.classList.add('is-complete');
+                            navItem.classList.remove('has-error');
+
+                            // Also update the section title
+                            const sectionTitle = section.querySelector('.section-title');
+                            if (sectionTitle) {
+                                sectionTitle.classList.remove('has-error');
+                            }
+
+                            console.log('✅ Workplan section requirements met - marking as complete');
+                        } else {
+                            console.log('❌ Workplan section requirements not met');
                         }
-                    }, 300);
+                    }
+                }, 300);
             }
 
             // Add a new activity row
@@ -8901,7 +8971,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 inputGroup.appendChild(nameInput);
                 inputGroup.appendChild(removeBtn);
                 nameCell.appendChild(inputGroup);
-                
+
                 // Create a container for validation messages that won't affect layout
                 const validationContainer = document.createElement('div');
                 validationContainer.className = 'validation-message-container';
@@ -8943,11 +9013,11 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 // Just calculate section status without showing any validation errors
                 // Don't modify the nav item or section header visually at all when adding a new row
                 // This will prevent "missing input" validation appearing when adding rows
-                
+
                 // Just remove has-error classes if they're present
                 const workplanNavItem = document.querySelector('.form-nav-item[data-section="section-9"]');
                 const workplanSectionTitle = document.querySelector('#section-9 .section-title');
-                
+
                 if (workplanNavItem) workplanNavItem.classList.remove('has-error');
                 if (workplanSectionTitle) workplanSectionTitle.classList.remove('has-error');
 
@@ -9095,7 +9165,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                             // Update hidden input value with selected options
                             updateSourceFundValue();
-                            
+
                             // Clear validation error when a source fund is selected
                             const sourceFundContainer = document.getElementById('sourceFundContainer');
                             if (sourceFundContainer) {
@@ -9130,32 +9200,32 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     approvedBudgetInput.addEventListener('input', function(e) {
                         // Format with commas for thousands, millions, etc.
                         let value = this.value.replace(/[^\d.]/g, ''); // Remove all non-numeric characters except decimal point
-                        
+
                         // If we have a valid number, format it
                         if (value !== '' && !isNaN(parseFloat(value))) {
                             // Format with commas
                             const parts = value.split('.');
                             parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                            
+
                             // Set the value without moving cursor to end
                             const cursorPosition = this.selectionStart;
                             const oldLength = this.value.length;
-                            
+
                             this.value = parts.join('.');
-                            
+
                             // Adjust cursor position
                             const newLength = this.value.length;
                             const cursorOffset = newLength - oldLength;
                             this.setSelectionRange(cursorPosition + cursorOffset, cursorPosition + cursorOffset);
                         }
-                        
+
                         // Clear validation error when input changes
                         if (this.value.trim() !== '' && this.value.trim() !== '0.00') {
                             const inputGroup = this.closest('.input-group');
                             if (inputGroup) {
                                 inputGroup.classList.remove('is-invalid');
                             }
-                            
+
                             // Remove feedback message if present
                             const formGroup = this.closest('.form-group');
                             if (formGroup) {
@@ -9167,7 +9237,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         }
                     });
                 }
-                
+
                 // Financial note event handler is already defined elsewhere
 
                 // Add event listeners to financial plan radio buttons
@@ -9178,7 +9248,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             updateFinancialPlanVisibility();
                             calculateTotalCost();
                         }
-                        
+
                         // Remove error styling when a radio button is selected
                         const radioContainer = document.querySelector('#section-10 .form-group:nth-child(2)');
                         if (radioContainer) {
@@ -9197,7 +9267,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             totalCostInput.value = '0.00';
                             grandTotalCost.textContent = '₱0.00';
                         }
-                        
+
                         // Remove error styling when a radio button is selected
                         const radioContainer = document.querySelector('#section-10 .form-group:nth-child(2)');
                         if (radioContainer) {
@@ -9276,12 +9346,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         emptyMessage.style.display = 'none';
                         emptyMessage.classList.add('d-none');
                     }
-                    
+
                     // Clear validation error for financial plan section when an item is added
                     const financialPlanSection = document.getElementById('financialPlanSection');
                     if (financialPlanSection) {
                         financialPlanSection.classList.remove('is-invalid');
-                        
+
                         // Remove any error messages
                         const feedbacks = financialPlanSection.querySelectorAll('.invalid-feedback:not(#emptyFinancialPlanMessage)');
                         feedbacks.forEach(feedback => feedback.remove());
@@ -9301,9 +9371,9 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                         // Only trigger validation if it's already been triggered by addBtn
                         if (validationTriggered) {
-                        validateSection('section-10');
-                        checkAllFieldsFilled('section-10');
-                        updateSectionStatus('section-10', true);
+                            validateSection('section-10');
+                            checkAllFieldsFilled('section-10');
+                            updateSectionStatus('section-10', true);
                         }
                     });
 
@@ -9312,9 +9382,9 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                         // Only trigger validation if it's already been triggered by addBtn
                         if (validationTriggered) {
-                        validateSection('section-10');
-                        checkAllFieldsFilled('section-10');
-                        updateSectionStatus('section-10', true);
+                            validateSection('section-10');
+                            checkAllFieldsFilled('section-10');
+                            updateSectionStatus('section-10', true);
                         }
                     });
 
@@ -9325,18 +9395,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     descriptionInput.addEventListener('input', function() {
                         // Only trigger validation if it's already been triggered by addBtn
                         if (validationTriggered) {
-                        validateSection('section-10');
-                        checkAllFieldsFilled('section-10');
-                        updateSectionStatus('section-10', true);
+                            validateSection('section-10');
+                            checkAllFieldsFilled('section-10');
+                            updateSectionStatus('section-10', true);
                         }
                     });
 
                     unitInput.addEventListener('input', function() {
                         // Only trigger validation if it's already been triggered by addBtn
                         if (validationTriggered) {
-                        validateSection('section-10');
-                        checkAllFieldsFilled('section-10');
-                        updateSectionStatus('section-10', true);
+                            validateSection('section-10');
+                            checkAllFieldsFilled('section-10');
+                            updateSectionStatus('section-10', true);
                         }
                     });
 
@@ -9361,9 +9431,9 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                         // Only trigger validation if it's already been triggered by addBtn
                         if (validationTriggered) {
-                        validateSection('section-10');
-                        checkAllFieldsFilled('section-10');
-                        updateSectionStatus('section-10', true);
+                            validateSection('section-10');
+                            checkAllFieldsFilled('section-10');
+                            updateSectionStatus('section-10', true);
                         }
                     });
 
@@ -9373,9 +9443,9 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     // Only run validation on newly added rows if validation has already been triggered
                     // by the user clicking addBtn
                     if (validationTriggered) {
-                    validateSection('section-10');
-                    checkAllFieldsFilled('section-10');
-                    updateSectionStatus('section-10', true);
+                        validateSection('section-10');
+                        checkAllFieldsFilled('section-10');
+                        updateSectionStatus('section-10', true);
                     }
                 }
 
@@ -9437,18 +9507,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 if (financialNote) {
                     financialNote.addEventListener('input', function() {
                         console.log('Financial note updated, triggering validation');
-                        
+
                         // Clear validation error when input changes
                         if (this.value.trim() !== '') {
                             this.classList.remove('is-invalid');
-                            
+
                             // Remove feedback message if present
                             const nextElement = this.nextElementSibling;
                             if (nextElement && nextElement.classList.contains('invalid-feedback')) {
                                 nextElement.remove();
                             }
                         }
-                        
+
                         validateSection('section-10');
                         checkAllFieldsFilled('section-10');
                         updateSectionStatus('section-10', true);
@@ -9542,7 +9612,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 // Function to populate monitoring section when editing
                 window.populateMonitoringSection = function(entry) {
                     console.log('Populating monitoring section with entry data');
-                    
+
                     // Required data sets for monitoring items
                     // Use array spread to ensure consistent handling
                     const monitoringObjectives = Array.isArray(entry.monitoring_objectives) ? [...entry.monitoring_objectives] : [];
@@ -9553,12 +9623,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     const monitoringCollectionMethod = Array.isArray(entry.monitoring_collection_method) ? [...entry.monitoring_collection_method] : [];
                     const monitoringFrequency = Array.isArray(entry.monitoring_frequency_data_collection) ? [...entry.monitoring_frequency_data_collection] : [];
                     const monitoringResponsible = Array.isArray(entry.monitoring_office_persons_involved) ? [...entry.monitoring_office_persons_involved] : [];
-                    
+
                     // Debug the raw data
                     console.log('Raw monitoring_objectives from server:', entry.monitoring_objectives);
                     console.log('Raw monitoring_performance_indicators from server:', entry.monitoring_performance_indicators);
                     console.log('Raw monitoring_baseline_data from server:', entry.monitoring_baseline_data);
-                    
+
                     // Log the processed arrays
                     console.log('Processed data arrays:', {
                         objectives: monitoringObjectives,
@@ -9570,7 +9640,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         frequency: monitoringFrequency,
                         responsible: monitoringResponsible
                     });
-                    
+
                     // Get the maximum length of all arrays to determine how many items to create
                     const maxLength = Math.max(
                         monitoringObjectives.length || 0,
@@ -9582,31 +9652,31 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         monitoringFrequency.length || 0,
                         monitoringResponsible.length || 0
                     );
-                    
+
                     if (maxLength === 0) {
                         console.log('No monitoring items to populate');
                         return;
                     }
-                    
+
                     // Ensure we're working with arrays that have values, not just placeholders
-                    const hasRealContent = 
-                        (monitoringObjectives.some(val => val && val.trim() !== '') || 
-                         monitoringPerformanceIndicators.some(val => val && val.trim() !== '') ||
-                         monitoringBaselineData.some(val => val && val.trim() !== ''));
-                         
+                    const hasRealContent =
+                        (monitoringObjectives.some(val => val && val.trim() !== '') ||
+                            monitoringPerformanceIndicators.some(val => val && val.trim() !== '') ||
+                            monitoringBaselineData.some(val => val && val.trim() !== ''));
+
                     if (!hasRealContent) {
                         console.log('No real monitoring content found, skipping population');
                         return;
                     }
-                    
+
                     console.log(`Found ${maxLength} monitoring items to populate`);
-                    
+
                     // Clear existing monitoring items except the first one
                     const existingItems = container.querySelectorAll('.monitoring-item');
                     for (let i = 1; i < existingItems.length; i++) {
                         container.removeChild(existingItems[i]);
                     }
-                    
+
                     // Helper to get array value safely
                     const getValueSafely = (arr, index) => {
                         if (Array.isArray(arr) && index < arr.length && arr[index] !== null && arr[index] !== undefined) {
@@ -9614,10 +9684,10 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         }
                         return '';
                     };
-                    
+
                     // Populate the first monitoring item
                     if (existingItems.length > 0) {
-                        populateMonitoringItem(existingItems[0], 0, 
+                        populateMonitoringItem(existingItems[0], 0,
                             getValueSafely(monitoringObjectives, 0),
                             getValueSafely(monitoringPerformanceIndicators, 0),
                             getValueSafely(monitoringBaselineData, 0),
@@ -9628,7 +9698,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             getValueSafely(monitoringResponsible, 0)
                         );
                     }
-                    
+
                     // Add and populate additional monitoring items
                     for (let i = 1; i < maxLength; i++) {
                         addMonitoringItem(
@@ -9643,21 +9713,27 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         );
                     }
                 };
-                
+
                 // Function to populate a single monitoring item
-                function populateMonitoringItem(item, index, objectives, performanceIndicators, baselineData, 
-                                            performanceTarget, dataSource, collectionMethod, frequency, responsible) {
+                function populateMonitoringItem(item, index, objectives, performanceIndicators, baselineData,
+                    performanceTarget, dataSource, collectionMethod, frequency, responsible) {
                     console.log(`Populating monitoring item #${index+1} with:`, {
-                        objectives, performanceIndicators, baselineData, performanceTarget,
-                        dataSource, collectionMethod, frequency, responsible
+                        objectives,
+                        performanceIndicators,
+                        baselineData,
+                        performanceTarget,
+                        dataSource,
+                        collectionMethod,
+                        frequency,
+                        responsible
                     });
-                    
+
                     // Update the monitoring item number
                     const numberIndicator = item.querySelector('.monitoring-number-indicator');
                     if (numberIndicator) {
                         numberIndicator.textContent = `#${index + 1}`;
                     }
-                    
+
                     // Set values for all inputs in the monitoring item - use correct selectors based on HTML structure
                     const objectivesInput = item.querySelector(`#objectives${index+1}`) || item.querySelector('[name="objectives[]"]');
                     if (objectivesInput) {
@@ -9666,7 +9742,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find objectives input for item #${index+1}`);
                     }
-                    
+
                     const performanceIndicatorsInput = item.querySelector(`#performance_indicators${index+1}`) || item.querySelector('[name="performance_indicators[]"]');
                     if (performanceIndicatorsInput) {
                         console.log(`Setting performance_indicators${index+1} to:`, performanceIndicators);
@@ -9674,7 +9750,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find performance indicators input for item #${index+1}`);
                     }
-                    
+
                     const baselineDataInput = item.querySelector(`#baseline_data${index+1}`) || item.querySelector('[name="baseline_data[]"]');
                     if (baselineDataInput) {
                         console.log(`Setting baseline_data${index+1} to:`, baselineData);
@@ -9682,7 +9758,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find baseline data input for item #${index+1}`);
                     }
-                    
+
                     const performanceTargetInput = item.querySelector(`#performance_target${index+1}`) || item.querySelector('[name="performance_target[]"]');
                     if (performanceTargetInput) {
                         console.log(`Setting performance_target${index+1} to:`, performanceTarget);
@@ -9690,7 +9766,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find performance target input for item #${index+1}`);
                     }
-                    
+
                     const dataSourceInput = item.querySelector(`#data_source${index+1}`) || item.querySelector('[name="data_source[]"]');
                     if (dataSourceInput) {
                         console.log(`Setting data_source${index+1} to:`, dataSource);
@@ -9698,7 +9774,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find data source input for item #${index+1}`);
                     }
-                    
+
                     const collectionMethodInput = item.querySelector(`#collection_method${index+1}`) || item.querySelector('[name="collection_method[]"]');
                     if (collectionMethodInput) {
                         console.log(`Setting collection_method${index+1} to:`, collectionMethod);
@@ -9706,7 +9782,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find collection method input for item #${index+1}`);
                     }
-                    
+
                     const frequencyInput = item.querySelector(`#frequency${index+1}`) || item.querySelector('[name="frequency[]"]');
                     if (frequencyInput) {
                         console.log(`Setting frequency${index+1} to:`, frequency);
@@ -9714,7 +9790,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find frequency input for item #${index+1}`);
                     }
-                    
+
                     const responsibleInput = item.querySelector(`#persons_involved${index+1}`) || item.querySelector('[name="persons_involved[]"]');
                     if (responsibleInput) {
                         console.log(`Setting persons_involved${index+1} to:`, responsible);
@@ -9722,7 +9798,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     } else {
                         console.error(`Could not find persons involved input for item #${index+1}`);
                     }
-                    
+
                     // Show remove button for all items except the first one
                     if (index > 0) {
                         const removeButton = item.querySelector('.remove-monitoring');
@@ -9733,9 +9809,9 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 }
 
                 // Function to add a new monitoring item with optional initial values
-                window.addMonitoringItem = function(objectives = '', performanceIndicators = '', baselineData = '', 
-                                               performanceTarget = '', dataSource = '', collectionMethod = '', 
-                                               frequency = '', responsible = '') {
+                window.addMonitoringItem = function(objectives = '', performanceIndicators = '', baselineData = '',
+                    performanceTarget = '', dataSource = '', collectionMethod = '',
+                    frequency = '', responsible = '') {
                     // Get current count of monitoring items
                     const currentCount = container.querySelectorAll('.monitoring-item').length;
                     const newNumber = currentCount + 1;
@@ -9768,29 +9844,29 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
 
                     // Update the number indicator
                     newItem.querySelector('.monitoring-number-indicator').textContent = `#${newNumber}`;
-                    
+
                     // Set input values using ID selectors to ensure we target the correct inputs
                     const objectivesInput = newItem.querySelector(`#objectives${newNumber}`);
                     if (objectivesInput) objectivesInput.value = objectives;
-                    
+
                     const performanceIndicatorsInput = newItem.querySelector(`#performance_indicators${newNumber}`);
                     if (performanceIndicatorsInput) performanceIndicatorsInput.value = performanceIndicators;
-                    
+
                     const baselineDataInput = newItem.querySelector(`#baseline_data${newNumber}`);
                     if (baselineDataInput) baselineDataInput.value = baselineData;
-                    
+
                     const performanceTargetInput = newItem.querySelector(`#performance_target${newNumber}`);
                     if (performanceTargetInput) performanceTargetInput.value = performanceTarget;
-                    
+
                     const dataSourceInput = newItem.querySelector(`#data_source${newNumber}`);
                     if (dataSourceInput) dataSourceInput.value = dataSource;
-                    
+
                     const collectionMethodInput = newItem.querySelector(`#collection_method${newNumber}`);
                     if (collectionMethodInput) collectionMethodInput.value = collectionMethod;
-                    
+
                     const frequencyInput = newItem.querySelector(`#frequency${newNumber}`);
                     if (frequencyInput) frequencyInput.value = frequency;
-                    
+
                     const responsibleInput = newItem.querySelector(`#persons_involved${newNumber}`);
                     if (responsibleInput) responsibleInput.value = responsible;
 
@@ -9839,7 +9915,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     if (validationTriggered) {
                         validateSection('section-11');
                     }
-                    
+
                     return newItem;
                 };
 
@@ -9984,7 +10060,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             // For activity field, check for duplicates
                             if (field === 'activity' && this.value.trim() !== '') {
                                 checkDuplicateActivityWithEditMode(this.value.trim());
-                                
+
                                 // Ensure dropdown is visible in edit mode even with partial typing
                                 if (editMode && editingEntryId) {
                                     suggestionsContainer.style.display = 'block';
@@ -10140,7 +10216,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
             function fetchSuggestions(query, field, container) {
                 // Build URL with edit mode consideration
                 let url = `get_autocomplete_suggestions.php?field=${field}&query=${encodeURIComponent(query)}`;
-                
+
                 // If in edit mode and it's the activity field, include the current entry ID
                 // Also include current value to help identify it in the dropdown
                 const currentInput = document.getElementById(field);
@@ -10150,7 +10226,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         url += `&current_value=${encodeURIComponent(currentInput.value.trim())}`;
                     }
                 }
-                
+
                 // Fetch suggestions from server using AJAX
                 fetch(url)
                     .then(response => response.json())
@@ -10168,22 +10244,22 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 const value = typeof suggestion === 'string' ? suggestion : suggestion.value;
                                 const isDuplicate = suggestion.isDuplicate || false;
                                 const isCurrent = suggestion.isCurrent || false;
-                                
+
                                 // Add "(Current)" label for the activity being edited
                                 if (isCurrent && field === 'activity' && editMode) {
                                     const valueSpan = document.createElement('span');
                                     valueSpan.textContent = value;
-                                    
+
                                     const currentLabel = document.createElement('span');
                                     currentLabel.textContent = ' (Current)';
                                     currentLabel.style.fontStyle = 'italic';
                                     currentLabel.style.color = '#6a1b9a';
                                     currentLabel.style.fontWeight = 'bold';
-                                    
+
                                     item.appendChild(valueSpan);
                                     item.appendChild(currentLabel);
                                 } else {
-                                item.textContent = value;
+                                    item.textContent = value;
                                 }
 
                                 // Apply styling for duplicate activities
@@ -10263,7 +10339,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 // Check for duplicates using the enhanced function
                                 try {
                                     const isDuplicate = await checkDuplicateActivityWithEditMode(activityInput.value.trim());
-                                    
+
                                     if (isDuplicate) {
                                         // Scroll to activity field
                                         activityInput.scrollIntoView({
@@ -10899,13 +10975,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         Array.from(select.options).forEach(option => option.selected = false);
                     }
                 });
-                
+
                 // Reset Project Team section
                 resetProjectTeamSection();
-                
+
                 // Reset Office and Programs section
                 resetOfficeAndProgramsSection();
-                
+
                 // Reset Program Description section fields
                 resetProgramDescriptionSection();
 
@@ -10913,18 +10989,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 // Example for Select2:
                 // $(form).find('select').val(null).trigger('change');
             }
-            
+
             // Function to reset the Program Description Section dynamic fields
             function resetProgramDescriptionSection() {
                 console.log('Resetting Program Description Section dynamic fields');
-                
+
                 // Reset all dynamic array fields
                 resetArrayField('specific_objectives');
                 resetArrayField('strategies');
                 resetArrayField('expected_output');
                 resetArrayField('specific_plans');
             }
-            
+
             // Function to reset a specific array field in the form
             function resetArrayField(fieldName) {
                 const container = document.getElementById(`${fieldName}_container`);
@@ -10932,109 +11008,109 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     console.error(`Container for ${fieldName} not found`);
                     return;
                 }
-                
+
                 console.log(`Resetting ${fieldName} container`);
-                
+
                 // Keep only the first input group and remove any additional ones
                 const inputGroups = container.querySelectorAll('.input-group');
                 if (inputGroups.length > 0) {
                     // Keep the first input group
                     const firstInputGroup = inputGroups[0];
-                    
+
                     // Clear the value of the first input
                     const input = firstInputGroup.querySelector(`input[name="${fieldName}[]"]`);
                     if (input) {
                         input.value = '';
                     }
-                    
+
                     // Hide the remove button
                     const removeBtn = firstInputGroup.querySelector('.remove-input');
                     if (removeBtn) {
                         removeBtn.style.display = 'none';
                     }
-                    
+
                     // Remove all other input groups
                     for (let i = 1; i < inputGroups.length; i++) {
                         container.removeChild(inputGroups[i]);
                     }
                 }
             }
-            
+
             // Function to reset the project team section completely
             function resetProjectTeamSection() {
                 console.log('Resetting project team section');
-                
+
                 // Reset Project Leaders
                 resetTeamMemberSection('projectLeadersContainer', 'Project Leader', 'leader');
-                
+
                 // Reset Assistant Project Leaders
                 resetTeamMemberSection('assistantLeadersContainer', 'Assistant Project Leader', 'asst_leader');
-                
+
                 // Reset Project Staff
                 resetTeamMemberSection('projectStaffContainer', 'Project Staff/Coordinator', 'staff');
             }
-            
+
             // Function to reset Office and Programs section
             function resetOfficeAndProgramsSection() {
                 console.log('Resetting Office and Programs section');
-                
+
                 // Reset Offices
                 resetInputContainer('officeInputsContainer', 'offices[]');
-                
+
                 // Reset Programs
                 resetInputContainer('programInputsContainer', 'programs[]');
             }
-            
+
             // Function to reset a generic input container with numbered inputs
             function resetInputContainer(containerId, inputName) {
                 const container = document.getElementById(containerId);
                 if (!container) return;
-                
+
                 console.log(`Resetting ${containerId}`);
-                
+
                 // Keep only the first input group and remove any additional ones
                 const inputGroups = container.querySelectorAll('.input-group');
                 if (inputGroups.length > 0) {
                     // Keep the first input group
                     const firstInputGroup = inputGroups[0];
-                    
+
                     // Clear the value of the first input
                     const input = firstInputGroup.querySelector(`input[name="${inputName}"]`);
                     if (input) {
                         input.value = '';
                     }
-                    
+
                     // Hide the remove button
                     const removeBtn = firstInputGroup.querySelector('.remove-input');
                     if (removeBtn) {
                         removeBtn.style.display = 'none';
                     }
-                    
+
                     // Remove all other input groups
                     for (let i = 1; i < inputGroups.length; i++) {
                         container.removeChild(inputGroups[i]);
                     }
                 }
             }
-            
+
             // Function to reset a specific team member section
             function resetTeamMemberSection(containerId, titleText, role) {
                 const container = document.getElementById(containerId);
                 if (!container) return;
-                
+
                 console.log(`Resetting ${titleText} section`);
-                
+
                 // Keep only the first card and remove any additional ones
                 const cards = container.querySelectorAll('.team-member-card');
                 if (cards.length > 0) {
                     // Keep the first card
                     const firstCard = cards[0];
-                    
+
                     // Remove all other cards
                     for (let i = 1; i < cards.length; i++) {
                         container.removeChild(cards[i]);
                     }
-                    
+
                     // Reset the first card's fields
                     const inputs = firstCard.querySelectorAll('input[type="text"]');
                     inputs.forEach(input => {
@@ -11044,7 +11120,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             input.removeAttribute('data-personnel-id');
                         }
                     });
-                    
+
                     // Reset tasks - keep only the first task input and remove others
                     const tasksContainer = firstCard.querySelector('.tasks-container');
                     if (tasksContainer) {
@@ -11052,18 +11128,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         if (taskInputGroups.length > 0) {
                             // Keep only the first task input group
                             const firstTaskGroup = taskInputGroups[0];
-                            
+
                             // Clear its value
                             const taskInput = firstTaskGroup.querySelector('input');
                             if (taskInput) {
                                 taskInput.value = '';
                             }
-                            
+
                             // Remove all other task input groups
                             for (let i = 1; i < taskInputGroups.length; i++) {
                                 tasksContainer.removeChild(taskInputGroups[i]);
                             }
-                            
+
                             // Hide the remove button in the first task input
                             const removeBtn = firstTaskGroup.querySelector('.remove-input');
                             if (removeBtn) {
@@ -11071,7 +11147,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             }
                         }
                     }
-                    
+
                     // Hide the remove team member button
                     const removeTeamMemberBtn = firstCard.querySelector('.remove-team-member');
                     if (removeTeamMemberBtn) {
@@ -11104,13 +11180,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 set('approvedBudget', entry.approved_budget);
                 set('financialNote', entry.financial_note);
                 set('psAttribution', entry.ps_attribution);
-                
+
                 // Populate monitoring section
                 populateMonitoringSection(entry);
-                
+
                 // Set financial plan radio button
                 console.log('Setting financial plan radio button. Value from DB:', entry.financial_plan);
-                
+
                 // The database field is 'financial_plan', not 'has_financial_plan'
                 if (entry.financial_plan !== undefined) {
                     // Check the appropriate radio button based on the database value
@@ -11121,57 +11197,59 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         document.getElementById('withoutFinancialPlan').checked = true;
                         console.log('Setting WITHOUT financial plan');
                     }
-                    
+
                     // Trigger the change event to update visibility of financial plan section
-                    const changeEvent = new Event('change', { bubbles: true });
+                    const changeEvent = new Event('change', {
+                        bubbles: true
+                    });
                     if (document.getElementById('withFinancialPlan').checked) {
                         document.getElementById('withFinancialPlan').dispatchEvent(changeEvent);
-                        
+
                         // Define local versions of the calculation functions at the appropriate scope level
                         // Define a local version of calculateTotalCost for use in populateForm
                         const calculateTotalCostLocal = () => {
                             let grandTotal = 0;
-                            
+
                             // Sum up all item totals
                             document.querySelectorAll('.financial-item-row').forEach(row => {
                                 const totalCostText = row.querySelector('input[name="item_total_cost[]"]').value;
                                 grandTotal += parseFloat(totalCostText) || 0;
                             });
-                            
+
                             // Update the grand total display
                             const grandTotalCost = document.getElementById('grandTotalCost');
                             const totalCostInput = document.getElementById('totalCost');
                             if (grandTotalCost) grandTotalCost.textContent = '₱' + grandTotal.toFixed(2);
                             if (totalCostInput) totalCostInput.value = grandTotal.toFixed(2);
                         };
-                        
+
                         // Define a local version of calculateItemTotal for use in populateForm
                         const calculateItemTotalLocal = (row) => {
                             const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
                             const unitCost = parseFloat(row.querySelector('.item-unit-cost').value) || 0;
                             const totalCost = quantity * unitCost;
-                            
+
                             // Update the total cost display
                             row.querySelector('.item-total-cost').textContent = '₱' + totalCost.toFixed(2);
                             row.querySelector('input[name="item_total_cost[]"]').value = totalCost.toFixed(2);
-                            
+
                             // Update the grand total locally
                             calculateTotalCostLocal();
                         };
-                        
+
                         // Define a local version of updateFinancialPlanVisibility
                         const updateFinancialPlanVisibilityLocal = () => {
                             const financialPlanTableBody = document.getElementById('financialPlanTableBody');
                             const emptyFinancialPlanMessage = document.getElementById('emptyFinancialPlanMessage');
                             const financialPlanTable = document.getElementById('financialPlanTable');
-                            
+
                             if (!financialPlanTableBody || !emptyFinancialPlanMessage || !financialPlanTable) {
                                 console.error('Missing required DOM elements for financial plan visibility update');
                                 return;
                             }
-                            
+
                             const hasItems = financialPlanTableBody.querySelectorAll('tr').length > 0;
-                            
+
                             if (hasItems) {
                                 financialPlanTable.style.display = 'table';
                                 emptyFinancialPlanMessage.style.display = 'none';
@@ -11180,28 +11258,28 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 emptyFinancialPlanMessage.style.display = 'flex';
                             }
                         };
-                        
+
                         // If with financial plan, also populate the financial items table
-                        if (entry.financial_plan_items && entry.financial_plan_quantity && 
+                        if (entry.financial_plan_items && entry.financial_plan_quantity &&
                             entry.financial_plan_unit && entry.financial_plan_unit_cost) {
-                            
+
                             // Clear existing items first
                             const financialPlanTableBody = document.getElementById('financialPlanTableBody');
                             if (financialPlanTableBody) {
                                 financialPlanTableBody.innerHTML = '';
                             }
-                            
+
                             // Make sure these are arrays before trying to iterate
                             let descriptions = Array.isArray(entry.financial_plan_items) ? entry.financial_plan_items : [];
                             let quantities = Array.isArray(entry.financial_plan_quantity) ? entry.financial_plan_quantity : [];
                             let units = Array.isArray(entry.financial_plan_unit) ? entry.financial_plan_unit : [];
                             let unitCosts = Array.isArray(entry.financial_plan_unit_cost) ? entry.financial_plan_unit_cost : [];
-                            
+
                             console.log('Financial plan items:', descriptions);
                             console.log('Financial plan quantities:', quantities);
                             console.log('Financial plan units:', units);
                             console.log('Financial plan unit costs:', unitCosts);
-                            
+
                             // Skip if only contains "none" placeholder
                             if (descriptions.length === 1 && descriptions[0] === "none") {
                                 console.log('Skipping financial items as it only contains placeholder value "none"');
@@ -11209,11 +11287,11 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 // Add each item to the table
                                 for (let i = 0; i < descriptions.length; i++) {
                                     if (!descriptions[i] || descriptions[i] === "none") continue;
-                                    
+
                                     // Add a new financial item row
                                     const newRow = document.createElement('tr');
                                     newRow.className = 'financial-item-row';
-                                    
+
                                     // Create row content
                                     newRow.innerHTML = `
                                     <td>
@@ -11243,64 +11321,64 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                         </button>
                                     </td>
                                     `;
-                                    
+
                                     // Add the row to the table
                                     financialPlanTableBody.appendChild(newRow);
-                                    
+
                                     // Add event listeners to inputs
                                     const quantityInput = newRow.querySelector('.item-quantity');
                                     const unitCostInput = newRow.querySelector('.item-unit-cost');
                                     const removeButton = newRow.querySelector('.btn-remove-item');
-                                    
+
                                     if (quantityInput) {
                                         quantityInput.addEventListener('input', function() {
                                             calculateItemTotalLocal(newRow);
                                         });
                                     }
-                                    
+
                                     if (unitCostInput) {
                                         unitCostInput.addEventListener('input', function() {
                                             calculateItemTotalLocal(newRow);
                                         });
                                     }
-                                    
+
                                     if (removeButton) {
                                         removeButton.addEventListener('click', function() {
                                             financialPlanTableBody.removeChild(newRow);
                                             calculateTotalCostLocal();
-                                            
+
                                             // Check if there are no more rows
                                             if (financialPlanTableBody.querySelectorAll('tr').length === 0) {
                                                 // Show the empty message if this was the last row
                                                 const emptyMessage = document.getElementById('emptyFinancialPlanMessage');
                                                 const financialPlanTable = document.getElementById('financialPlanTable');
-                                                
+
                                                 if (emptyMessage) {
                                                     emptyMessage.style.display = 'flex';
                                                 }
-                                                
+
                                                 if (financialPlanTable) {
                                                     financialPlanTable.style.display = 'none';
                                                 }
                                             }
-                                            
+
                                             // Call this after making our manual adjustments
                                             updateFinancialPlanVisibilityLocal();
                                         });
                                     }
-                                    
+
                                     // Calculate this item's total using the local function
                                     calculateItemTotalLocal(newRow);
                                 }
-                                
+
                                 // Check if we have any rows after adding everything
                                 const hasRows = financialPlanTableBody.querySelectorAll('tr').length > 0;
                                 console.log('Financial plan has rows:', hasRows, 'Count:', financialPlanTableBody.querySelectorAll('tr').length);
-                                
+
                                 // Update visibility based on whether we have rows
                                 const emptyMessage = document.getElementById('emptyFinancialPlanMessage');
                                 const financialPlanTable = document.getElementById('financialPlanTable');
-                                
+
                                 if (hasRows) {
                                     // Hide empty message and show table if we have rows
                                     if (emptyMessage) {
@@ -11322,7 +11400,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                         financialPlanTable.style.display = 'none';
                                     }
                                 }
-                                
+
                                 // Make extra sure the badge is hidden by using a small timeout
                                 // This helps with potential timing or rendering issues
                                 if (hasRows) {
@@ -11335,7 +11413,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                         }
                                     }, 50);
                                 }
-                                
+
                                 // Calculate the total cost using the local function
                                 calculateTotalCostLocal();
                             }
@@ -11353,13 +11431,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         if (typeof sourceFunds === 'string') {
                             sourceFunds = JSON.parse(sourceFunds);
                         }
-                        
+
                         // Get the source fund options
                         const sourceFundOptions = document.querySelectorAll('.source-fund-option');
                         const sourceFundInput = document.getElementById('sourceOfFund');
-                        
+
                         console.log('Source of funds from DB:', sourceFunds);
-                        
+
                         // Mark selected options
                         let selectedFunds = [];
                         sourceFundOptions.forEach(option => {
@@ -11371,7 +11449,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 option.classList.remove('selected');
                             }
                         });
-                        
+
                         // Update the hidden input value
                         if (sourceFundInput) {
                             sourceFundInput.value = selectedFunds.join(',');
@@ -11381,7 +11459,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         console.error('Error setting source of fund:', e);
                     }
                 }
-                
+
                 // Populate dates with proper conversion handling
                 if (entry.start_date) {
                     try {
@@ -11389,7 +11467,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         // Support different date formats (SQL date, MM/DD/YYYY, etc.)
                         let dateStr = entry.start_date;
                         let startDate;
-                        
+
                         // Handle MM/DD/YYYY format
                         if (dateStr.includes('/')) {
                             const parts = dateStr.split('/');
@@ -11402,18 +11480,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         } else {
                             startDate = new Date(dateStr);
                         }
-                        
+
                         if (isNaN(startDate.getTime())) {
                             console.error('Invalid start date:', dateStr);
                         } else {
                             console.log('Parsed start date:', startDate);
                             console.log('Setting date values - Day:', startDate.getDate(), 'Month:', startDate.getMonth() + 1, 'Year:', startDate.getFullYear());
-                            
+
                             // Set values using element IDs directly to ensure they are set
                             const startDayElem = document.getElementById('startDay');
                             const startMonthElem = document.getElementById('startMonth');
                             const startYearElem = document.getElementById('startYear');
-                            
+
                             if (startDayElem) startDayElem.value = startDate.getDate();
                             if (startMonthElem) startMonthElem.value = startDate.getMonth() + 1;
                             if (startYearElem) startYearElem.value = startDate.getFullYear();
@@ -11422,14 +11500,14 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         console.error('Error parsing start date:', e);
                     }
                 }
-                
+
                 if (entry.end_date) {
                     try {
                         console.log('Raw end_date from DB:', entry.end_date);
                         // Support different date formats (SQL date, MM/DD/YYYY, etc.)
                         let dateStr = entry.end_date;
                         let endDate;
-                        
+
                         // Handle MM/DD/YYYY format
                         if (dateStr.includes('/')) {
                             const parts = dateStr.split('/');
@@ -11442,18 +11520,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         } else {
                             endDate = new Date(dateStr);
                         }
-                        
+
                         if (isNaN(endDate.getTime())) {
                             console.error('Invalid end date:', dateStr);
                         } else {
                             console.log('Parsed end date:', endDate);
                             console.log('Setting date values - Day:', endDate.getDate(), 'Month:', endDate.getMonth() + 1, 'Year:', endDate.getFullYear());
-                            
+
                             // Set values using element IDs directly to ensure they are set
                             const endDayElem = document.getElementById('endDay');
                             const endMonthElem = document.getElementById('endMonth');
                             const endYearElem = document.getElementById('endYear');
-                            
+
                             if (endDayElem) endDayElem.value = endDate.getDate();
                             if (endMonthElem) endMonthElem.value = endDate.getMonth() + 1;
                             if (endYearElem) endYearElem.value = endDate.getFullYear();
@@ -11462,26 +11540,26 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         console.error('Error parsing end date:', e);
                     }
                 }
-                
+
                 // Generate the workplan timeline if we have start and end dates
                 if (entry.start_date && entry.end_date) {
                     // Store the workplan data in global variables for possible later restoration
                     try {
                         if (entry.workplan_activity) {
-                            window.tempWorkplanActivity = typeof entry.workplan_activity === 'string' 
-                                ? JSON.parse(entry.workplan_activity)
-                                : entry.workplan_activity;
+                            window.tempWorkplanActivity = typeof entry.workplan_activity === 'string' ?
+                                JSON.parse(entry.workplan_activity) :
+                                entry.workplan_activity;
                         }
-                        
+
                         if (entry.workplan_date) {
-                            window.tempWorkplanDate = typeof entry.workplan_date === 'string'
-                                ? JSON.parse(entry.workplan_date)
-                                : entry.workplan_date;
+                            window.tempWorkplanDate = typeof entry.workplan_date === 'string' ?
+                                JSON.parse(entry.workplan_date) :
+                                entry.workplan_date;
                         }
                     } catch (e) {
                         console.error('Error storing workplan data:', e);
                     }
-                
+
                     // Use a faster timeout
                     setTimeout(() => {
                         const startMonth = document.getElementById('startMonth')?.value;
@@ -11490,75 +11568,75 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         const endMonth = document.getElementById('endMonth')?.value;
                         const endDay = document.getElementById('endDay')?.value;
                         const endYear = document.getElementById('endYear')?.value;
-                        
+
                         if (startMonth && startDay && startYear && endMonth && endDay && endYear) {
                             const startDate = new Date(startYear, startMonth - 1, startDay);
                             const endDate = new Date(endYear, endMonth - 1, endDay);
                             generateWorkPlanTimeline(startDate, endDate);
-                            
+
                             // After timeline is generated, populate workplan activities
                             if (entry.workplan_activity && entry.workplan_date) {
                                 try {
                                     console.log('Populating workplan with activity data:', entry.workplan_activity);
                                     console.log('Populating workplan with date data:', entry.workplan_date);
-                                    
+
                                     let activities = [];
                                     let dates = [];
-                                    
+
                                     // Handle both string and parsed JSON format
                                     if (typeof entry.workplan_activity === 'string') {
                                         activities = JSON.parse(entry.workplan_activity);
                                     } else if (Array.isArray(entry.workplan_activity)) {
                                         activities = entry.workplan_activity;
                                     }
-                                    
+
                                     if (typeof entry.workplan_date === 'string') {
                                         dates = JSON.parse(entry.workplan_date);
                                     } else if (Array.isArray(entry.workplan_date)) {
                                         dates = entry.workplan_date;
                                     }
-                                    
+
                                     console.log('Parsed activities:', activities);
                                     console.log('Parsed dates:', dates);
-                                    
-                                                                                        // Clear existing activities first
-                                                    const timelineActivities = document.getElementById('timeline-activities');
-                                                    if (timelineActivities) {
-                                                        timelineActivities.innerHTML = '';
-                                                    }
-                                                    
-                                                    // Add activities from saved data
-                                                    if (Array.isArray(activities)) {
-                                                        for (let i = 0; i < activities.length; i++) {
-                                                            const activity = activities[i];
-                                                            const dateStr = dates[i] || '';
-                                                            const dateArray = dateStr.split(',');
-                                                            
-                                                            console.log(`Adding activity ${i+1}:`, activity);
-                                                            console.log(`Dates for activity ${i+1}:`, dateArray);
-                                                            
-                                                            // Add new row
-                                                            const newRow = addNewActivityRow();
-                                                            
-                                                            // Set the activity name
-                                                            const nameInput = newRow.querySelector('input[name="workplanActivity[]"]');
-                                                            if (nameInput) {
-                                                                nameInput.value = activity || '';
-                                                                console.log(`Set activity ${i+1} name:`, activity);
-                                                            }
-                                                            
-                                                            // Create hidden input for dates - ensure no duplicates
-                                                            // First, remove any existing hidden inputs
-                                                            const existingInputs = newRow.querySelectorAll('input[name="workplanDate[]"]');
-                                                            existingInputs.forEach(input => input.remove());
-                                                            
-                                                            // Create a new hidden input with the dates
-                                                            const hiddenInput = document.createElement('input');
-                                                            hiddenInput.type = 'hidden';
-                                                            hiddenInput.name = 'workplanDate[]';
-                                                            hiddenInput.value = dateStr;
-                                                            newRow.appendChild(hiddenInput);
-                                            
+
+                                    // Clear existing activities first
+                                    const timelineActivities = document.getElementById('timeline-activities');
+                                    if (timelineActivities) {
+                                        timelineActivities.innerHTML = '';
+                                    }
+
+                                    // Add activities from saved data
+                                    if (Array.isArray(activities)) {
+                                        for (let i = 0; i < activities.length; i++) {
+                                            const activity = activities[i];
+                                            const dateStr = dates[i] || '';
+                                            const dateArray = dateStr.split(',');
+
+                                            console.log(`Adding activity ${i+1}:`, activity);
+                                            console.log(`Dates for activity ${i+1}:`, dateArray);
+
+                                            // Add new row
+                                            const newRow = addNewActivityRow();
+
+                                            // Set the activity name
+                                            const nameInput = newRow.querySelector('input[name="workplanActivity[]"]');
+                                            if (nameInput) {
+                                                nameInput.value = activity || '';
+                                                console.log(`Set activity ${i+1} name:`, activity);
+                                            }
+
+                                            // Create hidden input for dates - ensure no duplicates
+                                            // First, remove any existing hidden inputs
+                                            const existingInputs = newRow.querySelectorAll('input[name="workplanDate[]"]');
+                                            existingInputs.forEach(input => input.remove());
+
+                                            // Create a new hidden input with the dates
+                                            const hiddenInput = document.createElement('input');
+                                            hiddenInput.type = 'hidden';
+                                            hiddenInput.name = 'workplanDate[]';
+                                            hiddenInput.value = dateStr;
+                                            newRow.appendChild(hiddenInput);
+
                                             // Make sure the row has checkboxes
                                             const checkboxCells = newRow.querySelectorAll('td.checkbox-cell');
                                             if (checkboxCells.length === 0) {
@@ -11573,57 +11651,57 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                         const endDate = new Date(endYear, endMonth - 1, endDay);
                                                         let datesList = [];
                                                         let currentDate = new Date(startDate);
-                                                        
+
                                                         while (currentDate <= endDate) {
                                                             datesList.push(new Date(currentDate));
                                                             currentDate.setDate(currentDate.getDate() + 1);
                                                         }
-                                                        
+
                                                         // Add checkboxes to the row
                                                         updateRowCheckboxes(newRow, datesList);
                                                         console.log(`Added ${datesList.length} checkbox cells to row ${i+1}`);
                                                     }
                                                 }
                                             }
-                                            
+
                                             // Now check the appropriate date checkboxes
                                             if (dateArray.length > 0) {
                                                 console.log(`Date array for activity ${i+1}:`, dateArray);
-                                                
+
                                                 // Use an optimized timeout
                                                 setTimeout(() => {
                                                     const headerRow = document.querySelector('#timeline-table thead tr');
                                                     const checkboxes = newRow.querySelectorAll('input.activity-checkbox');
-                                                    
+
                                                     if (headerRow && checkboxes.length > 0) {
                                                         console.log(`Found ${checkboxes.length} checkboxes to match with ${dateArray.length} dates for activity ${i+1}`);
-                                                        
+
                                                         // Check each checkbox based on its data-date attribute
                                                         checkboxes.forEach((checkbox, index) => {
                                                             if (headerRow.children[index + 1]) {
                                                                 const headerDate = headerRow.children[index + 1].textContent.trim();
-                                                                
+
                                                                 // Try different formats and approaches for matching
-                                                                const isDateSelected = 
-                                                                    dateArray.includes(headerDate) || 
+                                                                const isDateSelected =
+                                                                    dateArray.includes(headerDate) ||
                                                                     dateArray.some(date => date.trim() === headerDate) ||
                                                                     dateArray.some(date => date.trim().toLowerCase() === headerDate.toLowerCase());
-                                                                
+
                                                                 if (isDateSelected) {
                                                                     checkbox.checked = true;
                                                                     console.log(`✓ Checked date ${headerDate} for activity ${i+1}`);
                                                                 }
-                                                                
+
                                                                 // Also explicitly set the data-date attribute
                                                                 checkbox.setAttribute('data-date', headerDate);
                                                             }
                                                         });
-                                                        
+
                                                         // Force update of the hidden field with the date values
                                                         // First, remove any existing hidden inputs to prevent duplicates
                                                         const existingInputs = newRow.querySelectorAll('input[name="workplanDate[]"]');
                                                         existingInputs.forEach(input => input.remove());
-                                                        
+
                                                         // Create a new hidden input
                                                         const hiddenDateField = document.createElement('input');
                                                         hiddenDateField.type = 'hidden';
@@ -11636,22 +11714,22 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                 }, 100);
                                             }
                                         }
-                                        
-                                                                                 // Final validation to make sure section is properly marked as complete
+
+                                        // Final validation to make sure section is properly marked as complete
                                         setTimeout(() => {
                                             validateWorkPlanSection();
-                                            
+
                                             // Immediately mark section as complete if data exists
                                             const navItem = document.querySelector('.form-nav-item[data-section="section-9"]');
                                             if (navItem) {
                                                 const allRows = document.querySelectorAll('#timeline-activities .activity-row');
                                                 let allComplete = true;
-                                                
+
                                                 // Fast check - just verify rows exist with some data
                                                 if (allRows.length > 0) {
                                                     navItem.classList.add('is-complete');
                                                     navItem.classList.remove('has-error');
-                                                    
+
                                                     // Also update section title
                                                     const sectionTitle = document.querySelector('#section-9 .section-title');
                                                     if (sectionTitle) {
@@ -11668,11 +11746,11 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         }
                     }, 200);
                 }
-                
+
                 // Helper function to populate array fields in the form (for JSON arrays)
                 function populateArrayField(fieldName, values) {
                     if (!values) return;
-                    
+
                     // Handle both array and string formats
                     let valuesArray = values;
                     if (typeof values === 'string') {
@@ -11683,69 +11761,69 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             return;
                         }
                     }
-                    
+
                     if (!Array.isArray(valuesArray) || valuesArray.length === 0) {
                         console.log(`No values to populate for ${fieldName}`);
                         return;
                     }
-                    
+
                     console.log(`Populating ${fieldName} with values:`, valuesArray);
-                    
+
                     // Get the container element
                     const container = document.getElementById(`${fieldName}_container`);
                     if (!container) {
                         console.error(`Container for ${fieldName} not found`);
                         return;
                     }
-                    
+
                     // Clear existing fields except the first one
                     const existingInputs = container.querySelectorAll('.input-group');
                     for (let i = 1; i < existingInputs.length; i++) {
                         existingInputs[i].remove();
                     }
-                    
+
                     // Set the first value
                     const firstInput = container.querySelector(`input[name="${fieldName}[]"]`);
                     if (firstInput && valuesArray.length > 0) {
                         firstInput.value = valuesArray[0];
                     }
-                    
+
                     // Add additional inputs for remaining values
                     const addButton = document.getElementById(`add_${fieldName}_btn`);
-                    
+
                     for (let i = 1; i < valuesArray.length; i++) {
                         // Clone the first input group
                         const firstGroup = container.querySelector('.input-group');
                         const newGroup = firstGroup.cloneNode(true);
-                        
+
                         // Update the number indicator
                         const numberIndicator = newGroup.querySelector('.input-number-indicator');
                         if (numberIndicator) {
                             numberIndicator.textContent = `#${i + 1}`;
                         }
-                        
+
                         // Set the value
                         const input = newGroup.querySelector('input');
                         if (input) {
                             input.value = valuesArray[i];
                         }
-                        
+
                         // Show the remove button
                         const removeButton = newGroup.querySelector('.remove-input');
                         if (removeButton) {
                             removeButton.style.display = 'block';
-                            
+
                             // Attach event listener
                             removeButton.addEventListener('click', function() {
                                 newGroup.remove();
                                 updateNumberIndicators(container);
                             });
                         }
-                        
+
                         // Add to the container
                         container.appendChild(newGroup);
                     }
-                    
+
                     // Helper function to update number indicators after removal
                     function updateNumberIndicators(container) {
                         const groups = container.querySelectorAll('.input-group');
@@ -11757,15 +11835,15 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         });
                     }
                 }
-                
+
                 // Populate the array fields
                 populateArrayField('specific_objectives', entry.specific_objectives);
-                
+
                 // Use entry.strategy since that's what's in the database
                 populateArrayField('strategies', entry.strategy);
                 populateArrayField('expected_output', entry.expected_output);
                 populateArrayField('specific_plans', entry.specific_plan);
-                
+
                 // Agency & Participants section
                 set('internal_type', entry.internal_type);
                 set('internal_male', entry.internal_male);
@@ -11778,30 +11856,36 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 set('total_male', entry.grand_total_male);
                 set('total_female', entry.grand_total_female);
                 set('grand_total', entry.grand_total);
-                
+
+
                 // Trigger calculation to ensure totals are displayed correctly
                 setTimeout(() => {
+                    if (typeof updateInternalParticipantsFromProjectTeam === 'function') {
+                        updateInternalParticipantsFromProjectTeam();
+                    }
                     calculateParticipantTotals();
                 }, 200);
+
+        
                 // ... (repeat for all simple fields as needed)
                 // Set year and quarter first, then handle gender issue
                 if (entry.year && entry.quarter) {
                     // Load gender issues based on year and quarter before trying to set gender_issue_id
                     const yearSelect = document.getElementById('year');
                     const quarterSelect = document.getElementById('quarter');
-                    
+
                     if (yearSelect && quarterSelect) {
                         // Set year and quarter values first
                         yearSelect.value = entry.year;
                         quarterSelect.value = entry.quarter;
                         quarterSelect.disabled = false;
-                        
+
                         // Load gender issues
-                    const genderIssueSelect = document.getElementById('genderIssue');
+                        const genderIssueSelect = document.getElementById('genderIssue');
                         if (genderIssueSelect) {
                             // Immediately mark the gender issue section as valid
                             markGenderIssueAsValid();
-                            
+
                             // First load gender issues asynchronously
                             fetch(`get_gender_issues.php?year=${entry.year}&quarter=${entry.quarter}`)
                                 .then(response => response.json())
@@ -11809,13 +11893,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     if (data.success && data.issues && data.issues.length > 0) {
                                         // Clear existing options
                                         genderIssueSelect.innerHTML = '<option value="" selected disabled>Select Gender Issue</option>';
-                                        
+
                                         // Add gender issues from response
                                         data.issues.forEach(issue => {
                                             const option = document.createElement('option');
                                             option.value = issue.id;
                                             option.textContent = issue.gender_issue;
-                                            
+
                                             // Apply styling based on status
                                             if (issue.status && issue.status !== 'Approved') {
                                                 option.style.color = 'red';
@@ -11823,13 +11907,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                 option.disabled = true;
                                                 option.textContent += ` (${issue.status})`;
                                             }
-                                            
+
                                             genderIssueSelect.appendChild(option);
                                         });
-                                        
+
                                         // Enable the select
                                         genderIssueSelect.disabled = false;
-                                        
+
                                         // Now set the selected gender issue
                                         if (entry.gender_issue_id) {
                                             // Force check if the option exists
@@ -11840,14 +11924,16 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     break;
                                                 }
                                             }
-                                            
+
                                             if (optionExists) {
                                                 genderIssueSelect.value = entry.gender_issue_id;
                                                 // Trigger the change event to clear any validation errors
-                                                const changeEvent = new Event('change', { bubbles: true });
+                                                const changeEvent = new Event('change', {
+                                                    bubbles: true
+                                                });
                                                 genderIssueSelect.dispatchEvent(changeEvent);
                                                 console.log('Set gender issue ID to:', entry.gender_issue_id);
-                                                
+
                                                 // Mark gender issue as valid again after setting value
                                                 markGenderIssueAsValid();
                                             } else {
@@ -11858,16 +11944,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                 option.textContent = 'Gender Issue #' + entry.gender_issue_id;
                                                 genderIssueSelect.appendChild(option);
                                                 genderIssueSelect.value = entry.gender_issue_id;
-                                                
+
                                                 // Trigger the change event to clear any validation errors
-                                                const changeEvent = new Event('change', { bubbles: true });
+                                                const changeEvent = new Event('change', {
+                                                    bubbles: true
+                                                });
                                                 genderIssueSelect.dispatchEvent(changeEvent);
-                                                
+
                                                 // Mark gender issue as valid again after setting value
                                                 markGenderIssueAsValid();
                                             }
                                         }
-                                        
+
                                         // Update the gender-issue section status
                                         updateSectionStatus('gender-issue', true, true);
                                     }
@@ -11899,27 +11987,27 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         if (radio.value === entry.agenda) {
                             radio.checked = true;
                             console.log(`Selected agenda: ${entry.agenda}`);
-                            
+
                             // Update section status
                             updateSectionStatus('agenda-section', true);
                         }
                     });
                 }
-                
+
                 // Set SDGs checkboxes
                 if (entry.sdg) {
                     let sdgs = entry.sdg;
                     // Handle both array and string formats
                     if (typeof entry.sdg === 'string') {
-                    try {
-                        sdgs = JSON.parse(entry.sdg);
+                        try {
+                            sdgs = JSON.parse(entry.sdg);
                         } catch (e) {
                             console.error('Error parsing SDGs:', e);
                         }
                     }
-                    
+
                     console.log('Setting SDGs:', sdgs);
-                    
+
                     // Check the corresponding checkboxes - note the name is "sdgs[]" not "sdg[]"
                     document.querySelectorAll('input[name="sdgs[]"]').forEach(cb => {
                         // Check if this checkbox value is in the sdgs array
@@ -11929,7 +12017,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.log(`Checked SDG: ${cb.value}`);
                         }
                     });
-                    
+
                     // Update SDGs section status
                     updateSectionStatus('sdgs-section', true);
                 }
@@ -11944,46 +12032,46 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing offices:', e);
                         }
                     }
-                    
+
                     console.log('Setting offices:', offices);
-                    
+
                     // Get references to containers
                     const officeInputsContainer = document.getElementById('officeInputsContainer');
                     if (officeInputsContainer && Array.isArray(offices)) {
                         // Clear container except for the first input
                         const firstInput = officeInputsContainer.querySelector('.input-group');
                         if (!firstInput) return;
-                        
+
                         // Clear all inputs except first one
                         while (officeInputsContainer.children.length > 1) {
                             officeInputsContainer.removeChild(officeInputsContainer.lastChild);
                         }
-                        
+
                         // Set the first input value
                         const firstOfficeInput = firstInput.querySelector('input[name="offices[]"]');
                         if (firstOfficeInput && offices.length > 0) {
                             firstOfficeInput.value = offices[0];
                         }
-                        
+
                         // Add additional inputs for remaining values
                         for (let i = 1; i < offices.length; i++) {
                             // Clone the first input group
                             const newInput = firstInput.cloneNode(true);
-                            
+
                             // Set value
                             newInput.querySelector('input').value = offices[i];
-                            
+
                             // Update the number indicator
                             newInput.querySelector('.input-number-indicator').textContent = `#${i + 1}`;
-                            
+
                             // Show the remove button
                             const removeBtn = newInput.querySelector('.remove-input');
                             removeBtn.style.display = 'block';
-                            
+
                             // Add event listener to remove button
                             removeBtn.addEventListener('click', function() {
                                 officeInputsContainer.removeChild(newInput);
-                                
+
                                 // Update numbering of remaining inputs
                                 const inputs = officeInputsContainer.querySelectorAll('.input-group');
                                 inputs.forEach((input, index) => {
@@ -11992,11 +12080,11 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                         numberIndicator.textContent = `#${index + 1}`;
                                     }
                                 });
-                                
+
                                 // Update validation
                                 updateOfficeProgramsCompletionStatus();
                             });
-                            
+
                             // Add input event listener
                             const newInputField = newInput.querySelector('input[name="offices[]"]');
                             if (newInputField) {
@@ -12004,13 +12092,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     updateOfficeProgramsCompletionStatus();
                                 });
                             }
-                            
+
                             // Append to container
                             officeInputsContainer.appendChild(newInput);
                         }
                     }
                 }
-                
+
                 // Populate programs
                 if (entry.program_list) {
                     let programs = entry.program_list;
@@ -12022,46 +12110,46 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing programs:', e);
                         }
                     }
-                    
+
                     console.log('Setting programs:', programs);
-                    
+
                     // Get references to containers
                     const programInputsContainer = document.getElementById('programInputsContainer');
                     if (programInputsContainer && Array.isArray(programs)) {
                         // Clear container except for the first input
                         const firstInput = programInputsContainer.querySelector('.input-group');
                         if (!firstInput) return;
-                        
+
                         // Clear all inputs except first one
                         while (programInputsContainer.children.length > 1) {
                             programInputsContainer.removeChild(programInputsContainer.lastChild);
                         }
-                        
+
                         // Set the first input value
                         const firstProgramInput = firstInput.querySelector('input[name="programs[]"]');
                         if (firstProgramInput && programs.length > 0) {
                             firstProgramInput.value = programs[0];
                         }
-                        
+
                         // Add additional inputs for remaining values
                         for (let i = 1; i < programs.length; i++) {
                             // Clone the first input group
                             const newInput = firstInput.cloneNode(true);
-                            
+
                             // Set value
                             newInput.querySelector('input').value = programs[i];
-                            
+
                             // Update the number indicator
                             newInput.querySelector('.input-number-indicator').textContent = `#${i + 1}`;
-                            
+
                             // Show the remove button
                             const removeBtn = newInput.querySelector('.remove-input');
                             removeBtn.style.display = 'block';
-                            
+
                             // Add event listener to remove button
                             removeBtn.addEventListener('click', function() {
                                 programInputsContainer.removeChild(newInput);
-                                
+
                                 // Update numbering of remaining inputs
                                 const inputs = programInputsContainer.querySelectorAll('.input-group');
                                 inputs.forEach((input, index) => {
@@ -12070,11 +12158,11 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                         numberIndicator.textContent = `#${index + 1}`;
                                     }
                                 });
-                                
+
                                 // Update validation
                                 updateOfficeProgramsCompletionStatus();
                             });
-                            
+
                             // Add input event listener
                             const newInputField = newInput.querySelector('input[name="programs[]"]');
                             if (newInputField) {
@@ -12082,23 +12170,23 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     updateOfficeProgramsCompletionStatus();
                                 });
                             }
-                            
+
                             // Append to container
                             programInputsContainer.appendChild(newInput);
                         }
                     }
                 }
-                
+
                 // Update Office and Programs section status
                 updateOfficeProgramsCompletionStatus();
-                
+
                 // Handle project team data
                 // Project Leaders
                 if (entry.project_leader) {
                     // Parse project leader data
                     let projectLeaders = entry.project_leader;
                     let projectLeaderResponsibilities = entry.project_leader_responsibilities;
-                    
+
                     // Handle string format (convert to JSON)
                     if (typeof projectLeaders === 'string') {
                         try {
@@ -12107,7 +12195,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing project leaders:', e);
                         }
                     }
-                    
+
                     if (typeof projectLeaderResponsibilities === 'string') {
                         try {
                             projectLeaderResponsibilities = JSON.parse(projectLeaderResponsibilities);
@@ -12115,10 +12203,10 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing project leader responsibilities:', e);
                         }
                     }
-                    
+
                     // Get container reference
                     const projectLeadersContainer = document.getElementById('projectLeadersContainer');
-                    
+
                     // Clear existing content, keeping the first template
                     const firstLeaderCard = projectLeadersContainer.querySelector('.team-member-card');
                     if (firstLeaderCard) {
@@ -12126,36 +12214,38 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         while (projectLeadersContainer.children.length > 1) {
                             projectLeadersContainer.removeChild(projectLeadersContainer.lastChild);
                         }
-                        
+
                         // Populate the first card with the first leader
                         if (Array.isArray(projectLeaders) && projectLeaders.length > 0) {
                             // Set name and trigger autocomplete to populate other fields
                             const nameInput = firstLeaderCard.querySelector('input[name="leader_name[]"]');
                             if (nameInput) {
                                 nameInput.value = projectLeaders[0];
-                                
+
                                 // Create a change event to trigger the autocomplete handlers
-                                const event = new Event('change', { bubbles: true });
+                                const event = new Event('change', {
+                                    bubbles: true
+                                });
                                 nameInput.dispatchEvent(event);
-                                
+
                                 // Additionally, explicitly fetch personnel data for this name
                                 fetchPersonnelDataByName(projectLeaders[0], 'leader', 1);
                             }
-                            
+
                             // Process responsibilities for the first leader
                             if (Array.isArray(projectLeaderResponsibilities) && projectLeaderResponsibilities.length > 0) {
                                 const taskContainer = firstLeaderCard.querySelector('#leaderTasksContainer_1');
                                 if (taskContainer) {
                                     // Get the first task input
                                     const firstTaskInput = taskContainer.querySelector('.input-group');
-                                    
+
                                     if (firstTaskInput) {
                                         // Check the data format and handle both string and array formats
                                         let responsibilities = [];
                                         const respItem = projectLeaderResponsibilities[0];
-                                        
+
                                         console.log('First project leader responsibility item:', respItem, 'type:', typeof respItem);
-                                        
+
                                         if (typeof respItem === 'string') {
                                             // If it's a string, split by commas
                                             responsibilities = respItem.split(',');
@@ -12166,41 +12256,41 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             // If it's anything else, convert to string and split
                                             responsibilities = String(respItem).split(',');
                                         }
-                                        
+
                                         console.log('Processed first project leader responsibilities:', responsibilities);
-                                        
+
                                         // Set first responsibility
                                         const firstTaskField = firstTaskInput.querySelector('input[name="leader_tasks_1[]"]');
                                         if (firstTaskField && responsibilities.length > 0) {
                                             firstTaskField.value = responsibilities[0].trim();
                                         }
-                                        
+
                                         // Add additional responsibilities
                                         for (let i = 1; i < responsibilities.length; i++) {
                                             // Clone the first input
                                             const newTask = firstTaskInput.cloneNode(true);
-                                            
+
                                             // Set the value
                                             const taskInput = newTask.querySelector('input[name="leader_tasks_1[]"]');
                                             if (taskInput) {
                                                 taskInput.value = responsibilities[i].trim();
                                             }
-                                            
+
                                             // Update the number indicator
                                             const numberIndicator = newTask.querySelector('.input-number-indicator');
                                             if (numberIndicator) {
                                                 numberIndicator.textContent = `#${i + 1}`;
                                             }
-                                            
+
                                             // Show the remove button
                                             const removeBtn = newTask.querySelector('.remove-input');
                                             if (removeBtn) {
                                                 removeBtn.style.display = 'block';
-                                                
+
                                                 // Add event listener for the remove button
                                                 removeBtn.addEventListener('click', function() {
                                                     taskContainer.removeChild(newTask);
-                                                    
+
                                                     // Update numbering
                                                     const inputs = taskContainer.querySelectorAll('.input-group');
                                                     inputs.forEach((input, index) => {
@@ -12211,7 +12301,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     });
                                                 });
                                             }
-                                            
+
                                             // Append to container
                                             taskContainer.appendChild(newTask);
                                         }
@@ -12219,18 +12309,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 }
                             }
                         }
-                        
+
                         // Add additional project leaders
                         for (let i = 1; i < projectLeaders.length; i++) {
                             // Clone the first card
                             const newCard = firstLeaderCard.cloneNode(true);
-                            
+
                             // Update card title
                             const cardTitle = newCard.querySelector('.card-header h6');
                             if (cardTitle) {
                                 cardTitle.textContent = `Project Leader #${i + 1}`;
                             }
-                            
+
                             // Update input IDs and names for the new card
                             newCard.querySelectorAll('input, select, textarea').forEach(input => {
                                 if (input.id && input.id.includes('_1')) {
@@ -12240,51 +12330,53 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     input.name = input.name.replace('_1[', `_${i + 1}[`);
                                 }
                             });
-                            
+
                             // Update task container ID
                             const taskContainer = newCard.querySelector('.tasks-container');
                             if (taskContainer && taskContainer.id) {
                                 taskContainer.id = `leaderTasksContainer_${i + 1}`;
                             }
-                            
+
                             // Update task button data-index
                             const taskButton = newCard.querySelector('.add-task-btn');
                             if (taskButton) {
                                 taskButton.dataset.index = i + 1;
                             }
-                            
+
                             // Set name value
                             const nameInput = newCard.querySelector('input[name="leader_name[]"]');
                             if (nameInput) {
                                 nameInput.value = projectLeaders[i];
-                                
+
                                 // Create a change event to trigger the autocomplete handlers
-                                const event = new Event('change', { bubbles: true });
+                                const event = new Event('change', {
+                                    bubbles: true
+                                });
                                 nameInput.dispatchEvent(event);
-                                
+
                                 // Additionally, explicitly fetch personnel data for this name
-                                fetchPersonnelDataByName(projectLeaders[i], 'leader', i+1);
+                                fetchPersonnelDataByName(projectLeaders[i], 'leader', i + 1);
                             }
-                            
+
                             // Process responsibilities for this leader
                             if (Array.isArray(projectLeaderResponsibilities) && projectLeaderResponsibilities.length > i) {
                                 const taskContainer = newCard.querySelector(`.tasks-container`);
                                 if (taskContainer) {
                                     // Get the first task input
                                     const firstTaskInput = taskContainer.querySelector('.input-group');
-                                    
+
                                     if (firstTaskInput) {
                                         // Clear existing tasks
                                         while (taskContainer.children.length > 0) {
                                             taskContainer.removeChild(taskContainer.lastChild);
                                         }
-                                        
+
                                         // Check the data format and handle both string and array formats
                                         let responsibilities = [];
                                         const respItem = projectLeaderResponsibilities[i];
-                                        
+
                                         console.log('Additional project leader responsibility item:', respItem, 'type:', typeof respItem);
-                                        
+
                                         if (typeof respItem === 'string') {
                                             // If it's a string, split by commas
                                             responsibilities = respItem.split(',');
@@ -12295,36 +12387,36 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             // If it's anything else, convert to string and split
                                             responsibilities = String(respItem).split(',');
                                         }
-                                        
+
                                         console.log('Processed additional project leader responsibilities:', responsibilities);
-                                        
+
                                         // Add tasks for each responsibility
                                         for (let j = 0; j < responsibilities.length; j++) {
                                             // Clone the template
                                             const newTask = firstTaskInput.cloneNode(true);
-                                            
+
                                             // Update the name attribute
                                             const input = newTask.querySelector('input');
                                             if (input) {
                                                 input.name = `leader_tasks_${i + 1}[]`;
                                                 input.value = responsibilities[j].trim();
                                             }
-                                            
+
                                             // Update the number indicator
                                             const numberIndicator = newTask.querySelector('.input-number-indicator');
                                             if (numberIndicator) {
                                                 numberIndicator.textContent = `#${j + 1}`;
                                             }
-                                            
+
                                             // Show the remove button for tasks after the first one
                                             const removeBtn = newTask.querySelector('.remove-input');
                                             if (removeBtn) {
                                                 removeBtn.style.display = j > 0 ? 'block' : 'none';
-                                                
+
                                                 // Add event listener for the remove button
                                                 removeBtn.addEventListener('click', function() {
                                                     taskContainer.removeChild(newTask);
-                                                    
+
                                                     // Update numbering
                                                     const inputs = taskContainer.querySelectorAll('.input-group');
                                                     inputs.forEach((input, index) => {
@@ -12335,23 +12427,23 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     });
                                                 });
                                             }
-                                            
+
                                             // Append to container
                                             taskContainer.appendChild(newTask);
                                         }
                                     }
                                 }
                             }
-                            
+
                             // Show the remove button
                             const removeButton = newCard.querySelector('.remove-team-member');
                             if (removeButton) {
                                 removeButton.style.display = 'block';
-                                
+
                                 // Add event listener for the remove button
                                 removeButton.addEventListener('click', function() {
                                     projectLeadersContainer.removeChild(newCard);
-                                    
+
                                     // Update numbering of remaining cards
                                     const cards = projectLeadersContainer.querySelectorAll('.team-member-card');
                                     cards.forEach((card, index) => {
@@ -12362,34 +12454,34 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     });
                                 });
                             }
-                            
+
                             // Append to container
                             projectLeadersContainer.appendChild(newCard);
                         }
                     }
                 }
-                
+
                 // Assistant Project Leaders
                 if (entry.assistant_project_leader) {
                     // Parse assistant project leader data
                     let assistantLeaders = entry.assistant_project_leader;
                     let assistantLeaderResponsibilities = entry.assistant_project_leader_responsibilities;
-                    
+
                     console.log('Assistant project leader data:', entry.assistant_project_leader);
                     console.log('Assistant project leader responsibilities data:', entry.assistant_project_leader_responsibilities);
                     console.log('COMPLETE ENTRY OBJECT KEYS:', Object.keys(entry));
                     console.log('FULL ENTRY OBJECT FOR DEBUGGING:', JSON.stringify(entry));
-                    
+
                     // More detailed check for missing or incorrect field name
                     for (const key of Object.keys(entry)) {
                         if (key.toLowerCase().includes('assistant') || key.toLowerCase().includes('responsib')) {
                             console.log('Potential match for assistant or responsibilities:', key, JSON.stringify(entry[key]));
                         }
                     }
-                    
+
                     // Additional debugging to check data format before parsing
                     console.log('assistantLeaderResponsibilities before parsing:', typeof assistantLeaderResponsibilities, assistantLeaderResponsibilities);
-                    
+
                     // Handle string format (convert to JSON)
                     if (typeof assistantLeaders === 'string') {
                         try {
@@ -12398,7 +12490,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing assistant project leaders:', e);
                         }
                     }
-                    
+
                     if (typeof assistantLeaderResponsibilities === 'string') {
                         try {
                             assistantLeaderResponsibilities = JSON.parse(assistantLeaderResponsibilities);
@@ -12406,13 +12498,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing assistant project leader responsibilities:', e);
                         }
                     }
-                    
+
                     console.log('After parsing: Assistant leaders =', assistantLeaders);
                     console.log('After parsing: Assistant leader responsibilities =', assistantLeaderResponsibilities);
-                    
+
                     // Get container reference
                     const assistantLeadersContainer = document.getElementById('assistantLeadersContainer');
-                    
+
                     // Clear existing content, keeping the first template
                     const firstAssistantCard = assistantLeadersContainer.querySelector('.team-member-card');
                     if (firstAssistantCard) {
@@ -12420,22 +12512,24 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         while (assistantLeadersContainer.children.length > 1) {
                             assistantLeadersContainer.removeChild(assistantLeadersContainer.lastChild);
                         }
-                        
+
                         // Populate the first card with the first assistant leader
                         if (Array.isArray(assistantLeaders) && assistantLeaders.length > 0) {
                             // Set name and trigger autocomplete to populate other fields
                             const nameInput = firstAssistantCard.querySelector('input[name="asst_leader_name[]"]');
                             if (nameInput) {
                                 nameInput.value = assistantLeaders[0];
-                                
+
                                 // Create a change event to trigger the autocomplete handlers
-                                const event = new Event('change', { bubbles: true });
+                                const event = new Event('change', {
+                                    bubbles: true
+                                });
                                 nameInput.dispatchEvent(event);
-                                
+
                                 // Additionally, explicitly fetch personnel data for this name
                                 fetchPersonnelDataByName(assistantLeaders[0], 'asst_leader', 1);
                             }
-                            
+
                             // Process responsibilities for the first assistant leader
                             console.log('Processing first assistant leader responsibilities');
                             console.log('assistantLeaderResponsibilities =', assistantLeaderResponsibilities);
@@ -12443,12 +12537,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             if (assistantLeaderResponsibilities) {
                                 console.log('Length:', assistantLeaderResponsibilities.length);
                             }
-                            
+
                             // Debug all container IDs to find potential matches
                             firstAssistantCard.querySelectorAll('*[id]').forEach(el => {
                                 console.log('Found element with ID:', el.id);
                             });
-                            
+
                             if (Array.isArray(assistantLeaderResponsibilities) && assistantLeaderResponsibilities.length > 0) {
                                 console.log('Found valid assistant leader responsibilities array with length > 0');
                                 // Try both id and class selector approaches
@@ -12463,14 +12557,14 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     // Get the first task input
                                     const firstTaskInput = taskContainer.querySelector('.input-group');
                                     console.log('First task input found?', !!firstTaskInput);
-                                    
+
                                     if (firstTaskInput) {
                                         // Check the data format and handle both string and array formats
                                         let responsibilities = [];
                                         const respItem = assistantLeaderResponsibilities[0];
-                                        
+
                                         console.log('First assistant leader responsibility item:', respItem, 'type:', typeof respItem);
-                                        
+
                                         if (typeof respItem === 'string') {
                                             // If it's a string, split by commas
                                             responsibilities = respItem.split(',');
@@ -12481,16 +12575,16 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             // If it's anything else, convert to string and split
                                             responsibilities = String(respItem).split(',');
                                         }
-                                        
+
                                         // Special case: if we have a single string in the array and it already contains commas
                                         // This matches the format seen in the logs: ["Assistant 1,Assistant 2"]
                                         if (responsibilities.length === 1 && responsibilities[0].includes(',')) {
                                             console.log('Found comma in single responsibility, further splitting');
                                             responsibilities = responsibilities[0].split(',').map(item => item.trim());
                                         }
-                                        
+
                                         console.log('Processed first assistant leader responsibilities:', responsibilities);
-                                        
+
                                         // Set first responsibility
                                         // Try to find the input by name attribute or any input in the container as fallback
                                         let firstTaskField = firstTaskInput.querySelector('input[name="asst_leader_tasks_1[]"]');
@@ -12508,12 +12602,12 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             console.log('Setting first responsibility value to:', responsibilities[0].trim());
                                             firstTaskField.value = responsibilities[0].trim();
                                         }
-                                        
+
                                         // Add additional responsibilities
                                         for (let i = 1; i < responsibilities.length; i++) {
                                             // Clone the first input
                                             const newTask = firstTaskInput.cloneNode(true);
-                                            
+
                                             // Set the value - try specific selector then fall back to any input
                                             let taskInput = newTask.querySelector('input[name="asst_leader_tasks_1[]"]');
                                             if (!taskInput) {
@@ -12530,22 +12624,22 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                 console.log(`Setting additional responsibility ${i} value to:`, responsibilities[i].trim());
                                                 taskInput.value = responsibilities[i].trim();
                                             }
-                                            
+
                                             // Update the number indicator
                                             const numberIndicator = newTask.querySelector('.input-number-indicator');
                                             if (numberIndicator) {
                                                 numberIndicator.textContent = `#${i + 1}`;
                                             }
-                                            
+
                                             // Show the remove button
                                             const removeBtn = newTask.querySelector('.remove-input');
                                             if (removeBtn) {
                                                 removeBtn.style.display = 'block';
-                                                
+
                                                 // Add event listener for the remove button
                                                 removeBtn.addEventListener('click', function() {
                                                     taskContainer.removeChild(newTask);
-                                                    
+
                                                     // Update numbering
                                                     const inputs = taskContainer.querySelectorAll('.input-group');
                                                     inputs.forEach((input, index) => {
@@ -12556,7 +12650,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     });
                                                 });
                                             }
-                                            
+
                                             // Append to container
                                             taskContainer.appendChild(newTask);
                                             console.log(`Added additional responsibility ${i} to task container`);
@@ -12565,18 +12659,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 }
                             }
                         }
-                        
+
                         // Add additional assistant project leaders
                         for (let i = 1; i < assistantLeaders.length; i++) {
                             // Clone the first card
                             const newCard = firstAssistantCard.cloneNode(true);
-                            
+
                             // Update card title
                             const cardTitle = newCard.querySelector('.card-header h6');
                             if (cardTitle) {
                                 cardTitle.textContent = `Assistant Project Leader #${i + 1}`;
                             }
-                            
+
                             // Update input IDs and names for the new card
                             newCard.querySelectorAll('input, select, textarea').forEach(input => {
                                 if (input.id && input.id.includes('_1')) {
@@ -12586,51 +12680,53 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     input.name = input.name.replace('_1[', `_${i + 1}[`);
                                 }
                             });
-                            
+
                             // Update task container ID
                             const taskContainer = newCard.querySelector('.tasks-container');
                             if (taskContainer && taskContainer.id) {
                                 taskContainer.id = `asstLeaderTasksContainer_${i + 1}`;
                             }
-                            
+
                             // Update task button data-index
                             const taskButton = newCard.querySelector('.add-task-btn');
                             if (taskButton) {
                                 taskButton.dataset.index = i + 1;
                             }
-                            
+
                             // Set name value
                             const nameInput = newCard.querySelector('input[name="asst_leader_name[]"]');
                             if (nameInput) {
                                 nameInput.value = assistantLeaders[i];
-                                
+
                                 // Create a change event to trigger the autocomplete handlers
-                                const event = new Event('change', { bubbles: true });
+                                const event = new Event('change', {
+                                    bubbles: true
+                                });
                                 nameInput.dispatchEvent(event);
-                                
+
                                 // Additionally, explicitly fetch personnel data for this name
-                                fetchPersonnelDataByName(assistantLeaders[i], 'asst_leader', i+1);
+                                fetchPersonnelDataByName(assistantLeaders[i], 'asst_leader', i + 1);
                             }
-                            
+
                             // Process responsibilities for this assistant leader
                             if (Array.isArray(assistantLeaderResponsibilities) && assistantLeaderResponsibilities.length > i) {
                                 const taskContainer = newCard.querySelector(`.tasks-container`);
                                 if (taskContainer) {
                                     // Get the first task input
                                     const firstTaskInput = taskContainer.querySelector('.input-group');
-                                    
+
                                     if (firstTaskInput) {
                                         // Clear existing tasks
                                         while (taskContainer.children.length > 0) {
                                             taskContainer.removeChild(taskContainer.lastChild);
                                         }
-                                        
+
                                         // Check the data format and handle both string and array formats
                                         let responsibilities = [];
                                         const respItem = assistantLeaderResponsibilities[i];
-                                        
+
                                         console.log('Assistant leader responsibility item:', respItem, 'type:', typeof respItem);
-                                        
+
                                         if (typeof respItem === 'string') {
                                             // If it's a string, split by commas
                                             responsibilities = respItem.split(',');
@@ -12641,14 +12737,14 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             // If it's anything else, convert to string and split
                                             responsibilities = String(respItem).split(',');
                                         }
-                                        
+
                                         console.log('Processed additional assistant leader responsibilities:', responsibilities);
-                                        
+
                                         // Add tasks for each responsibility
                                         for (let j = 0; j < responsibilities.length; j++) {
                                             // Clone the template
                                             const newTask = firstTaskInput.cloneNode(true);
-                                            
+
                                             // Update the name attribute
                                             const input = newTask.querySelector('input');
                                             console.log(`Additional assistant leader ${i+1}, task ${j+1} input found?`, !!input);
@@ -12657,22 +12753,22 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                 console.log(`Setting additional assistant leader ${i+1}, task ${j+1} value to:`, responsibilities[j].trim());
                                                 input.value = responsibilities[j].trim();
                                             }
-                                            
+
                                             // Update the number indicator
                                             const numberIndicator = newTask.querySelector('.input-number-indicator');
                                             if (numberIndicator) {
                                                 numberIndicator.textContent = `#${j + 1}`;
                                             }
-                                            
+
                                             // Show the remove button for tasks after the first one
                                             const removeBtn = newTask.querySelector('.remove-input');
                                             if (removeBtn) {
                                                 removeBtn.style.display = j > 0 ? 'block' : 'none';
-                                                
+
                                                 // Add event listener for the remove button
                                                 removeBtn.addEventListener('click', function() {
                                                     taskContainer.removeChild(newTask);
-                                                    
+
                                                     // Update numbering
                                                     const inputs = taskContainer.querySelectorAll('.input-group');
                                                     inputs.forEach((input, index) => {
@@ -12683,23 +12779,23 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     });
                                                 });
                                             }
-                                            
+
                                             // Append to container
                                             taskContainer.appendChild(newTask);
                                         }
                                     }
                                 }
                             }
-                            
+
                             // Show the remove button
                             const removeButton = newCard.querySelector('.remove-team-member');
                             if (removeButton) {
                                 removeButton.style.display = 'block';
-                                
+
                                 // Add event listener for the remove button
                                 removeButton.addEventListener('click', function() {
                                     assistantLeadersContainer.removeChild(newCard);
-                                    
+
                                     // Update numbering of remaining cards
                                     const cards = assistantLeadersContainer.querySelectorAll('.team-member-card');
                                     cards.forEach((card, index) => {
@@ -12710,19 +12806,19 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     });
                                 });
                             }
-                            
+
                             // Append to container
                             assistantLeadersContainer.appendChild(newCard);
                         }
                     }
                 }
-                
+
                 // Project Staff
                 if (entry.project_staff_coordinator) {
                     // Parse project staff data
                     let projectStaff = entry.project_staff_coordinator;
                     let projectStaffResponsibilities = entry.project_staff_coordinator_responsibilities;
-                    
+
                     // Handle string format (convert to JSON)
                     if (typeof projectStaff === 'string') {
                         try {
@@ -12731,7 +12827,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing project staff:', e);
                         }
                     }
-                    
+
                     if (typeof projectStaffResponsibilities === 'string') {
                         try {
                             projectStaffResponsibilities = JSON.parse(projectStaffResponsibilities);
@@ -12739,10 +12835,10 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             console.error('Error parsing project staff responsibilities:', e);
                         }
                     }
-                    
+
                     // Get container reference
                     const projectStaffContainer = document.getElementById('projectStaffContainer');
-                    
+
                     // Clear existing content, keeping the first template
                     const firstStaffCard = projectStaffContainer.querySelector('.team-member-card');
                     if (firstStaffCard) {
@@ -12750,36 +12846,38 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         while (projectStaffContainer.children.length > 1) {
                             projectStaffContainer.removeChild(projectStaffContainer.lastChild);
                         }
-                        
+
                         // Populate the first card with the first staff member
                         if (Array.isArray(projectStaff) && projectStaff.length > 0) {
                             // Set name and trigger autocomplete to populate other fields
                             const nameInput = firstStaffCard.querySelector('input[name="staff_name[]"]');
                             if (nameInput) {
                                 nameInput.value = projectStaff[0];
-                                
+
                                 // Create a change event to trigger the autocomplete handlers
-                                const event = new Event('change', { bubbles: true });
+                                const event = new Event('change', {
+                                    bubbles: true
+                                });
                                 nameInput.dispatchEvent(event);
-                                
+
                                 // Additionally, explicitly fetch personnel data for this name
                                 fetchPersonnelDataByName(projectStaff[0], 'staff', 1);
                             }
-                            
+
                             // Process responsibilities for the first staff member
                             if (Array.isArray(projectStaffResponsibilities) && projectStaffResponsibilities.length > 0) {
                                 const taskContainer = firstStaffCard.querySelector('#staffTasksContainer_1');
                                 if (taskContainer) {
                                     // Get the first task input
                                     const firstTaskInput = taskContainer.querySelector('.input-group');
-                                    
+
                                     if (firstTaskInput) {
                                         // Check the data format and handle both string and array formats
                                         let responsibilities = [];
                                         const respItem = projectStaffResponsibilities[0];
-                                        
+
                                         console.log('First project staff responsibility item:', respItem, 'type:', typeof respItem);
-                                        
+
                                         if (typeof respItem === 'string') {
                                             // If it's a string, split by commas
                                             responsibilities = respItem.split(',');
@@ -12790,41 +12888,41 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             // If it's anything else, convert to string and split
                                             responsibilities = String(respItem).split(',');
                                         }
-                                        
+
                                         console.log('Processed first project staff responsibilities:', responsibilities);
-                                        
+
                                         // Set first responsibility
                                         const firstTaskField = firstTaskInput.querySelector('input[name="staff_tasks_1[]"]');
                                         if (firstTaskField && responsibilities.length > 0) {
                                             firstTaskField.value = responsibilities[0].trim();
                                         }
-                                        
+
                                         // Add additional responsibilities
                                         for (let i = 1; i < responsibilities.length; i++) {
                                             // Clone the first input
                                             const newTask = firstTaskInput.cloneNode(true);
-                                            
+
                                             // Set the value
                                             const taskInput = newTask.querySelector('input[name="staff_tasks_1[]"]');
                                             if (taskInput) {
                                                 taskInput.value = responsibilities[i].trim();
                                             }
-                                            
+
                                             // Update the number indicator
                                             const numberIndicator = newTask.querySelector('.input-number-indicator');
                                             if (numberIndicator) {
                                                 numberIndicator.textContent = `#${i + 1}`;
                                             }
-                                            
+
                                             // Show the remove button
                                             const removeBtn = newTask.querySelector('.remove-input');
                                             if (removeBtn) {
                                                 removeBtn.style.display = 'block';
-                                                
+
                                                 // Add event listener for the remove button
                                                 removeBtn.addEventListener('click', function() {
                                                     taskContainer.removeChild(newTask);
-                                                    
+
                                                     // Update numbering
                                                     const inputs = taskContainer.querySelectorAll('.input-group');
                                                     inputs.forEach((input, index) => {
@@ -12835,7 +12933,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     });
                                                 });
                                             }
-                                            
+
                                             // Append to container
                                             taskContainer.appendChild(newTask);
                                         }
@@ -12843,18 +12941,18 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                 }
                             }
                         }
-                        
+
                         // Add additional staff members
                         for (let i = 1; i < projectStaff.length; i++) {
                             // Clone the first card
                             const newCard = firstStaffCard.cloneNode(true);
-                            
+
                             // Update card title
                             const cardTitle = newCard.querySelector('.card-header h6');
                             if (cardTitle) {
                                 cardTitle.textContent = `Project Staff/Coordinator #${i + 1}`;
                             }
-                            
+
                             // Update input IDs and names for the new card
                             newCard.querySelectorAll('input, select, textarea').forEach(input => {
                                 if (input.id && input.id.includes('_1')) {
@@ -12864,51 +12962,53 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     input.name = input.name.replace('_1[', `_${i + 1}[`);
                                 }
                             });
-                            
+
                             // Update task container ID
                             const taskContainer = newCard.querySelector('.tasks-container');
                             if (taskContainer && taskContainer.id) {
                                 taskContainer.id = `staffTasksContainer_${i + 1}`;
                             }
-                            
+
                             // Update task button data-index
                             const taskButton = newCard.querySelector('.add-task-btn');
                             if (taskButton) {
                                 taskButton.dataset.index = i + 1;
                             }
-                            
+
                             // Set name value
                             const nameInput = newCard.querySelector('input[name="staff_name[]"]');
                             if (nameInput) {
                                 nameInput.value = projectStaff[i];
-                                
+
                                 // Create a change event to trigger the autocomplete handlers
-                                const event = new Event('change', { bubbles: true });
+                                const event = new Event('change', {
+                                    bubbles: true
+                                });
                                 nameInput.dispatchEvent(event);
-                                
+
                                 // Additionally, explicitly fetch personnel data for this name
-                                fetchPersonnelDataByName(projectStaff[i], 'staff', i+1);
+                                fetchPersonnelDataByName(projectStaff[i], 'staff', i + 1);
                             }
-                            
+
                             // Process responsibilities for this staff member
                             if (Array.isArray(projectStaffResponsibilities) && projectStaffResponsibilities.length > i) {
                                 const taskContainer = newCard.querySelector(`.tasks-container`);
                                 if (taskContainer) {
                                     // Get the first task input
                                     const firstTaskInput = taskContainer.querySelector('.input-group');
-                                    
+
                                     if (firstTaskInput) {
                                         // Clear existing tasks
                                         while (taskContainer.children.length > 0) {
                                             taskContainer.removeChild(taskContainer.lastChild);
                                         }
-                                        
+
                                         // Check the data format and handle both string and array formats
                                         let responsibilities = [];
                                         const respItem = projectStaffResponsibilities[i];
-                                        
+
                                         console.log('Additional project staff responsibility item:', respItem, 'type:', typeof respItem);
-                                        
+
                                         if (typeof respItem === 'string') {
                                             // If it's a string, split by commas
                                             responsibilities = respItem.split(',');
@@ -12919,36 +13019,36 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                             // If it's anything else, convert to string and split
                                             responsibilities = String(respItem).split(',');
                                         }
-                                        
+
                                         console.log('Processed additional project staff responsibilities:', responsibilities);
-                                        
+
                                         // Add tasks for each responsibility
                                         for (let j = 0; j < responsibilities.length; j++) {
                                             // Clone the template
                                             const newTask = firstTaskInput.cloneNode(true);
-                                            
+
                                             // Update the name attribute
                                             const input = newTask.querySelector('input');
                                             if (input) {
                                                 input.name = `staff_tasks_${i + 1}[]`;
                                                 input.value = responsibilities[j].trim();
                                             }
-                                            
+
                                             // Update the number indicator
                                             const numberIndicator = newTask.querySelector('.input-number-indicator');
                                             if (numberIndicator) {
                                                 numberIndicator.textContent = `#${j + 1}`;
                                             }
-                                            
+
                                             // Show the remove button for tasks after the first one
                                             const removeBtn = newTask.querySelector('.remove-input');
                                             if (removeBtn) {
                                                 removeBtn.style.display = j > 0 ? 'block' : 'none';
-                                                
+
                                                 // Add event listener for the remove button
                                                 removeBtn.addEventListener('click', function() {
                                                     taskContainer.removeChild(newTask);
-                                                    
+
                                                     // Update numbering
                                                     const inputs = taskContainer.querySelectorAll('.input-group');
                                                     inputs.forEach((input, index) => {
@@ -12959,23 +13059,23 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                                     });
                                                 });
                                             }
-                                            
+
                                             // Append to container
                                             taskContainer.appendChild(newTask);
                                         }
                                     }
                                 }
                             }
-                            
+
                             // Show the remove button
                             const removeButton = newCard.querySelector('.remove-team-member');
                             if (removeButton) {
                                 removeButton.style.display = 'block';
-                                
+
                                 // Add event listener for the remove button
                                 removeButton.addEventListener('click', function() {
                                     projectStaffContainer.removeChild(newCard);
-                                    
+
                                     // Update numbering of remaining cards
                                     const cards = projectStaffContainer.querySelectorAll('.team-member-card');
                                     cards.forEach((card, index) => {
@@ -12986,67 +13086,69 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                                     });
                                 });
                             }
-                            
+
                             // Append to container
                             projectStaffContainer.appendChild(newCard);
                         }
                     }
                 }
-                
+
                 // Update project team section status after processing all personnel
                 updateSectionStatus('project-team', true);
+
+                updateInternalParticipantsFromProjectTeam();
             }
 
             // Helper function to mark gender issue as valid
             function markGenderIssueAsValid() {
                 const genderIssueSelect = document.getElementById('genderIssue');
                 if (!genderIssueSelect) return;
-                
+
                 // Remove is-invalid class
                 genderIssueSelect.classList.remove('is-invalid');
-                
+
                 // Remove any validation messages
                 const feedback = genderIssueSelect.nextElementSibling;
                 if (feedback && feedback.classList.contains('invalid-feedback')) {
                     feedback.remove();
                 }
-                
+
                 // Mark the section as valid in the navigation
                 const navItem = document.querySelector('.form-nav-item[data-section="gender-issue"]');
                 if (navItem) {
                     navItem.classList.remove('has-error');
                     navItem.classList.add('is-complete');
                 }
-                
+
                 // Mark the section title as valid
                 const sectionTitle = document.querySelector('#gender-issue .section-title');
                 if (sectionTitle) {
                     sectionTitle.classList.remove('has-error');
                 }
             }
-            
+
             // Enhanced version of checkDuplicateActivity that handles edit mode correctly
             function checkDuplicateActivityWithEditMode(activityValue) {
                 const activityInput = document.getElementById('activity');
                 const errorDiv = document.getElementById('activity-error');
-                
+
                 // Reset validation state
                 activityInput.classList.remove('is-invalid');
                 errorDiv.textContent = '';
-                
+
                 // Don't check if empty
                 if (!activityValue) {
                     activityInput.dataset.isDuplicate = 'false';
                     updateSectionStatus('gender-issue', checkAllFieldsFilled('gender-issue'));
                     return;
                 }
-                
+
                 // Build URL with edit mode consideration
                 let url = `check_duplicate_activity.php?activity=${encodeURIComponent(activityValue)}`;
                 if (editMode && editingEntryId) {
                     url += `&id=${editingEntryId}`;
                 }
-                
+
                 // Check if activity exists
                 return fetch(url)
                     .then(response => response.json())
@@ -13056,14 +13158,14 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             activityInput.classList.add('is-invalid');
                             errorDiv.textContent = data.message || 'This activity already exists.';
                             activityInput.dataset.isDuplicate = 'true';
-                            
+
                             // Mark gender issue section as incomplete
                             const navItem = document.querySelector('.form-nav-item[data-section="gender-issue"]');
                             if (navItem) {
                                 navItem.classList.remove('is-complete');
                                 if (validationTriggered) {
                                     navItem.classList.add('has-error');
-                                    
+
                                     // Add error to section title
                                     const sectionTitle = document.querySelector('#gender-issue .section-title');
                                     if (sectionTitle) {
@@ -13077,7 +13179,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             activityInput.classList.remove('is-invalid');
                             errorDiv.textContent = '';
                             activityInput.dataset.isDuplicate = 'false';
-                            
+
                             // Update gender issue section status
                             updateSectionStatus('gender-issue', checkAllFieldsFilled('gender-issue'));
                             return false; // Not duplicate
@@ -13097,7 +13199,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 editMode = true;
                 editingEntryId = entry.id;
                 originalFormState = saveFormState();
-                
+
                 // Debug the entry object
                 console.log('ENTRY OBJECT:', entry);
                 console.log('Project Leader:', entry.project_leader);
@@ -13106,7 +13208,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                 console.log('Assistant Project Leader Responsibilities:', entry.assistant_project_leader_responsibilities);
                 console.log('Project Staff:', entry.project_staff_coordinator);
                 console.log('Project Staff Responsibilities:', entry.project_staff_coordinator_responsibilities);
-                
+
                 populateForm(entry);
 
                 // Run validation immediately, but we'll have a special case for gender issue
@@ -13114,7 +13216,7 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                     // Mark the gender issue field as valid regardless of fetch completion
                     markGenderIssueAsValid();
                 }
-                
+
                 // Run validation now
                 validateAllSections();
 
@@ -13138,35 +13240,35 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
             function exitEditMode() {
                 editMode = false;
                 editingEntryId = null;
-                
+
                 // Clear validation state first
                 validationTriggered = false;
-                
+
                 // Remove all validation error styling
                 document.querySelectorAll('.is-invalid').forEach(element => {
                     element.classList.remove('is-invalid');
                 });
-                
+
                 // Remove all error messages
                 document.querySelectorAll('.invalid-feedback').forEach(element => {
                     element.remove();
                 });
-                
+
                 // Remove error styling from section titles
                 document.querySelectorAll('.section-title.has-error').forEach(element => {
                     element.classList.remove('has-error');
                 });
-                
+
                 // Remove error styling from navigation items
                 document.querySelectorAll('.form-nav-item.has-error').forEach(element => {
                     element.classList.remove('has-error');
                 });
-                
+
                 // Remove completion styling from navigation items
                 document.querySelectorAll('.form-nav-item.is-complete').forEach(element => {
                     element.classList.remove('is-complete');
                 });
-                
+
                 // Reset all section status indicators
                 const sections = ['gender-issue', 'basic-info', 'agenda-section', 'sdgs-section', 'office-programs', 'project-team', 'section-6', 'section-7', 'section-8', 'section-9', 'section-10', 'section-11'];
                 sections.forEach(sectionId => {
@@ -13175,28 +13277,28 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         navItem.classList.remove('is-complete');
                         navItem.classList.remove('has-error');
                     }
-                    
+
                     // Clear section title error indicators
                     const sectionTitle = document.querySelector(`#${sectionId} .section-title`);
                     if (sectionTitle) {
                         sectionTitle.classList.remove('has-error');
                     }
                 });
-                
+
                 // Clear workplan timeline table before form reset
                 clearWorkPlanTimeline();
-                
+
                 // Reset Monitoring Section
                 // Remove all dynamically added monitoring item cards (keep only the first one)
                 const monitoringItemsContainer = document.getElementById('monitoring-items-container');
                 if (monitoringItemsContainer) {
                     const monitoringItems = monitoringItemsContainer.querySelectorAll('.monitoring-item');
-                    
+
                     // Keep only the first monitoring item card and remove the rest
                     for (let i = 1; i < monitoringItems.length; i++) {
                         monitoringItemsContainer.removeChild(monitoringItems[i]);
                     }
-                    
+
                     // Clear inputs in the first monitoring item card
                     if (monitoringItems.length > 0) {
                         const firstItem = monitoringItems[0];
@@ -13204,54 +13306,54 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                             input.value = '';
                         });
                     }
-                    
+
                     console.log('Cleared monitoring items section');
                 }
-                
+
                 // Reset Financial Requirements Section
                 // 1. Clear financial plan items table
                 const financialPlanTableBody = document.getElementById('financialPlanTableBody');
                 if (financialPlanTableBody) {
                     financialPlanTableBody.innerHTML = '';
                 }
-                
+
                 // Hide the financial plan section and show the empty message
                 const financialPlanSection = document.getElementById('financialPlanSection');
                 const emptyFinancialPlanMessage = document.getElementById('emptyFinancialPlanMessage');
                 const financialPlanTable = document.getElementById('financialPlanTable');
-                
+
                 if (financialPlanSection) financialPlanSection.style.display = 'none';
                 if (emptyFinancialPlanMessage) emptyFinancialPlanMessage.style.display = 'flex';
                 if (financialPlanTable) financialPlanTable.style.display = 'none';
-                
+
                 // 2. Deselect all source of fund options
                 const sourceFundOptions = document.querySelectorAll('.source-fund-option');
                 const sourceOfFundInput = document.getElementById('sourceOfFund');
-                
+
                 // Remove selected class from all options
                 sourceFundOptions.forEach(option => {
                     option.classList.remove('selected');
                 });
-                
+
                 // Clear the hidden input value
                 if (sourceOfFundInput) {
                     sourceOfFundInput.value = '';
                 }
-                
+
                 // 3. Uncheck both financial plan radio buttons
                 const withFinancialPlanRadio = document.getElementById('withFinancialPlan');
                 const withoutFinancialPlanRadio = document.getElementById('withoutFinancialPlan');
-                
+
                 if (withFinancialPlanRadio) withFinancialPlanRadio.checked = false;
                 if (withoutFinancialPlanRadio) withoutFinancialPlanRadio.checked = false;
-                
+
                 // 4. Reset total cost value
                 const totalCostInput = document.getElementById('totalCost');
                 const grandTotalCost = document.getElementById('grandTotalCost');
-                
+
                 if (totalCostInput) totalCostInput.value = '0.00';
                 if (grandTotalCost) grandTotalCost.textContent = '₱0.00';
-                
+
                 resetForm(); // <-- This will clear all fields!
                 // Change title
                 document.querySelector('.card-title').textContent = 'Add PPAs Form';
@@ -13273,13 +13375,13 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
             // Function to clear the workplan timeline table
             function clearWorkPlanTimeline() {
                 console.log("Clearing workplan timeline table...");
-                
+
                 // Clear the activity rows
                 const timelineActivities = document.getElementById('timeline-activities');
                 if (timelineActivities) {
                     timelineActivities.innerHTML = '';
                 }
-                
+
                 // Clear the table header (except first column)
                 const headerRow = document.querySelector('#timeline-table thead tr');
                 if (headerRow) {
@@ -13288,24 +13390,24 @@ $userCampus = $_SESSION['username']; // Get the user's campus from the session
                         headerRow.removeChild(headerRow.lastChild);
                     }
                 }
-                
+
                 // Hide table and show message
                 const timelineMessage = document.getElementById('timeline-message');
                 const timelineTableContainer = document.getElementById('timeline-table-container');
-                
+
                 if (timelineMessage) {
                     timelineMessage.textContent = "Please select start and end dates in the Basic Info section to generate timeline.";
                     timelineMessage.style.display = 'block';
                 }
-                
+
                 if (timelineTableContainer) {
                     timelineTableContainer.style.display = 'none';
                 }
-                
+
                 // Reset the stored workplan data
                 window.tempWorkplanActivity = null;
                 window.tempWorkplanDate = null;
-                
+
                 console.log("Workplan timeline table cleared");
             }
 

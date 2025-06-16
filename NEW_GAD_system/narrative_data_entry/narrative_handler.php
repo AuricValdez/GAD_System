@@ -101,372 +101,314 @@ function handleFormSubmission() {
         
         // Extract form data
         $narrativeId = isset($_POST['narrative_id']) ? intval($_POST['narrative_id']) : 0;
-        debug_to_file('Narrative ID', $narrativeId);
-        
         $campus = isset($_POST['campus']) ? sanitize_input($_POST['campus']) : '';
-        debug_to_file('Campus value', $campus);
+        $year = isset($_POST['year']) ? sanitize_input($_POST['year']) : '';
         
-        $ppasFormId = isset($_POST['ppas_form_id']) && !empty($_POST['ppas_form_id']) ? $_POST['ppas_form_id'] : null;
-        debug_to_file('PPAS Form ID', $ppasFormId);
+        // Get title and ppas_form_id - multiple sources possible
+        $ppasFormId = isset($_POST['ppas_form_id']) ? intval($_POST['ppas_form_id']) : null;
+        $title = isset($_POST['title']) ? sanitize_input($_POST['title']) : '';
         
-        // Ensure campus is set for central users
-        $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central';
-        if ($isCentral && empty($campus)) {
-            debug_to_file('Campus not selected for Central user');
-            throw new Exception("Campus must be selected for Central users");
+        debug_to_file("Title initial value: " . $title);
+        debug_to_file("PPAS Form ID initial value: " . ($ppasFormId ?? "NULL"));
+        
+        // If we're editing and ppas_form_id is not provided, try to get the existing one
+        if ($narrativeId > 0 && (empty($ppasFormId) || $ppasFormId === 0)) {
+            debug_to_file("Looking up existing ppas_form_id for narrative ID: " . $narrativeId);
+            $existingQuery = "SELECT ppas_form_id, title FROM narrative_entries WHERE id = ?";
+            $existingStmt = $conn->prepare($existingQuery);
+            $existingStmt->bind_param("i", $narrativeId);
+            $existingStmt->execute();
+            $existingResult = $existingStmt->get_result();
+            if ($row = $existingResult->fetch_assoc()) {
+                if (!empty($row['ppas_form_id'])) {
+                    $ppasFormId = intval($row['ppas_form_id']);
+                    debug_to_file("Found existing ppas_form_id: " . $ppasFormId);
+                }
+                
+                // Also get title if it's not set
+                if (empty($title) && !empty($row['title'])) {
+                    $title = $row['title'];
+                    debug_to_file("Got existing title from DB: " . $title);
+                }
+            }
+            $existingStmt->close();
         }
         
-        $year = isset($_POST['year']) ? sanitize_input($_POST['year']) : '';
-        $activity = isset($_POST['title']) ? sanitize_input($_POST['title']) : ''; // Use 'title' for backward compatibility
+        // If we have a ppas_form_id, get the activity title from that
+        if ($ppasFormId) {
+            debug_to_file("Looking up title from PPAS Form ID: " . $ppasFormId);
+            $titleQuery = "SELECT activity FROM ppas_forms WHERE id = ?";
+            $titleStmt = $conn->prepare($titleQuery);
+            $titleStmt->bind_param("i", $ppasFormId);
+            $titleStmt->execute();
+            $titleResult = $titleStmt->get_result();
+            if ($row = $titleResult->fetch_assoc()) {
+                $title = $row['activity'];
+                debug_to_file("Found title from PPAS form: " . $title);
+            }
+            $titleStmt->close();
+        }
+        
+        // If still no title and we're editing an existing entry, get existing title
+        if (empty($title) && $narrativeId > 0) {
+            debug_to_file("Title still empty, looking up existing title for narrative ID: " . $narrativeId);
+            $existingTitleQuery = "SELECT title FROM narrative_entries WHERE id = ?";
+            $existingTitleStmt = $conn->prepare($existingTitleQuery);
+            $existingTitleStmt->bind_param("i", $narrativeId);
+            $existingTitleStmt->execute();
+            $existingTitleResult = $existingTitleStmt->get_result();
+            if ($row = $existingTitleResult->fetch_assoc()) {
+                $title = $row['title'];
+                debug_to_file("Found existing title: " . $title);
+            }
+            $existingTitleStmt->close();
+        }
+        
+        debug_to_file("Final title value: " . $title);
+        
         $background = isset($_POST['background']) ? sanitize_input($_POST['background']) : '';
         $participants = isset($_POST['participants']) ? sanitize_input($_POST['participants']) : '';
         $topics = isset($_POST['topics']) ? sanitize_input($_POST['topics']) : '';
+        
+        // Get main form fields - use same value for alternative field names
         $results = isset($_POST['results']) ? sanitize_input($_POST['results']) : '';
         $lessons = isset($_POST['lessons']) ? sanitize_input($_POST['lessons']) : '';
         $what_worked = isset($_POST['whatWorked']) ? sanitize_input($_POST['whatWorked']) : '';
         $issues = isset($_POST['issues']) ? sanitize_input($_POST['issues']) : '';
         $recommendations = isset($_POST['recommendations']) ? sanitize_input($_POST['recommendations']) : '';
-        $ps_attribution = isset($_POST['psAttribution']) ? sanitize_input($_POST['psAttribution']) : '';
-        // Don't sanitize evaluation data since it's JSON
-        $evaluation = isset($_POST['evaluation']) ? $_POST['evaluation'] : '';
+        $ps_attribution = isset($_POST['psAttribution']) ? floatval($_POST['psAttribution']) : 0;
         
-        // Get the new separate rating fields
+        // Use same values for alternative field names
+        $expected_results = $results;
+        $lessons_learned = $lessons;
+        $issues_concerns = $issues;
+        
+        // Process photo paths to ensure proper format
+        $photo_paths = isset($_POST['photo_paths']) ? $_POST['photo_paths'] : '[]';
+        $photo_paths_array = json_decode($photo_paths, true) ?: [];
+        
+        // Ensure all paths have photos/ prefix and are properly formatted
+        $formatted_paths = array_map(function($path) {
+            // Remove any existing photos/ prefix to avoid duplication
+            $path = str_replace(['photos/', '../photos/'], '', $path);
+            // Add photos/ prefix
+            return 'photos/' . $path;
+        }, $photo_paths_array);
+        
+        // Set main photo path as first image
+        $photo_path = !empty($formatted_paths) ? $formatted_paths[0] : '';
+        
+        // Convert paths array to properly escaped JSON string
+        $photo_paths = json_encode($formatted_paths);
+        
+        $photo_caption = isset($_POST['photoCaption']) ? sanitize_input($_POST['photoCaption']) : '';
+        $gender_issue = isset($_POST['genderIssue']) ? sanitize_input($_POST['genderIssue']) : '';
+        
+        // Get selected personnel with full details
+        $selected_personnel = [];
+        debug_to_file("Raw POST data for personnel:", $_POST['selected_personnel'] ?? 'not set');
+        
+        if (isset($_POST['selected_personnel'])) {
+            $personnel_data = $_POST['selected_personnel'];
+            debug_to_file("Raw personnel data:", $personnel_data);
+            
+            try {
+                // Handle different possible formats
+                if (is_array($personnel_data)) {
+                    debug_to_file("Personnel data is already an array:", $personnel_data);
+                    $decoded = $personnel_data;
+                } elseif (is_string($personnel_data)) {
+                    // Try to decode JSON string 
+                    $decoded = json_decode($personnel_data, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        debug_to_file("Failed to decode personnel JSON string, error: " . json_last_error_msg());
+                        // Try to handle as serialized data or string array
+                        if (strpos($personnel_data, '[') === 0) {
+                            // Looks like a JSON array, try manual parsing
+                            debug_to_file("Trying manual parsing of JSON-like array");
+                            $personnel_data = str_replace(["'", "\\"], ["\"", ""], $personnel_data);
+                            $decoded = json_decode($personnel_data, true);
+                        }
+                    }
+                }
+                
+                debug_to_file("Decoded personnel data:", [
+                    'success' => $decoded !== null,
+                    'data' => $decoded,
+                    'json_error' => json_last_error_msg()
+                ]);
+                
+                // If we have an array, process it
+                if (is_array($decoded)) {
+                    // Extract personnel data, handling different formats
+                    foreach ($decoded as $person) {
+                        if (is_array($person) && isset($person['name'])) {
+                            // Object format with name key
+                            $selected_personnel[] = $person['name'];
+                        } elseif (is_string($person)) {
+                            // Simple string format
+                            $selected_personnel[] = $person;
+                        } elseif (is_array($person) && isset($person['id'])) {
+                            // Try to get personnel name from ID
+                            $stmt = $conn->prepare("SELECT name FROM personnel WHERE id = ?");
+                            if ($stmt) {
+                                $stmt->bind_param("i", $person['id']);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
+                                if ($row = $result->fetch_assoc()) {
+                                    $selected_personnel[] = $row['name'];
+                                }
+                                $stmt->close();
+                            }
+                        }
+                    }
+                    
+                    debug_to_file("Extracted personnel names:", $selected_personnel);
+                } else {
+                    debug_to_file("Personnel data is not an array, using existing data if available");
+                    
+                    // If this is an update, get existing personnel data
+                    if ($narrativeId > 0) {
+                        $existingPersonnelQuery = "SELECT other_internal_personnel FROM narrative_entries WHERE id = ?";
+                        $existingPersonnelStmt = $conn->prepare($existingPersonnelQuery);
+                        $existingPersonnelStmt->bind_param("i", $narrativeId);
+                        $existingPersonnelStmt->execute();
+                        $existingPersonnelResult = $existingPersonnelStmt->get_result();
+                        if ($row = $existingPersonnelResult->fetch_assoc()) {
+                            if (!empty($row['other_internal_personnel'])) {
+                                $existing_personnel = json_decode($row['other_internal_personnel'], true);
+                                if (is_array($existing_personnel)) {
+                                    $selected_personnel = $existing_personnel;
+                                    debug_to_file("Using existing personnel data:", $selected_personnel);
+                                }
+                            }
+                        }
+                        $existingPersonnelStmt->close();
+                    }
+                }
+            } catch (Exception $e) {
+                debug_to_file("Error processing personnel data:", $e->getMessage());
+            }
+        }
+        
+        // Store the personnel names as JSON
+        $other_internal_personnel = json_encode($selected_personnel);
+        
+        debug_to_file("Final personnel data to store:", [
+            'other_internal_personnel' => $other_internal_personnel,
+            'is_json' => json_last_error() === JSON_ERROR_NONE,
+            'count' => count($selected_personnel)
+        ]);
+        
+        // Adding additional debug output for JSON encoding issues
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            debug_to_file("JSON encoding error:", json_last_error_msg());
+        }
+        
+        // Get evaluation and ratings with correct field names
+        $evaluation = isset($_POST['evaluation']) ? $_POST['evaluation'] : '';
         $activity_ratings = isset($_POST['activity_ratings']) ? $_POST['activity_ratings'] : '';
         $timeliness_ratings = isset($_POST['timeliness_ratings']) ? $_POST['timeliness_ratings'] : '';
         
-        // Debug log the evaluation data
-        debug_to_file("Raw evaluation data", $evaluation);
-        debug_to_file("Activity ratings data", $activity_ratings);
-        debug_to_file("Timeliness ratings data", $timeliness_ratings);
+        debug_to_file('Processed data before save:', [
+            'title' => $title,
+            'personnel' => $selected_personnel,
+            'results/expected_results' => $results,
+            'lessons/lessons_learned' => $lessons,
+            'issues/issues_concerns' => $issues,
+            'photo_path' => $photo_path,
+            'photo_paths' => $photo_paths,
+            'photo_caption' => $photo_caption,
+            'gender_issue' => $gender_issue,
+            'activity_ratings' => $activity_ratings,
+            'timeliness_ratings' => $timeliness_ratings
+        ]);
         
-        // Validate that it's valid JSON
-        if (!empty($evaluation)) {
-            $json_valid = json_decode($evaluation) !== null;
-            debug_to_file("Evaluation JSON valid", $json_valid ? 'yes' : 'no');
-        }
-        
-        if (!empty($activity_ratings)) {
-            $json_valid = json_decode($activity_ratings) !== null;
-            debug_to_file("Activity ratings JSON valid", $json_valid ? 'yes' : 'no');
-        }
-        
-        if (!empty($timeliness_ratings)) {
-            $json_valid = json_decode($timeliness_ratings) !== null;
-            debug_to_file("Timeliness ratings JSON valid", $json_valid ? 'yes' : 'no');
-        }
-        
-        $gender_issue = isset($_POST['genderIssue']) ? sanitize_input($_POST['genderIssue']) : '';
-        $photo_caption = isset($_POST['photoCaption']) ? sanitize_input($_POST['photoCaption']) : '';
-        
-        $username = $_SESSION['username'];
-        debug_to_file('Username', $username);
-        
-        // Get temporary photos from session for new narratives
-        $photoPath = '[]'; // Default empty JSON array
-        if ($narrativeId == 0 && isset($_SESSION['temp_photos']) && !empty($_SESSION['temp_photos'])) {
-            $photoPath = json_encode($_SESSION['temp_photos']);
-            debug_to_file('Using temp_photos from session', $photoPath);
-        }
-        
-        // Add photo paths if available from session
-        if (isset($_SESSION['temp_narrative_uploads']) && is_array($_SESSION['temp_narrative_uploads'])) {
-            $photoPathsArray = $_SESSION['temp_narrative_uploads'];
-            $photoPath = !empty($photoPathsArray) ? $photoPathsArray[0] : '';
-            $photoPathsJson = json_encode($photoPathsArray);
-            debug_to_file('Using temp_narrative_uploads from session', [
-                'photoPath' => $photoPath,
-                'photoPathsJson' => $photoPathsJson
-            ]);
-            
-            $query = "UPDATE narrative_entries SET 
-                      campus = ?, 
-                      year = ?, 
-                      title = ?, 
-                      background = ?, 
-                      participants = ?, 
-                      topics = ?, 
-                      results = ?, 
-                      lessons = ?, 
-                      what_worked = ?, 
-                      issues = ?, 
-                      recommendations = ?, 
-                      ps_attribution = ?, 
-                      evaluation = ?, 
-                      activity_ratings = ?,
-                      timeliness_ratings = ?,
-                      photo_caption = ?, 
-                      gender_issue = ?,
-                      updated_by = ?,
-                      updated_at = NOW(),
-                      photo_path = ?,
-                      photo_paths = ?
-                    WHERE id = ?";
-            
-            $types = "ssssssssssssssssssssi";
-            $params = [
-                $campus, $year, $activity, $background, $participants, 
-                $topics, $results, $lessons, $what_worked, $issues, 
-                $recommendations, $ps_attribution, $evaluation, $activity_ratings, $timeliness_ratings,
-                $photo_caption, $gender_issue, $username, $photoPath, $photoPathsJson, $narrativeId
-            ];
-            
-            // Clear the session variable after use
-            unset($_SESSION['temp_narrative_uploads']);
-        }
-        
-        // If editing an existing record
+        // Prepare query based on whether we're updating or inserting
         if ($narrativeId > 0) {
-            debug_to_file('Updating existing record');
-            
-            // Check if updated_by column exists
-            $columnExistsQuery = "SHOW COLUMNS FROM narrative_entries LIKE 'updated_by'";
-            $columnStmt = $conn->prepare($columnExistsQuery);
-            $columnStmt->execute();
-
-            // Fix: use mysqli style result processing instead of PDO's rowCount()
-            $columnResult = $columnStmt->get_result();
-            $updatedByExists = $columnResult && $columnResult->num_rows > 0;
-
-            debug_to_file('updated_by column exists', $updatedByExists ? 'yes' : 'no');
-            
-            if ($updatedByExists) {
-                $query = "UPDATE narrative_entries SET 
-                          campus = ?, 
-                          year = ?, 
-                          title = ?, 
-                          background = ?, 
-                          participants = ?, 
-                          topics = ?, 
-                          results = ?, 
-                          lessons = ?, 
-                          what_worked = ?, 
-                          issues = ?, 
-                          recommendations = ?, 
-                          ps_attribution = ?, 
-                          evaluation = ?, 
-                          activity_ratings = ?,
-                          timeliness_ratings = ?,
-                          photo_caption = ?, 
-                          gender_issue = ?,
-                          ppas_form_id = ?,
-                          updated_by = ?,
-                          photo_path = ?,
-                          photo_paths = ?,
-                          updated_at = NOW()
-                        WHERE id = ?";
-                        
-                $stmt = $conn->prepare($query);
-                
-                if (!$stmt) {
-                    debug_to_file('Database prepare error', $conn->errorInfo());
-                    throw new Exception("Database prepare error");
-                }
-                
-                // Get existing photo_paths from database if not already set
-                if (!isset($photoPath) || !isset($photoPathsJson)) {
-                    $getPhotoQuery = "SELECT photo_path, photo_paths FROM narrative_entries WHERE id = ?";
-                    $photoStmt = $conn->prepare($getPhotoQuery);
-                    $photoStmt->bind_param("i", $narrativeId);
-                    $photoStmt->execute();
-                    $photoResult = $photoStmt->get_result();
-                    $photoRow = $photoResult->fetch_assoc();
+            // Update existing record
+            $query = "UPDATE narrative_entries SET 
+                      campus = ?, year = ?, title = ?, background = ?, participants = ?, 
+                      topics = ?, results = ?, lessons = ?, what_worked = ?, issues = ?, 
+                      recommendations = ?, ps_attribution = ?, other_internal_personnel = ?, evaluation = ?, activity_ratings = ?, 
+                      timeliness_ratings = ?, photo_path = ?, photo_paths = ?, photo_caption = ?, gender_issue = ?,
+                      ppas_form_id = ?, updated_by = ?, expected_results = ?, lessons_learned = ?, issues_concerns = ?,
+                      updated_at = NOW()
+                    WHERE id = ?";
                     
-                    if ($photoRow) {
-                        $photoPath = $photoRow['photo_path'] ?? '';
-                        $photoPathsJson = $photoRow['photo_paths'] ?? '[]';
-                        debug_to_file('Retrieved existing photo data', [
-                            'photoPath' => $photoPath,
-                            'photoPathsJson' => $photoPathsJson
-                        ]);
-                    }
-                }
-                
-                // Use PDO-style parameter binding with photo fields
-                $params = [
-                    $campus, $year, $activity, $background, $participants, 
-                    $topics, $results, $lessons, $what_worked, $issues, 
-                    $recommendations, $ps_attribution, $evaluation, $activity_ratings, $timeliness_ratings,
-                    $photo_caption, $gender_issue, 
-                    isset($_POST['ppas_form_id']) && !empty($_POST['ppas_form_id']) ? $_POST['ppas_form_id'] : null,
-                    $username, $photoPath, $photoPathsJson, $narrativeId
-                ];
-                
-                $stmt->execute($params);
-                
-                debug_to_file('Update query prepared with updated_by and photo fields');
-            } else {
-                $query = "UPDATE narrative_entries SET 
-                          campus = ?, 
-                          year = ?, 
-                          title = ?, 
-                          background = ?, 
-                          participants = ?, 
-                          topics = ?, 
-                          results = ?, 
-                          lessons = ?, 
-                          what_worked = ?, 
-                          issues = ?, 
-                          recommendations = ?, 
-                          ps_attribution = ?, 
-                          evaluation = ?, 
-                          activity_ratings = ?,
-                          timeliness_ratings = ?,
-                          photo_caption = ?, 
-                          gender_issue = ?,
-                          ppas_form_id = ?,
-                          photo_path = ?,
-                          photo_paths = ?
-                        WHERE id = ?";
-                        
-                $stmt = $conn->prepare($query);
-                
-                if (!$stmt) {
-                    debug_to_file('Database prepare error', $conn->errorInfo());
-                    throw new Exception("Database prepare error");
-                }
-                
-                // Get existing photo_paths from database if not already set
-                if (!isset($photoPath) || !isset($photoPathsJson)) {
-                    $getPhotoQuery = "SELECT photo_path, photo_paths FROM narrative_entries WHERE id = ?";
-                    $photoStmt = $conn->prepare($getPhotoQuery);
-                    $photoStmt->bind_param("i", $narrativeId);
-                    $photoStmt->execute();
-                    $photoResult = $photoStmt->get_result();
-                    $photoRow = $photoResult->fetch_assoc();
-                    
-                    if ($photoRow) {
-                        $photoPath = $photoRow['photo_path'] ?? '';
-                        $photoPathsJson = $photoRow['photo_paths'] ?? '[]';
-                        debug_to_file('Retrieved existing photo data', [
-                            'photoPath' => $photoPath,
-                            'photoPathsJson' => $photoPathsJson
-                        ]);
-                    }
-                }
-                
-                // Use PDO-style parameter binding
-                $params = [
-                    $campus, $year, $activity, $background, $participants, 
-                    $topics, $results, $lessons, $what_worked, $issues, 
-                    $recommendations, $ps_attribution, $evaluation, $activity_ratings, $timeliness_ratings,
-                    $photo_caption, $gender_issue, 
-                    isset($_POST['ppas_form_id']) && !empty($_POST['ppas_form_id']) ? $_POST['ppas_form_id'] : null,
-                    $photoPath, $photoPathsJson, $narrativeId
-                ];
-                
-                $stmt->execute($params);
-                
-                debug_to_file('Update query prepared with photo fields');
+            $stmt = $conn->prepare($query);
+            
+            if (!$stmt) {
+                debug_to_file('Database prepare error', $conn->error);
+                throw new Exception("Database prepare error");
             }
             
+            // Bind parameters for update
+            $stmt->bind_param(
+                "sssssssssssssssssssssssssi",
+                $campus, $year, $title, $background, $participants, 
+                $topics, $results, $lessons, $what_worked, $issues, 
+                $recommendations, $ps_attribution, $other_internal_personnel, $evaluation, $activity_ratings, 
+                $timeliness_ratings, $photo_path, $photo_paths, $photo_caption, $gender_issue,
+                $ppasFormId, $_SESSION['username'], $expected_results, $lessons_learned, $issues_concerns,
+                $narrativeId
+            );
         } else {
-            debug_to_file('Creating new record');
+            // Insert new record
+            $query = "INSERT INTO narrative_entries (
+                      campus, year, title, background, participants, 
+                      topics, results, lessons, what_worked, issues, 
+                      recommendations, ps_attribution, other_internal_personnel, evaluation, activity_ratings, 
+                      timeliness_ratings, photo_path, photo_paths, photo_caption, gender_issue,
+                      ppas_form_id, created_by, expected_results, lessons_learned, issues_concerns,
+                      created_at, updated_at
+                    ) VALUES (
+                      ?, ?, ?, ?, ?, 
+                      ?, ?, ?, ?, ?, 
+                      ?, ?, ?, ?, ?, 
+                      ?, ?, ?, ?, ?,
+                      ?, ?, ?, ?, ?,
+                      NOW(), NOW()
+                    )";
+                    
+            $stmt = $conn->prepare($query);
             
-            // Check if created_by column exists before using it
-            $columnExistsQuery = "SHOW COLUMNS FROM narrative_entries LIKE 'created_by'";
-            $columnStmt = $conn->prepare($columnExistsQuery);
-            $columnStmt->execute();
-
-            // Fix: use mysqli style result processing instead of PDO's rowCount()
-            $columnResult = $columnStmt->get_result();
-            $createdByExists = $columnResult && $columnResult->num_rows > 0;
-
-            debug_to_file('created_by column exists', $createdByExists ? 'yes' : 'no');
-            
-            if ($createdByExists) {
-                // Insert a new record with created_by
-                $query = "INSERT INTO narrative_entries (
-                          campus, year, title, background, participants, 
-                          topics, results, lessons, what_worked, issues, 
-                          recommendations, ps_attribution, evaluation, activity_ratings, timeliness_ratings, 
-                          photo_path, photo_paths, photo_caption, gender_issue,
-                          ppas_form_id, created_by, created_at
-                        ) VALUES (
-                          ?, ?, ?, ?, ?, 
-                          ?, ?, ?, ?, ?, 
-                          ?, ?, ?, ?, ?, 
-                          ?, ?, ?, ?,
-                          ?, ?, NOW()
-                        )";
-                        
-                $stmt = $conn->prepare($query);
-                
-                if (!$stmt) {
-                    debug_to_file('Database prepare error', $conn->errorInfo());
-                    throw new Exception("Database prepare error");
-                }
-                
-                // Ensure we have photo_paths as JSON
-                if (!isset($photoPathsJson) && isset($photoPath)) {
-                    $photoPathsJson = json_encode([$photoPath]);
-                    debug_to_file('Created photoPathsJson from photoPath', $photoPathsJson);
-                }
-                
-                // Use PDO-style parameter binding
-                $params = [
-                    $campus, $year, $activity, $background, $participants, 
-                    $topics, $results, $lessons, $what_worked, $issues, 
-                    $recommendations, $ps_attribution, $evaluation, $activity_ratings, $timeliness_ratings, 
-                    $photoPath, $photoPathsJson, $photo_caption, $gender_issue,
-                    isset($_POST['ppas_form_id']) && !empty($_POST['ppas_form_id']) ? $_POST['ppas_form_id'] : null,
-                    $username
-                ];
-                
-                $stmt->execute($params);
-                
-                debug_to_file('Insert query prepared with created_by');
-            } else {
-                // Insert a new record without created_by
-                $query = "INSERT INTO narrative_entries (
-                          campus, year, title, background, participants, 
-                          topics, results, lessons, what_worked, issues, 
-                          recommendations, ps_attribution, evaluation, activity_ratings, timeliness_ratings, 
-                          photo_path, photo_paths, photo_caption, gender_issue,
-                          ppas_form_id, created_at
-                        ) VALUES (
-                          ?, ?, ?, ?, ?, 
-                          ?, ?, ?, ?, ?, 
-                          ?, ?, ?, ?, ?, 
-                          ?, ?, ?, ?,
-                          ?, NOW()
-                        )";
-                        
-                $stmt = $conn->prepare($query);
-                
-                if (!$stmt) {
-                    debug_to_file('Database prepare error', $conn->errorInfo());
-                    throw new Exception("Database prepare error");
-                }
-                
-                // Ensure we have photo_paths as JSON
-                if (!isset($photoPathsJson) && isset($photoPath)) {
-                    $photoPathsJson = json_encode([$photoPath]);
-                    debug_to_file('Created photoPathsJson from photoPath', $photoPathsJson);
-                }
-                
-                // Use PDO-style parameter binding
-                $params = [
-                    $campus, $year, $activity, $background, $participants, 
-                    $topics, $results, $lessons, $what_worked, $issues, 
-                    $recommendations, $ps_attribution, $evaluation, $activity_ratings, $timeliness_ratings, 
-                    $photoPath, $photoPathsJson, $photo_caption, $gender_issue,
-                    isset($_POST['ppas_form_id']) && !empty($_POST['ppas_form_id']) ? $_POST['ppas_form_id'] : null
-                ];
-                
-                $stmt->execute($params);
+            if (!$stmt) {
+                debug_to_file('Database prepare error', $conn->error);
+                throw new Exception("Database prepare error");
             }
+            
+            // Bind parameters for insert
+            $stmt->bind_param(
+                "sssssssssssssssssssssssss",
+                $campus, $year, $title, $background, $participants, 
+                $topics, $results, $lessons, $what_worked, $issues, 
+                $recommendations, $ps_attribution, $other_internal_personnel, $evaluation, $activity_ratings, 
+                $timeliness_ratings, $photo_path, $photo_paths, $photo_caption, $gender_issue,
+                $ppasFormId, $_SESSION['username'], $expected_results, $lessons_learned, $issues_concerns
+            );
         }
         
-        debug_to_file('Executing query');
-        // Fix: use mysqli-specific method to check affected rows instead of PDO's rowCount()
-        debug_to_file('Query execution result', $stmt->affected_rows > 0 ? 'success' : 'failed');
+        debug_to_file("Query parameters:", [
+            'campus' => $campus,
+            'year' => $year,
+            'title' => $title,
+            'other_internal_personnel' => $other_internal_personnel,
+            'photo_caption' => $photo_caption,
+            'gender_issue' => $gender_issue
+        ]);
+        
+        if (!$stmt->execute()) {
+            debug_to_file('Database execute error', $stmt->error);
+            throw new Exception("Failed to save narrative: " . $stmt->error);
+        }
         
         // Get the ID of the inserted record
         $newId = $narrativeId > 0 ? $narrativeId : $conn->insert_id;
         debug_to_file('Record ID', $newId);
         
-        // Check if the evaluation was saved correctly
-        $checkQuery = "SELECT evaluation FROM narrative_entries WHERE id = ?";
+        // Check if the data was saved correctly
+        $checkQuery = "SELECT id, title, photo_path, photo_paths, evaluation, activity_ratings, timeliness_ratings, other_internal_personnel FROM narrative_entries WHERE id = ?";
         $checkStmt = $conn->prepare($checkQuery);
         $checkStmt->bind_param("i", $newId);
         $checkStmt->execute();
@@ -474,7 +416,16 @@ function handleFormSubmission() {
         $row = $result->fetch_assoc();
 
         if ($row) {
-            debug_to_file('Saved evaluation data', $row['evaluation']);
+            debug_to_file('Saved data verification:', [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'photo_path' => $row['photo_path'],
+                'photo_paths' => $row['photo_paths'],
+                'evaluation' => $row['evaluation'],
+                'activity_ratings' => $row['activity_ratings'],
+                'timeliness_ratings' => $row['timeliness_ratings'],
+                'other_internal_personnel' => $row['other_internal_personnel']
+            ]);
         }
         
         debug_to_file('Sending success response');
@@ -639,6 +590,8 @@ function getSingleNarrative() {
             throw new Exception("Invalid narrative ID");
         }
         
+        debug_to_file("Fetching single narrative ID: {$id}");
+        
         $query = "SELECT * FROM narrative_entries WHERE id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $id);
@@ -647,6 +600,13 @@ function getSingleNarrative() {
         
         if ($result->num_rows > 0) {
             $entry = $result->fetch_assoc();
+            
+            // Debug the retrieved entry
+            debug_to_file("Retrieved narrative data:", [
+                'id' => $entry['id'],
+                'title' => $entry['title'],
+                'other_internal_personnel' => $entry['other_internal_personnel']
+            ]);
             
             // Process photo paths if they exist
             if (!empty($entry['photo_paths'])) {
@@ -712,12 +672,43 @@ function getSingleNarrative() {
                 }
             }
 
+            // If we have a PPAS form ID, get the duration from the PPAS form
+            if (!empty($entry['ppas_form_id'])) {
+                $ppasQuery = "SELECT 
+                    COALESCE(CAST(NULLIF(TRIM(total_duration), '') AS DECIMAL(10,2)), 0.00) as total_duration,
+                    COALESCE(ps_attribution, 0.00) as ps_attribution 
+                FROM ppas_forms 
+                WHERE id = ?";
+                    
+                $ppasStmt = $conn->prepare($ppasQuery);
+                $ppasStmt->bind_param("i", $entry['ppas_form_id']);
+                $ppasStmt->execute();
+                $ppasResult = $ppasStmt->get_result();
+                
+                if ($ppasResult->num_rows > 0) {
+                    $ppasData = $ppasResult->fetch_assoc();
+                    
+                    // Set the total duration from PPAS form
+                    $entry['total_duration'] = $ppasData['total_duration'];
+                    
+                    // Set PPAS PS attribution for calculations
+                    $entry['ppas_ps_attribution'] = $ppasData['ps_attribution'];
+                    
+                    debug_to_file("Retrieved PPAS data for form ID {$entry['ppas_form_id']}:", [
+                        'total_duration' => $entry['total_duration'],
+                        'ps_attribution' => $entry['ppas_ps_attribution']
+                    ]);
+                }
+                $ppasStmt->close();
+            }
+
             echo json_encode(['success' => true, 'data' => $entry]);
         } else {
             throw new Exception("Narrative not found");
         }
         
     } catch (Exception $e) {
+        debug_to_file("Error in getSingleNarrative:", $e->getMessage());
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
@@ -965,8 +956,8 @@ function getTitlesFromPPAS() {
         $activities = [];
         
         if ($tableResult && $tableResult->num_rows > 0) {
-            // Build query based on filters
-            $query = "SELECT DISTINCT activity FROM ppas_forms WHERE 1=1";
+            // Build query based on filters - now including id
+            $query = "SELECT DISTINCT id, activity FROM ppas_forms WHERE 1=1";
             $params = [];
             $paramTypes = "";
             
@@ -1014,8 +1005,9 @@ function getTitlesFromPPAS() {
                         }
                     }
                     
-                    // Add activity with has_narrative flag
+                    // Add activity with has_narrative flag and id
                     $activities[] = [
+                        'id' => $row['id'],
                         'title' => $row['activity'],
                         'has_narrative' => $hasNarrative
                     ];
@@ -1035,6 +1027,7 @@ function getTitlesFromPPAS() {
             
             foreach ($defaultTitles as $title) {
                 $activities[] = [
+                    'id' => null,
                     'title' => $title,
                     'has_narrative' => false
                 ];
@@ -1063,235 +1056,150 @@ function getActivityDetails() {
         }
         
         $activity = isset($_POST['activity']) ? sanitize_input($_POST['activity']) : '';
+        $year = isset($_POST['year']) ? sanitize_input($_POST['year']) : '';
         
-        if (empty($activity)) {
-            throw new Exception("Activity parameter is required");
+        if (empty($activity) || empty($year)) {
+            throw new Exception("Activity and year parameters are required");
         }
         
-        debug_to_file("Fetching activity details for: " . $activity);
+        debug_to_file("Fetching activity details for: " . $activity . " (Year: " . $year . ")");
         
-        // Trim any whitespace from the activity name to avoid common issues
-        $activity = trim($activity);
+        // Get user's campus
+        $userCampus = $_SESSION['username'] ?? '';
+        $isCentral = ($userCampus === 'Central');
         
-        // Check if ppas_forms table exists
-        $tableCheckQuery = "SHOW TABLES LIKE 'ppas_forms'";
-        $tableResult = $conn->query($tableCheckQuery);
+        debug_to_file("User Campus: " . $userCampus . ", Is Central: " . ($isCentral ? 'Yes' : 'No'));
         
-        if ($tableResult && $tableResult->num_rows > 0) {
-            // Get PS attribution, gender issue ID and ppas_form_id - try exact match first
-            $query = "SELECT id, ps_attribution, gender_issue_id FROM ppas_forms WHERE activity = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("s", $activity);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            // If no exact match, try case-insensitive match
-            if ($result->num_rows === 0) {
-                debug_to_file("No exact match, trying case-insensitive match");
-                $query = "SELECT id, ps_attribution, gender_issue_id FROM ppas_forms WHERE LOWER(activity) = LOWER(?)";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("s", $activity);
-                $stmt->execute();
-                $result = $stmt->get_result();
-            }
-            
-            // If still no match, try LIKE search
-            if ($result->num_rows === 0) {
-                debug_to_file("No case-insensitive match, trying LIKE search");
-                $query = "SELECT id, ps_attribution, gender_issue_id FROM ppas_forms WHERE activity LIKE ?";
-                $likePattern = "%" . $activity . "%";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("s", $likePattern);
-                $stmt->execute();
-                $result = $stmt->get_result();
-            }
-            
-            if ($result && $result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $psAttribution = $row['ps_attribution'];
-                $genderIssueId = $row['gender_issue_id'];
-                $ppasFormId = $row['id']; // Get the PPAS form ID
-                
-                // Now get the gender issue text
-                $genderIssue = '';
-                
-                // Check if it's a string already
-                if (is_string($genderIssueId) && !is_numeric($genderIssueId)) {
-                    $genderIssue = $genderIssueId;
-                } 
-                // Or if it's a reference to gpb_entries
-                else if (!empty($genderIssueId)) {
-                    // Check if gpb_entries table exists
-                    $genderTableCheckQuery = "SHOW TABLES LIKE 'gpb_entries'";
-                    $genderTableResult = $conn->query($genderTableCheckQuery);
-                    
-                    if ($genderTableResult && $genderTableResult->num_rows > 0) {
-                        $query = "SELECT gender_issue FROM gpb_entries WHERE id = ?";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("i", $genderIssueId);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        
-                        if ($result && $result->num_rows > 0) {
-                            $row = $result->fetch_assoc();
-                            $genderIssue = $row['gender_issue'];
-                        } else {
-                            $genderIssue = $genderIssueId; // Use ID as fallback
-                        }
-                    } else {
-                        $genderIssue = $genderIssueId; // Use ID as fallback
-                    }
-                }
-                
-                echo json_encode([
-                    'success' => true, 
-                    'data' => [
-                        'ps_attribution' => $psAttribution,
-                        'gender_issue' => $genderIssue,
-                        'ppas_form_id' => $ppasFormId
-                    ]
-                ]);
-                
-            } else {
-                throw new Exception("Activity not found");
-            }
+        // First try to get from ppas_forms and join with gpb_entries to get the gender issue name
+        $query = "SELECT p.id, p.ps_attribution, p.gender_issue_id, g.gender_issue, g.id as gpb_id 
+                 FROM ppas_forms p 
+                 LEFT JOIN gpb_entries g ON g.id = p.gender_issue_id 
+                    AND g.year = p.year 
+                    AND (g.campus = p.campus OR g.campus IS NULL)
+                 WHERE (p.id = ? OR p.activity = ?) 
+                 AND p.year = ? 
+                 AND " . ($isCentral ? "1=1" : "p.campus = ?");
+        
+        debug_to_file("Query: " . $query);
+        
+        $stmt = $conn->prepare($query);
+        if ($isCentral) {
+            $stmt->bind_param("sss", $activity, $activity, $year);
         } else {
-            debug_to_file("ppas_forms table not found, trying new database structure");
+            $stmt->bind_param("ssss", $activity, $activity, $year, $userCampus);
+        }
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to execute query: " . $stmt->error);
+        }
+        
+        $result = $stmt->get_result();
+        
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $psAttribution = $row['ps_attribution'];
+            $ppasFormId = $row['id'];
+            $genderIssueId = $row['gender_issue_id'];
+            $genderIssue = $row['gender_issue'];
             
-            // Check if we can find the activity in the new database structure
-            // First check if the narrative_entries table exists
-            $narrativeTableCheckQuery = "SHOW TABLES LIKE 'narrative_entries'";
-            $narrativeTableResult = $conn->query($narrativeTableCheckQuery);
+            debug_to_file("Found PPAS form with ID: " . $ppasFormId);
+            debug_to_file("Gender Issue ID: " . $genderIssueId);
+            debug_to_file("Initial Gender Issue: " . ($genderIssue ?? 'NULL'));
             
-            if ($narrativeTableResult && $narrativeTableResult->num_rows > 0) {
-                // Try to find the activity in narrative_entries - exact match first
-                $query = "SELECT ps_attribution, gender_issue FROM narrative_entries WHERE title = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("s", $activity);
-                $stmt->execute();
-                $result = $stmt->get_result();
+            // If we don't have the gender issue from the join but have an ID, try to get it directly
+            if (empty($genderIssue) && !empty($genderIssueId)) {
+                debug_to_file("No gender issue from join, trying direct lookup with ID: " . $genderIssueId);
                 
-                // If no exact match, try case-insensitive match
-                if ($result->num_rows === 0) {
-                    debug_to_file("No exact match in narrative_entries, trying case-insensitive match");
-                    $query = "SELECT ps_attribution, gender_issue FROM narrative_entries WHERE LOWER(title) = LOWER(?)";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("s", $activity);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                }
+                $gpbQuery = "SELECT gender_issue FROM gpb_entries WHERE id = ?";
+                $gpbStmt = $conn->prepare($gpbQuery);
+                $gpbStmt->bind_param("i", $genderIssueId);
                 
-                // If still no match, try LIKE search
-                if ($result->num_rows === 0) {
-                    debug_to_file("No case-insensitive match in narrative_entries, trying LIKE search");
-                    $query = "SELECT ps_attribution, gender_issue FROM narrative_entries WHERE title LIKE ?";
-                    $likePattern = "%" . $activity . "%";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("s", $likePattern);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                }
-                
-                if ($result && $result->num_rows > 0) {
-                    $row = $result->fetch_assoc();
-                    echo json_encode([
-                        'success' => true, 
-                        'data' => [
-                            'ps_attribution' => $row['ps_attribution'] ?? '',
-                            'gender_issue' => $row['gender_issue'] ?? ''
-                        ]
-                    ]);
-                    return;
-                }
-            }
-            
-            // If we still haven't found it, try to get from any other relevant tables in the new database
-            $tableExistenceQueries = [
-                "SHOW TABLES LIKE 'gpb_entries'",
-                "SHOW TABLES LIKE 'narrative'"
-            ];
-            
-            foreach ($tableExistenceQueries as $tableQuery) {
-                $tableResult = $conn->query($tableQuery);
-                if ($tableResult && $tableResult->num_rows > 0) {
-                    $tableName = str_replace(["SHOW TABLES LIKE '", "'"], "", $tableQuery);
-                    debug_to_file("Checking table: " . $tableName);
+                if (!$gpbStmt->execute()) {
+                    debug_to_file("Failed to execute direct lookup: " . $gpbStmt->error);
+                } else {
+                    $gpbResult = $gpbStmt->get_result();
                     
-                    // Try to find ps_attribution and gender_issue fields in the table structure
-                    $columnsQuery = "SHOW COLUMNS FROM " . $tableName;
-                    $columnsResult = $conn->query($columnsQuery);
-                    $hasPS = false;
-                    $hasGenderIssue = false;
-                    
-                    if ($columnsResult) {
-                        while ($column = $columnsResult->fetch_assoc()) {
-                            if ($column['Field'] === 'ps_attribution') $hasPS = true;
-                            if ($column['Field'] === 'gender_issue') $hasGenderIssue = true;
-                        }
-                        
-                        if ($hasPS || $hasGenderIssue) {
-                            $selectFields = [];
-                            if ($hasPS) $selectFields[] = "ps_attribution";
-                            if ($hasGenderIssue) $selectFields[] = "gender_issue";
-                            
-                            // Exact match
-                            $query = "SELECT " . implode(", ", $selectFields) . " FROM " . $tableName . " WHERE title = ? OR activity = ?";
-                            $stmt = $conn->prepare($query);
-                            $stmt->bind_param("ss", $activity, $activity);
-                            $stmt->execute();
-                            $result = $stmt->get_result();
-                            
-                            // If no match, try case-insensitive
-                            if ($result->num_rows === 0) {
-                                debug_to_file("No exact match in $tableName, trying case-insensitive");
-                                $query = "SELECT " . implode(", ", $selectFields) . " FROM " . $tableName . " WHERE LOWER(title) = LOWER(?) OR LOWER(activity) = LOWER(?)";
-                                $stmt = $conn->prepare($query);
-                                $stmt->bind_param("ss", $activity, $activity);
-                                $stmt->execute();
-                                $result = $stmt->get_result();
-                            }
-                            
-                            // If still no match, try LIKE
-                            if ($result->num_rows === 0) {
-                                debug_to_file("No case-insensitive match in $tableName, trying LIKE");
-                                $likePattern = "%" . $activity . "%";
-                                $query = "SELECT " . implode(", ", $selectFields) . " FROM " . $tableName . " WHERE title LIKE ? OR activity LIKE ?";
-                                $stmt = $conn->prepare($query);
-                                $stmt->bind_param("ss", $likePattern, $likePattern);
-                                $stmt->execute();
-                                $result = $stmt->get_result();
-                            }
-                            
-                            if ($result && $result->num_rows > 0) {
-                                $row = $result->fetch_assoc();
-                                echo json_encode([
-                                    'success' => true, 
-                                    'data' => [
-                                        'ps_attribution' => $row['ps_attribution'] ?? '',
-                                        'gender_issue' => $row['gender_issue'] ?? ''
-                                    ]
-                                ]);
-                                return;
-                            }
-                        }
+                    if ($gpbResult && $gpbResult->num_rows > 0) {
+                        $gpbRow = $gpbResult->fetch_assoc();
+                        $genderIssue = $gpbRow['gender_issue'];
+                        debug_to_file("Found gender issue from direct lookup: " . $genderIssue);
+                    } else {
+                        debug_to_file("No results from direct lookup");
                     }
                 }
             }
             
-            // If we've reached here, we couldn't find anything - try to provide empty values instead of error
-            debug_to_file("Activity not found, providing empty values as fallback");
+            // Check narrative_entries for any override
+            $narrativeQuery = "SELECT gender_issue 
+                             FROM narrative_entries 
+                             WHERE (title = ? OR ppas_form_id = ?) 
+                             AND year = ? 
+                             AND " . ($isCentral ? "1=1" : "campus = ?");
             
-            // Return empty values instead of throwing an error
-            echo json_encode([
+            $narrativeStmt = $conn->prepare($narrativeQuery);
+            if ($isCentral) {
+                $narrativeStmt->bind_param("sis", $activity, $ppasFormId, $year);
+            } else {
+                $narrativeStmt->bind_param("siss", $activity, $ppasFormId, $year, $userCampus);
+            }
+            
+            if (!$narrativeStmt->execute()) {
+                debug_to_file("Failed to execute narrative query: " . $narrativeStmt->error);
+            } else {
+                $narrativeResult = $narrativeStmt->get_result();
+                
+                if ($narrativeResult && $narrativeResult->num_rows > 0) {
+                    $narrativeRow = $narrativeResult->fetch_assoc();
+                    if (!empty($narrativeRow['gender_issue'])) {
+                        $genderIssue = $narrativeRow['gender_issue'];
+                        debug_to_file("Found gender issue override from narrative: " . $genderIssue);
+                    }
+                }
+            }
+            
+            // Always use the actual gender issue text if we have it
+            if (!empty($genderIssue)) {
+                debug_to_file("Using actual gender issue text: " . $genderIssue);
+            }
+            // Only use ID as fallback if we absolutely have no text
+            else if (!empty($genderIssueId)) {
+                // Try one more time to get the gender issue text from gpb_entries
+                $finalQuery = "SELECT gender_issue FROM gpb_entries WHERE id = ?";
+                $finalStmt = $conn->prepare($finalQuery);
+                $finalStmt->bind_param("i", $genderIssueId);
+                
+                if ($finalStmt->execute()) {
+                    $finalResult = $finalStmt->get_result();
+                    if ($finalResult && $finalResult->num_rows > 0) {
+                        $finalRow = $finalResult->fetch_assoc();
+                        $genderIssue = $finalRow['gender_issue'];
+                        debug_to_file("Found gender issue in final attempt: " . $genderIssue);
+                    }
+                }
+                
+                // If still no text, use ID as absolute last resort
+                if (empty($genderIssue)) {
+                    $genderIssue = "Gender Issue #" . $genderIssueId;
+                    debug_to_file("Using fallback gender issue ID as last resort: " . $genderIssue);
+                }
+            }
+            
+            $response = [
                 'success' => true, 
                 'data' => [
-                    'ps_attribution' => '',
-                    'gender_issue' => ''
-                ],
-                'status' => 'fallback'
-            ]);
+                    'ps_attribution' => $psAttribution ?? '',
+                    'gender_issue' => $genderIssue ?? '',
+                    'ppas_form_id' => $ppasFormId ?? null,
+                    'gender_issue_id' => $genderIssueId ?? null
+                ]
+            ];
+            
+            debug_to_file("Sending response: " . json_encode($response));
+            echo json_encode($response);
             return;
         }
+        
+        throw new Exception("Activity not found for year: " . $year);
         
     } catch (Exception $e) {
         debug_to_file("Error in getActivityDetails: " . $e->getMessage());

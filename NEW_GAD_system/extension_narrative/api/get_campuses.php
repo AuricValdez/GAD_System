@@ -41,7 +41,7 @@ try {
     $conn = isset($pdo) ? $pdo : getConnection();
     
     // Query to fetch unique campuses from narrative table
-    $sql = "SELECT DISTINCT campus as name FROM narrative WHERE campus IS NOT NULL AND campus != '' ORDER BY campus";
+    $sql = "SELECT DISTINCT campus as name FROM narrative_entries WHERE campus IS NOT NULL AND campus != '' ORDER BY campus";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $campuses = $stmt->fetchAll(PDO::FETCH_ASSOC);
