@@ -1,9 +1,0 @@
-| **Label**                | **Field(s)**                                                              | **Table**           |
-| ------------------------ | ------------------------------------------------------------------------- | ------------------- |
-| **Title**                | `title`                                                                   | `narrative_entries` |
-| **Date and Venue**       | `start_date`, `end_date`, `location`                                      | `ppas_forms`        |
-| **Project Team**         | `project_leader`, `assistant_project_leader`, `project_staff_coordinator` | `ppas_forms`        |
-| **Type of Participants** | `external_type`, `internal_type`                                          | `ppas_forms`        |
-| **General Objective**    | `general_objectives`                                                      | `ppas_forms`        |
-| **Specific Objectives**  | `specific_objectives`          
- responsibility |`project_leader_responsibilities`, `assistant_project_leader_responsibilities`, `project_staff_coordinator_responsibilities` | `ppas_forms`                      | All stored in JSON               |                                           | `ppas_forms`        |
