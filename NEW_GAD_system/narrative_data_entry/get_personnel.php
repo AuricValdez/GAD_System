@@ -5,123 +5,46 @@ header('Content-Type: application/json');
 try {
     $activityId = isset($_GET['activity_id']) ? intval($_GET['activity_id']) : 0;
     
-    // Base query to get all personnel
+    // Get all personnel without filtering
     $query = "SELECT DISTINCT p.id, p.name, p.academic_rank 
-              FROM personnel p 
-              WHERE p.name NOT IN (
-                  -- Get all project leaders from all arrays
-                  SELECT DISTINCT ppl.name
-                  FROM ppas_forms pf
-                  CROSS JOIN JSON_TABLE(
-                      pf.project_leader,
-                      '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                  ) ppl
-                  WHERE pf.project_leader IS NOT NULL
-                  
-                  UNION
-                  
-                  -- Get all assistant project leaders from all arrays
-                  SELECT DISTINCT apl.name
-                  FROM ppas_forms pf
-                  CROSS JOIN JSON_TABLE(
-                      pf.assistant_project_leader,
-                      '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                  ) apl
-                  WHERE pf.assistant_project_leader IS NOT NULL
-                  
-                  UNION
-                  
-                  -- Get all project staff coordinators from all arrays
-                  SELECT DISTINCT psc.name
-                  FROM ppas_forms pf
-                  CROSS JOIN JSON_TABLE(
-                      pf.project_staff_coordinator,
-                      '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                  ) psc
-                  WHERE pf.project_staff_coordinator IS NOT NULL
-              )
+              FROM personnel p
               ORDER BY p.name ASC";
-
-    // If activity ID is provided, modify query to exclude personnel from other activities
-    // but include those from the current activity
-    if ($activityId > 0) {
-        $query = "SELECT DISTINCT p.id, p.name, p.academic_rank 
-                 FROM personnel p 
-                 WHERE p.name NOT IN (
-                     -- Get all project leaders from other activities
-                     SELECT DISTINCT ppl.name
-                     FROM ppas_forms pf
-                     CROSS JOIN JSON_TABLE(
-                         pf.project_leader,
-                         '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                     ) ppl
-                     WHERE pf.id != ? AND pf.project_leader IS NOT NULL
-                     
-                     UNION
-                     
-                     -- Get all assistant project leaders from other activities
-                     SELECT DISTINCT apl.name
-                     FROM ppas_forms pf
-                     CROSS JOIN JSON_TABLE(
-                         pf.assistant_project_leader,
-                         '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                     ) apl
-                     WHERE pf.id != ? AND pf.assistant_project_leader IS NOT NULL
-                     
-                     UNION
-                     
-                     -- Get all project staff coordinators from other activities
-                     SELECT DISTINCT psc.name
-                     FROM ppas_forms pf
-                     CROSS JOIN JSON_TABLE(
-                         pf.project_staff_coordinator,
-                         '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                     ) psc
-                     WHERE pf.id != ? AND pf.project_staff_coordinator IS NOT NULL
-                 )
-                 AND p.name NOT IN (
-                     -- Exclude personnel already in current activity
-                     SELECT DISTINCT ppl.name
-                     FROM ppas_forms pf
-                     CROSS JOIN JSON_TABLE(
-                         pf.project_leader,
-                         '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                     ) ppl
-                     WHERE pf.id = ? AND pf.project_leader IS NOT NULL
-                     
-                     UNION
-                     
-                     SELECT DISTINCT apl.name
-                     FROM ppas_forms pf
-                     CROSS JOIN JSON_TABLE(
-                         pf.assistant_project_leader,
-                         '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                     ) apl
-                     WHERE pf.id = ? AND pf.assistant_project_leader IS NOT NULL
-                     
-                     UNION
-                     
-                     SELECT DISTINCT psc.name
-                     FROM ppas_forms pf
-                     CROSS JOIN JSON_TABLE(
-                         pf.project_staff_coordinator,
-                         '$[*]' COLUMNS(name VARCHAR(255) PATH '$')
-                     ) psc
-                     WHERE pf.id = ? AND pf.project_staff_coordinator IS NOT NULL
-                 )
-                 ORDER BY p.name ASC";
-    }
-
-    $stmt = $pdo->prepare($query);
     
-    if ($activityId > 0) {
-        // Bind the activity ID six times for all the conditions
-        $stmt->execute([$activityId, $activityId, $activityId, $activityId, $activityId, $activityId]);
-    } else {
-        $stmt->execute();
-    }
-
+    $stmt = $pdo->prepare($query);
+    $stmt->execute();
     $personnel = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // If activity ID is provided, add a flag to indicate if personnel is used in the current activity
+    if ($activityId > 0) {
+        // Get all personnel from the current activity
+        $usedQuery = "SELECT DISTINCT 
+                          JSON_EXTRACT(pf.project_leader, '$[*]') as leaders,
+                          JSON_EXTRACT(pf.assistant_project_leader, '$[*]') as assistants,
+                          JSON_EXTRACT(pf.project_staff_coordinator, '$[*]') as staff
+                      FROM ppas_forms pf
+                      WHERE pf.id = ?";
+        
+        $usedStmt = $pdo->prepare($usedQuery);
+        $usedStmt->execute([$activityId]);
+        $usedData = $usedStmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Extract personnel names from JSON arrays
+        $usedNames = [];
+        if ($usedData) {
+            // Parse JSON strings into arrays
+            $leaders = json_decode($usedData['leaders'], true) ?: [];
+            $assistants = json_decode($usedData['assistants'], true) ?: [];
+            $staff = json_decode($usedData['staff'], true) ?: [];
+            
+            // Merge all names
+            $usedNames = array_merge($leaders, $assistants, $staff);
+        }
+        
+        // Add flag to each personnel record
+        foreach ($personnel as &$person) {
+            $person['is_used_in_current'] = in_array($person['name'], $usedNames);
+        }
+    }
     
     echo json_encode([
         'status' => 'success',

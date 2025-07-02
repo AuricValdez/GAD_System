@@ -265,6 +265,7 @@ try {
         'financial_requirements' => $narrativeData['total_budget'] ?? '0',
         'ps_attribution' => $ps_attribution,
         'activity_images' => $narrativeData['activity_images'],
+        'photo_caption' => $narrativeData['photo_caption'] ?? '',
         'extension_service_agenda' => isset($narrativeData['gender_issue']) ? explode(',', $narrativeData['gender_issue']) : [],
         'activity_ratings' => $narrativeData['activity_ratings'],
         'timeliness_ratings' => $narrativeData['timeliness_ratings'],
@@ -682,6 +683,7 @@ try {
                 'source_of_fund' => ['GAD']
             ],
             'source_of_budget' => $formattedData['source_of_budget'] ?? ['GAD'],
+            'photo_caption' => $formattedData['photo_caption'] ?? 'Activity Documentation Photos',
             'type_participants' => $formattedData['type_participants'] ?? [
                 'internal' => 'Students, Faculty, University Staff',
                 'external' => 'Community members and stakeholders'

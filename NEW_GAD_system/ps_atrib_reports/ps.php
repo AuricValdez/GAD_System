@@ -14,7 +14,9 @@ if (!isset($_SESSION['username'])) {
 }
 
 $isCentral = isset($_SESSION['username']) && $_SESSION['username'] === 'Central';
-$userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
+// First try to get campus from SESSION, if not set, use username as campus
+$userCampus = isset($_SESSION['campus']) && !empty($_SESSION['campus']) ? $_SESSION['campus'] : $_SESSION['username'];
+error_log("User campus set to: $userCampus");
 ?>
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
@@ -1142,14 +1144,18 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
             // Initialize campus fields based on user
             const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
             const userCampus = "<?php echo $userCampus; ?>";
+            console.log('Setting campus field values - User campus:', userCampus, 'Is Central:', isCentral);
 
             // Set campus fields
             for (let quarter = 1; quarter <= 4; quarter++) {
                 const campusField = document.getElementById(`ppasCampus${quarter}`);
                 if (campusField) {
-                    campusField.value = userCampus;
-                    // For Central users, campus will be populated when a PPA is selected
-                    if (isCentral) {
+                    if (!isCentral && userCampus) {
+                        // For non-Central users, set the campus field to their campus and keep readonly
+                        campusField.value = userCampus;
+                        console.log(`Set campus for Q${quarter} to ${userCampus}`);
+                    } else if (isCentral) {
+                        // For Central users, campus will be selected from dropdown
                         campusField.value = '';
                     }
                 }
@@ -1933,6 +1939,13 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                         select.disabled = false;
                     }
                 }
+            } else {
+                // For non-Central users, always make sure the campus field has their campus
+                const campusField = document.getElementById(`ppasCampus${quarter}`);
+                if (campusField && userCampus) {
+                    campusField.value = userCampus;
+                    console.log(`Ensuring campus field for Q${quarter} is set to ${userCampus}`);
+                }
             }
 
             // Show loading state
@@ -2168,14 +2181,14 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                         }
                     }
 
-                    // Set campus field for non-Central users only
-                    // For Central users, we preserve their selected campus
-                    if (!isCentral) {
+                    // Set campus field for non-Central users or preserve Central user's selection
+                    if (!isCentral && userCampus) {
                         const campus = document.getElementById(`ppasCampus${quarter}`);
                         if (campus) {
                             campus.value = userCampus;
                         }
                     }
+                    // For Central users, don't modify their selection here
 
                     // Combine academic ranks data from both sources
                     let combinedAcademicRanks = [];
@@ -2318,10 +2331,20 @@ $userCampus = isset($_SESSION['campus']) ? $_SESSION['campus'] : '';
                 date.value = '';
             }
 
-            // Clear campus field
+            // Only clear campus field for Central users
+            const isCentral = <?php echo $isCentral ? 'true' : 'false'; ?>;
+            const userCampus = "<?php echo $userCampus; ?>";
             const campus = document.getElementById(`ppasCampus${quarter}`);
+            
             if (campus) {
-                campus.value = '';
+                if (isCentral) {
+                    // Only clear for Central users
+                    campus.value = '';
+                } else if (userCampus) {
+                    // Ensure non-Central users always have their campus set
+                    campus.value = userCampus;
+                    console.log(`Preserving campus value for Q${quarter}: ${userCampus}`);
+                }
             }
 
             // Clear table

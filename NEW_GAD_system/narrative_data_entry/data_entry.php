@@ -1787,10 +1787,14 @@ if($isCentral):
                                         const ps = (person.duration || 0) * (person.hourlyRate || 0);
                                         const li = $('<li>').addClass('list-group-item');
                                         
+                                        // Highlight if the person is already used in the current activity
+                                        const nameStyle = person.is_used_in_current ? 'color: #cc0000;' : '';
+                                        const nameTooltip = person.is_used_in_current ? 'title="This person is already assigned to this activity"' : '';
+                                        
                                         const content = `
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <strong>${person.name || 'Unknown Personnel'}</strong>
+                                                    <strong style="${nameStyle}" ${nameTooltip}>${person.name || 'Unknown Personnel'}</strong>
                                                     <div class="small text-muted">
                                                         ${person.rank ? person.rank + ' • ' : ''}
                                                         Hourly Rate: ₱${person.hourlyRate ? person.hourlyRate.toFixed(2) : '0.00'} • 
@@ -3910,18 +3914,49 @@ if($isCentral):
                                                             }
                                                         });
                                                         
-                                                        // Mark personnel as selected in the dropdown
-                                                        setTimeout(() => {
+                                                        // Get info about personnel already used in current activity
+                                                        setTimeout(async () => {
+                                                            if (narrative && narrative.ppas_form_id) {
+                                                                try {
+                                                                    // Fetch personnel used in the current activity
+                                                                    const usedPersonnelResponse = await fetch(`get_personnel.php?activity_id=${narrative.ppas_form_id}`);
+                                                                    const usedPersonnelResult = await usedPersonnelResponse.json();
+                                                                    
+                                                                    if (usedPersonnelResult.status === 'success' && usedPersonnelResult.data) {
+                                                                        // Create a map of personnel with is_used_in_current flag
+                                                                        const personnelMap = new Map();
+                                                                        usedPersonnelResult.data.forEach(person => {
+                                                                            personnelMap.set(person.id, person.is_used_in_current);
+                                                                        });
+                                                                        
+                                                                        // Update selected personnel with the is_used_in_current flag
+                                                                        window.selectedPersonnel.forEach(person => {
+                                                                            person.is_used_in_current = personnelMap.has(person.id) ? personnelMap.get(person.id) : false;
+                                                                        });
+                                                                    }
+                                                                } catch (error) {
+                                                                    console.error('Error fetching personnel usage info:', error);
+                                                                }
+                                                            }
+                                                            
+                                                            // Mark personnel as selected in the dropdown but not disabled
                                                             window.selectedPersonnel.forEach(person => {
                                                                 const option = $(`#personnelName option[value="${person.id}"]`);
                                                                 if (option.length) {
-                                                                    // Mark it visually but don't select it (to avoid duplication)
+                                                                    // Mark it as already selected in our list
                                                                     option.attr('data-selected', 'true');
-                                                                    option.css('background-color', '#e9ecef');
-                                                                    option.css('color', '#495057');
-                                                                    option.prop('disabled', true); // Prevent duplicate selection
+                                                                    
+                                                                    // Don't actually disable, just mark with a different color
+                                                                    if (person.is_used_in_current) {
+                                                                        option.css('background-color', '#ffdddd');
+                                                                        option.css('color', '#cc0000');
+                                                                        option.attr('title', 'This person is already assigned to this activity');
+                                                                    }
                                                                 }
                                                             });
+                                                            
+                                                            // Update the UI
+                                                            window.updatePersonnelList();
                                                         }, 1000); // Longer delay to ensure dropdown is populated
                                                         
                                                         // Update UI after loading personnel
@@ -3986,12 +4021,39 @@ if($isCentral):
                                                         window.updatePersonnelList();
                                                         window.calculateTotalPS();
                                                     }
+                                                    
+                                                    // Also reload the personnel dropdown to show current activity personnel
+                                                    window.loadPersonnel(narrative.ppas_form_id);
                                                 }
                                             },
                                             error: function(xhr, status, error) {
                                                 console.error('Error loading PPAS data:', error);
                                             }
                                         });
+                                        
+                                        // Also fetch information about personnel used in this activity
+                                        fetch(`get_personnel.php?activity_id=${narrative.ppas_form_id}`)
+                                            .then(response => response.json())
+                                            .then(result => {
+                                                if (result.status === 'success' && result.data) {
+                                                    // Create a map of personnel with is_used_in_current flag
+                                                    const personnelMap = new Map();
+                                                    result.data.forEach(person => {
+                                                        personnelMap.set(person.id, person.is_used_in_current);
+                                                    });
+                                                    
+                                                    // Update selected personnel with the is_used_in_current flag
+                                                    window.selectedPersonnel.forEach(person => {
+                                                        person.is_used_in_current = personnelMap.has(person.id) ? personnelMap.get(person.id) : false;
+                                                    });
+                                                    
+                                                    // Update the UI
+                                                    window.updatePersonnelList();
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error fetching personnel usage info:', error);
+                                            });
                                     }
                                     
                                     // Scroll to top of form
@@ -7157,47 +7219,46 @@ if($isCentral):
                 });
             }
 
-            $(document).ready(function() {
-                // Existing document ready code...
-                
-                // Load personnel names for the dropdown based on selected activity
-                async function loadPersonnel(activityId = null) {
-                    try {
-                        const dropdown = document.getElementById('personnelName');
-                        dropdown.innerHTML = '<option value="">Select Personnel</option>'; // Clear existing options
-                        
-                        let url = 'get_personnel.php';
-                        if (activityId) {
-                            url += `?activity_id=${activityId}`;
-                        }
-                        
-                        const response = await fetch(url);
-                        const result = await response.json();
-                        
-                        if (result.status === 'success') {
-                            if (result.data && result.data.length > 0) {
-                                // Filter out already selected personnel
-                                const availablePersonnel = result.data.filter(person => 
-                                    !window.selectedPersonnel.some(selected => 
-                                        selected.name === person.name || selected.id === person.id
-                                    )
-                                );
+            // Load personnel names for the dropdown based on selected activity
+            // Moved outside to be globally accessible
+            window.loadPersonnel = async function(activityId = null) {
+                try {
+                    const dropdown = document.getElementById('personnelName');
+                    dropdown.innerHTML = '<option value="">Select Personnel</option>'; // Clear existing options
+                    
+                    let url = 'get_personnel.php';
+                    if (activityId) {
+                        url += `?activity_id=${activityId}`;
+                    }
+                    
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        if (result.data && result.data.length > 0) {
+                            // Filter out personnel that are already in our selected list for this narrative
+                            const availablePersonnel = result.data.filter(person => 
+                                !window.selectedPersonnel.some(selected => 
+                                    selected.name === person.name || selected.id === person.id
+                                )
+                            );
 
-                                if (availablePersonnel.length > 0) {
-                                    availablePersonnel.forEach(person => {
-                                        const option = document.createElement('option');
-                                        option.value = person.id;
-                                        option.textContent = person.name;
-                                        option.dataset.academicRank = person.academic_rank;
-                                        dropdown.appendChild(option);
-                                    });
-                                } else {
+                            if (availablePersonnel.length > 0) {
+                                availablePersonnel.forEach(person => {
                                     const option = document.createElement('option');
-                                    option.value = "";
-                                    option.textContent = "No available personnel";
-                                    option.disabled = true;
+                                    option.value = person.id;
+                                    option.textContent = person.name;
+                                    option.dataset.academicRank = person.academic_rank;
+                                    
+                                    // Highlight personnel already used in current activity with red background
+                                    if (person.is_used_in_current) {
+                                        option.style.backgroundColor = '#ffdddd';  // Light red background
+                                        option.style.color = '#cc0000';  // Dark red text
+                                        option.title = 'This person is already assigned to this activity';
+                                    }
+                                    
                                     dropdown.appendChild(option);
-                                }
+                                });
                             } else {
                                 const option = document.createElement('option');
                                 option.value = "";
@@ -7206,15 +7267,25 @@ if($isCentral):
                                 dropdown.appendChild(option);
                             }
                         } else {
-                            console.error('Failed to load personnel:', result.message);
+                            const option = document.createElement('option');
+                            option.value = "";
+                            option.textContent = "No available personnel";
+                            option.disabled = true;
+                            dropdown.appendChild(option);
                         }
-                    } catch (error) {
-                        console.error('Error loading personnel:', error);
+                    } else {
+                        console.error('Failed to load personnel:', result.message);
                     }
+                } catch (error) {
+                    console.error('Error loading personnel:', error);
                 }
+            };
 
+            $(document).ready(function() {
+                // Existing document ready code...
+                
                 // Initial load of personnel
-                loadPersonnel();
+                window.loadPersonnel();
 
                 // Reload personnel when activity changes
                 $('#title').on('change', async function() {
@@ -7281,7 +7352,34 @@ if($isCentral):
                     }
                     
                     // Load personnel after duration is handled
-                    await loadPersonnel(activityId);
+                    await window.loadPersonnel(activityId);
+                    
+                    // For selected personnel, check if they're used in the current activity
+                    if (window.selectedPersonnel && window.selectedPersonnel.length > 0 && activityId) {
+                        try {
+                            // Fetch personnel used in the current activity
+                            const usedPersonnelResponse = await fetch(`get_personnel.php?activity_id=${activityId}`);
+                            const usedPersonnelResult = await usedPersonnelResponse.json();
+                            
+                            if (usedPersonnelResult.status === 'success' && usedPersonnelResult.data) {
+                                // Create a map of personnel with is_used_in_current flag
+                                const personnelMap = new Map();
+                                usedPersonnelResult.data.forEach(person => {
+                                    personnelMap.set(person.id, person.is_used_in_current);
+                                });
+                                
+                                // Update selected personnel with the is_used_in_current flag
+                                window.selectedPersonnel.forEach(person => {
+                                    person.is_used_in_current = personnelMap.has(person.id) ? personnelMap.get(person.id) : false;
+                                });
+                                
+                                // Update the display
+                                updatePersonnelList();
+                            }
+                        } catch (error) {
+                            console.error('Error fetching personnel usage info:', error);
+                        }
+                    }
                 });
 
                 // Handle personnel selection change
@@ -7290,8 +7388,9 @@ if($isCentral):
                     const id = option.val();
                     const name = option.text();
                     const rank = option.data('academicRank');
-
-                    console.log('Personnel selection changed:', { id, name });
+                    const isUsedInCurrent = option.css('background-color') === 'rgb(255, 221, 221)'; // Check for red background
+                    
+                    console.log('Personnel selection changed:', { id, name, isUsedInCurrent });
 
                     if (!id || name === 'Select Personnel') {
                         console.log('Invalid selection, resetting dropdown');
@@ -7299,7 +7398,7 @@ if($isCentral):
                         return;
                     }
 
-                    // Check for duplicates
+                    // Check for duplicates in our selected list
                     if (window.isPersonnelAlreadySelected(id)) {
                         console.log('Duplicate personnel detected, ignoring');
                         $(this).val('');
@@ -7308,18 +7407,19 @@ if($isCentral):
 
                     try {
                         console.log('Fetching personnel details for ID:', id);
-                            const response = await $.get('get_personnel_details.php', { personnel_id: id });
+                        const response = await $.get('get_personnel_details.php', { personnel_id: id });
                         
                         if (response.status === 'success') {
-                                const details = response.data;
-                                const duration = parseFloat($('#totalDuration').val()) || 0;
-                                
+                            const details = response.data;
+                            const duration = parseFloat($('#totalDuration').val()) || 0;
+                            
                             const newPersonnel = {
-                                    id,
-                                    name,
-                                    rank: details.academic_rank,
+                                id,
+                                name,
+                                rank: details.academic_rank,
                                 hourlyRate: parseFloat(details.hourly_rate) || 0,
-                                duration: duration
+                                duration: duration,
+                                is_used_in_current: isUsedInCurrent // Set flag based on if they're used in the current activity
                             };
                             
                             // Calculate PS based on duration and hourly rate
@@ -7333,7 +7433,7 @@ if($isCentral):
                             window.calculateTotalPS();
                         }
                     } catch (error) {
-                            console.error('Error fetching personnel details:', error);
+                        console.error('Error fetching personnel details:', error);
                     }
                     
                     $(this).val(''); // Reset dropdown

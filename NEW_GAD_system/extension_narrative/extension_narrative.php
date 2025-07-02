@@ -836,6 +836,7 @@ function getNarrativeData($ppas_form_id) {
         // Set PS attribution from narrative_entries only - use 5000 as default if not set
         $final_data['ps_attribution'] = $narrative_entries['ps_attribution'] ?? '5000';
         echo "<li>- final ps_attribution value: " . htmlspecialchars($final_data['ps_attribution']) . "</li>";
+        echo "<li>- photo_caption value: " . htmlspecialchars($final_data['photo_caption'] ?? 'NOT SET') . "</li>";
         echo "</ul>";
         echo "</div>";
         
@@ -4875,6 +4876,8 @@ if($isCentral):
                 ps_attribution: data.ps_attribution || '5000', // Use top-level ps_attribution set directly from narrative_entries with default
                 source_of_budget: data.source_of_budget || [],
                 activity_images: data.activity_images || [],
+                // Add photo_caption directly from the narrative_entries data
+                photo_caption: data.photo_caption || '',
                 // Additional sections data
                 mode_of_delivery: data.mode_of_delivery || data.raw_mode_of_delivery || 'Face-to-face',
                 project_team: {
@@ -4935,6 +4938,7 @@ if($isCentral):
                 },
                 photo_documentation: data.photo_documentation || (data.activity_images ? 
                     data.activity_images.map(img => ({ path: img, caption: '' })) : []),
+                photo_caption: data.photo_caption || '',
                 beneficiary_distribution: data.beneficiary_distribution || {
                     maleBatStateU: data.internal_male || data.raw_internal_male || 0,
                     femaleBatStateU: data.internal_female || data.raw_internal_female || 0,
@@ -4954,6 +4958,9 @@ if($isCentral):
             };
             
             console.log('Signatories data:', signatories);
+            
+            // Debug the photo caption
+            console.log('Photo Caption:', data.photo_caption);
             
             // Map the prepared by position to the appropriate signatory name
             let preparedByName = '';
@@ -5461,7 +5468,8 @@ if($isCentral):
                                 `<div style="text-align: center; padding: 15px;">No photo documentation available</div>`
                             }
                         </div>
-                        <p style="text-align: center; margin-top: 10px; font-style: italic;">Activity Documentation Photos</p>
+                                                <p style="text-align: center; margin-top: 10px; font-style: italic;">${data.photo_caption || 'Activity Documentation Photos'}</p>
+
                     </div>
                 </div>
 
